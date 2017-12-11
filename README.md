@@ -85,6 +85,10 @@ INSTALLED_APPS = INSTALLED_APPS + (
 )
 ```
 
+# Architecture
+
+A high level architecture/overview document can be [found here](./docs/overview.md).
+
 # Project Todos
 
 Support/upgrade to latest django (currently broken)
