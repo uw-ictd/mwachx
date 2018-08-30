@@ -10,7 +10,7 @@ class SpecialModelChoiceField(ModelChoiceField):
         try:
             return obj.choice_label()
         except AttributeError as e:
-            return unicode(obj)
+            return str(obj)
 
 class ParticipantSendForm(ModelForm):
 

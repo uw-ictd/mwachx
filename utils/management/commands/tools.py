@@ -11,11 +11,8 @@ from django.db import transaction, connection
 
 import contacts.models as cont
 import backend.models as back
-import command_utils
 import transports
-from transports.email import email
-import transports.africas_talking.api as at
-import tasks 
+from . import tasks
 
 class Command(BaseCommand):
     '''Cron commands to manage project '''
@@ -142,8 +139,8 @@ class Command(BaseCommand):
         csv_file = csv.reader(open(self.options['csv_file']))
 
         # Print CSV Header
-        print "Header:" , csv_file.next() , "Send:" , self.options['send']
-        print ""
+        print( "Header:" , csv_file.next() , "Send:" , self.options['send'] )
+        print( "" )
 
         sent , missing , skipped = 0 , 0 , 0
         for row in csv_file:
@@ -154,7 +151,7 @@ class Command(BaseCommand):
                 try:
                     contact = cont.Contact.objects.get_from_phone_number(phone_number)
                 except cont.Contact.DoesNotExist as e:
-                    print "Missing:" , phone_number , " -> " , text
+                    print( "Missing:" , phone_number , " -> " , text )
                     if self.options['send']:
                         transports.send( phone_number , text )
                     missing += 1
@@ -165,4 +162,4 @@ class Command(BaseCommand):
             else:
                 skipped += 1
 
-        print "Sent:" , sent , "Missing:" , missing , "Skipped:" , skipped
+        print( "Sent:" , sent , "Missing:" , missing , "Skipped:" , skipped )

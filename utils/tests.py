@@ -1,5 +1,5 @@
 from django.test import TestCase
-import sms_utils as sms
+from . import sms_utils as sms
 
 class UtilsTestCase(TestCase):
 

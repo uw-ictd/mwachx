@@ -1,10 +1,13 @@
+# Python Imports
 import datetime
+import importlib
+
 # Django imports
 from django.conf import settings
 
 # Local imports
-import contacts.models as cont
-import validation
+from contacts import models as cont
+from . import validation
 
 def send(identity, message, transport_name=None):
     ''' Main hook for sending message to identity.
@@ -15,7 +18,7 @@ def send(identity, message, transport_name=None):
         transport_name = getattr(settings,'SMS_TRANSPORT','default')
 
     # Get transport send Function
-    transport = __import__(transport_name,globals(),locals())
+    transport = importlib.import_module(f'transports.{transport_name}')
     id, success, data = transport.send(identity,message)
     return id, success, data
 
@@ -53,7 +56,3 @@ def receive(identity,message_text,external_id='',**kwargs):
 
     message.save()
     return message
-
-
-class TransportError(Exception):
-    pass

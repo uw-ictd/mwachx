@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import openpyxl as xl
 import sys, datetime
 from argparse import Namespace as ns
 from requests import HTTPError
@@ -151,7 +150,7 @@ def appointment_reminders(date,hour,email_body,options,send=False):
             elif hour == 0 or visit.participant.send_time == hour:
                 try:
                     message = visit.send_visit_reminder(send=send)
-                except requests.HTTPError as e:
+                except HTTPError as e:
                     vals.errors.append( '{} (#{})'.format( visit.participant.description(today=date),visit.participant.study_id) )
                 else:
                     if message is None:
@@ -189,7 +188,7 @@ def missed_visit_reminders(hour,email_body,options,send=False):
             if hour == 0 or visit.participant.send_time == hour:
                 try:
                     message = visit.send_missed_visit_reminder(send=send)
-                except requests.HTTPError as e:
+                except HTTPError as e:
                     vals.errors.append( '{} (#{})'.format( visit.participant.description(today=date),visit.participant.study_id) )
                 else:
                     if message is None:

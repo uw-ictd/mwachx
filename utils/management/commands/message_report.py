@@ -189,7 +189,7 @@ class Command(BaseCommand):
             for key , value in row.items():
                 total_row[key] += value
         ws.append( ["Total"] + total_row.values() )
-        print '\n'.join( str(i) for i in total_row.items() )
+        print( '\n'.join( str(i) for i in total_row.items() ) )
         wb.save(self.file_name)
 
     ########################################

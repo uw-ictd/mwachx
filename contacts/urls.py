@@ -1,23 +1,28 @@
-from django.conf.urls import patterns, include, url
+# Django Imports
+from django.urls import include, re_path
+from rest_framework import urls as rest_framework_urls
 
 
-from serializers import router
+# Local Imports
+from .serializers import router
+from contacts import views as contacts
 
 
-urlpatterns = patterns('',
+urlpatterns = [
     # DRF API viewer
-    url(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
-    url(r'^api/v0.1/', include(router.urls)),
+    # re_path(r'^api-auth/', include('rest_framework.urls', namespace='rest_framework')),
+    # re_path(r'^api-auth/', include(rest_framework_urls)),
+    re_path(r'^api/v0.1/', include(router.urls)),
 
     # Angular app
-    url(r'^$', 'contacts.views.angular_view'),
+    re_path(r'^$', contacts.angular_view),
 
     # Misc Actions
-    url(r'^staff/facility_change/(?P<facility_name>.*)/$','contacts.views.staff_facility_change'), #If we have more than 9 facilities we'd need to change this
-    url(r'^staff/date/(?P<direction>back|forward)/(?P<delta>\d{1,365})/$','contacts.views.change_current_date'),
-    url(r'^staff/change_password/','contacts.views.change_password',name='mx-change-password'),
+    re_path(r'^staff/facility_change/(?P<facility_name>.*)/$',contacts.staff_facility_change), # If we have more than 9 facilities we'd need to change this
+    re_path(r'^staff/date/(?P<direction>back|forward)/(?P<delta>\d{1,365})/$',contacts.change_current_date),
+    re_path(r'^staff/change_password/',contacts.change_password,name='mx-change-password'),
 
     # crispy-form partial
-    url(r'^crispy-forms/participant/new/?$','contacts.views.crispy.participant_add'),
-    url(r'^crispy-forms/participant/update/?$','contacts.views.crispy.participant_update'),
-)
+    re_path(r'^crispy-forms/participant/new/?$',contacts.crispy.participant_add),
+    re_path(r'^crispy-forms/participant/update/?$',contacts.crispy.participant_update),
+]

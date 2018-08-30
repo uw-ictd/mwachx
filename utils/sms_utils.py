@@ -1,5 +1,4 @@
 #!/usr/bin/python
-import code
 import operator, collections, re, itertools
 
 class MessageRowBase(object):
@@ -16,7 +15,7 @@ class MessageRowBase(object):
         self.new = kwargs.get('new','')
         self.row = row[0].row
 
-        if any( [s is None for s in group,track,hiv,send_base,offset ] ):
+        if any( [s is None for s in (group,track,hiv,send_base,offset) ] ):
             status = '#'
         self.set_status(status)
 
@@ -60,7 +59,7 @@ class MessageRowBase(object):
         except TypeError as e:
             return None
         if match is None:
-            print 'Comment Warning: {} row {}'.format(self.comment,self.row)
+            print( 'Comment Warning: {} row {}'.format(self.comment,self.row) )
             return None
         return int(match.group(0))
 
@@ -84,7 +83,7 @@ class MessageRowBase(object):
         return self.status in ['todo','swahili','luo']
 
     def set_hiv_messaging(self):
-        if isinstance(self.hiv,basestring):
+        if isinstance(self.hiv,str):
             self.hiv = self.hiv.strip().lower().startswith('y')
         else:
             self.hiv = bool(self.hiv)
@@ -239,7 +238,7 @@ def cell_values(*args):
 
 multiple_whitespace = re.compile(r'\s{2,}',re.M)
 def clean_msg(msg):
-    if not isinstance(msg,basestring):
+    if not isinstance(msg,str):
         return ''
     msg = msg.replace(u'\u2019','\'')  # replace right quot
     msg = msg.replace(u'\xa0',' ') # replace non blank space

@@ -4,7 +4,7 @@ from django.contrib.auth.models import User
 from django.utils import html
 
 #Local Imports
-import models as cont
+from . import models as cont
 import utils.admin as utils
 
 class ConnectionInline(admin.TabularInline):

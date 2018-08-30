@@ -8,7 +8,6 @@ from django.core.exceptions import ObjectDoesNotExist
 from jsonfield import JSONField
 
 #Local Imports
-import swapper
 import transports
 from utils.models import TimeStampedModel,BaseQuerySet
 
@@ -20,7 +19,7 @@ class Connection(models.Model):
     objects = BaseQuerySet.as_manager()
 
     identity = models.CharField(max_length=25,primary_key=True)
-    contact = models.ForeignKey(swapper.get_model_name('contacts', 'Contact'), blank=True, null=True)
+    contact = models.ForeignKey('contacts.Contact', models.CASCADE, blank=True, null=True)
 
     description = models.CharField(max_length=30,blank=True,null=True,help_text='Description of phone numbers relationship to contact')
 
@@ -69,7 +68,7 @@ class Practitioner(models.Model):
 
     objects = PractitionerQuerySet.as_manager()
 
-    user = models.OneToOneField(User)
+    user = models.OneToOneField(User, models.CASCADE)
     facility = models.CharField(max_length=15,choices=settings.FACILITY_CHOICES)
     password_changed = models.BooleanField(default=False)
 
@@ -97,6 +96,6 @@ class EventLog(TimeStampedModel):
 
     objects = BaseQuerySet.as_manager()
 
-    user = models.ForeignKey(User)
+    user = models.ForeignKey(User, models.CASCADE)
     event = models.CharField(max_length=25,help_text="Event Name")
     data = JSONField()

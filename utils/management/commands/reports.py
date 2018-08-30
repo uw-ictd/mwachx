@@ -1,16 +1,19 @@
 #!/usr/bin/python
  # -*- coding: utf-8 -*-
-import datetime, openpyxl as xl, os
-import code
-import operator, collections, csv
+import collections
+import csv
+import datetime
+import openpyxl as xl
+import operator
+import os
 
-from django.core.management.base import BaseCommand, CommandError
+from django.core.management.base import BaseCommand
 from django.db import models
 from django.utils import timezone
 
-import backend.models as back
 import contacts.models as cont
 import utils
+
 
 class Command(BaseCommand):
 
@@ -143,7 +146,7 @@ class Command(BaseCommand):
     # SEC::Start CSV Functions
     def make_csv_name(self):
         file_path = getattr(self,'make_{}_csv'.format(self.options['name']))()
-        print "Done:" , file_path
+        print( "Done:" , file_path )
 
 
     ########################################
@@ -320,10 +323,10 @@ class Command(BaseCommand):
                 hours[m.created.hour] += 1
             hour_counts[k] = hours
 
-        print "     C    S    N"
+        print( "     C    S    N" )
         for h in range(24):
-            print "{0:<5}{1:<5}{2:<5}{3:<5}".format((h+3)%24,hour_counts['p'][h],hour_counts['s'][h],hour_counts['n'][h])
-        print "     {0:<5}{1:<5}{2:<5}".format(*map(sum,[hour_counts[k] for k in ('p','s','n')]))
+            print( "{0:<5}{1:<5}{2:<5}{3:<5}".format((h+3)%24,hour_counts['p'][h],hour_counts['s'][h],hour_counts['n'][h]) )
+        print( "     {0:<5}{1:<5}{2:<5}".format(*map(sum,[hour_counts[k] for k in ('p','s','n')])) )
 
     def hiv_messaging(self):
 
@@ -377,7 +380,7 @@ class Command(BaseCommand):
             "Total", total_row, total_row.total()
         ) )
 
-        print ''
+        print( '' )
         self.print_header('Language of Messages (participant,nurse)')
 
         message_groups = cont.Message.objects.order_by().filter(contact__study_group='two-way',is_system=False)\
@@ -500,7 +503,7 @@ class Command(BaseCommand):
             'study_group','delivery_source').annotate(count=models.Count('delivery_source'))
 
         # for g in source_groups:
-        #     print g
+        #     print( g )
         # return
 
         # Piviot Group Counts
@@ -538,9 +541,9 @@ class Command(BaseCommand):
             "Week","Ahero","Bondo","Mathare","Siaya","Rachuonyo","Riruta","Total") )
         total_row = FacilityRow()
         for week , enrollment in enrollment_counts.items():
-            print week, enrollment, enrollment.total()
+            print( week, enrollment, enrollment.total() )
             total_row += enrollment
-        print 'Total  ' , total_row , total_row.total()
+        print( 'Total  ' , total_row , total_row.total() )
 
     def print_message_topic(self):
 
@@ -549,10 +552,10 @@ class Command(BaseCommand):
         msgs = cont.Message.objects.filter(is_outgoing=False,contact__isnull=False)
         topics = collections.Counter( m.topic for m in msgs )
 
-        print "%s\t%s" % ('Topic','Count')
+        print( "%s\t%s" % ('Topic','Count') )
         for key , count in topics.items():
-            print "%s\t%s" % (key , count)
-        print "%s\t%s" % ('Total', msgs.count())
+            print( "%s\t%s" % (key , count) )
+        print( "%s\t%s" % ('Total', msgs.count()) )
 
     def print_success_times(self):
 
@@ -600,7 +603,7 @@ class Command(BaseCommand):
                 display_phone_number(i)
             ))
 
-        print "\tTotal (since Nov 30, 2016): {} Longest Wait: {} (h)".format(
+        print( "\tTotal (since Nov 30, 2016): {} Longest Wait: {} (h)".format( )
             messages.filter(success_dt__isnull=False).count(),
             messages.first().success_dt/3600.0)
 
@@ -609,23 +612,23 @@ class Command(BaseCommand):
         self.print_header('All Messages By Status')
 
         # Print message status
-        print message_status_groups(delta=self.options['message_status'])
+        print( message_status_groups(delta=self.options['message_status']) )
 
-        print "Other Types"
+        print( "Other Types" )
         status_groups = cont.Message.objects.order_by().values('external_status'). \
             exclude(external_status__in=('Success','Sent','Failed')).exclude(is_outgoing=False). \
             annotate(count=models.Count('external_status'))
         for group in status_groups:
-            print "\t{0[external_status]:<30}: {0[count]}".format(group)
-        print "\t{:<30}: {}".format("Total",sum( g['count'] for g in status_groups ) )
+            print( "\t{0[external_status]:<30}: {0[count]}".format(group) )
+        print( "\t{:<30}: {}".format("Total",sum( g['count'] for g in status_groups ) ) )
 
-        print "\nFailed Reasons"
+        print( "\nFailed Reasons" )
         reasons = collections.Counter()
         for msg in cont.Message.objects.filter(is_outgoing=True).exclude(external_status__in=('Success','Sent')):
             reasons[msg.external_data.get('reason','No Reason')] += 1
         for reason , count in reasons.items():
-            print "\t{:<20}: {}".format(reason,count)
-        print "\t{:<20}: {}".format("Total",sum( reasons.values() ) )
+            print( "\t{:<20}: {}".format(reason,count) )
+        print( "\t{:<20}: {}".format("Total",sum( reasons.values() ) ) )
 
     def print_header(self,header):
         if self.printed:
@@ -808,7 +811,7 @@ class Command(BaseCommand):
             delta_weeks = delta / 7 if delta is not None else 'none'
             delivery_deltas[delta_weeks][c.study_group] += 1
             if delta is not None and delta < 0:
-                print c.study_id, c, c.delivery_date , c.status
+                print( c.study_id, c, c.delivery_date , c.status )
             if delta_weeks > max_week and delta is not None:
                 max_week = delta_weeks
 
@@ -1066,7 +1069,7 @@ def make_worksheet(columns,ws,queryset,column_widths=None):
 
 def make_weekly_wb():
 
-    print "Making Weekly XLSX Report"
+    print( "Making Weekly XLSX Report" )
 
     wb = xl.Workbook()
     ws = wb.active
@@ -1105,7 +1108,7 @@ def null_boolean_factory(attribute):
     return null_boolean
 
 def make_column(obj,column):
-    if isinstance(column,basestring):
+    if isinstance(column,str):
         for name in column.split('.'):
             obj = getattr(obj,name)
         return obj() if hasattr(obj,'__call__') else obj

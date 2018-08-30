@@ -2,10 +2,10 @@
 from rest_framework import routers
 
 # Local Imports
-import messages
-import participants
-import misc
-import visits
+from . import messages
+from . import participants
+from . import misc
+from . import visits
 
 # Make Django Rest Framework Router
 router = routers.DefaultRouter()

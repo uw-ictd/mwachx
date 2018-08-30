@@ -1,8 +1,8 @@
-from django.conf.urls import patterns, include, url
-import views
+from django.urls import re_path
+from . import views
 
-urlpatterns = patterns('',
+urlpatterns = [
     # Examples:
-    url(r'receive$',views.receive,name='africas-talking-receive'),
-    url(r'delivery_report$',views.delivery_report,name='africas-talking-delivery-report'),
-)
+    re_path(r'receive$',views.receive,name='africas-talking-receive'),
+    re_path(r'delivery_report$',views.delivery_report,name='africas-talking-delivery-report'),
+]

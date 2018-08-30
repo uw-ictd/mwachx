@@ -1,19 +1,16 @@
+# Python Imports
 import datetime
 
-from django import test
-from django.conf import settings
+# Django Imports
+from django import test, urls
 from django.db import models
 from django.test import override_settings
-from django.utils import unittest
 from rest_framework import test as rf_test
-import django.core.urlresolvers as url
 from django.core import management
-from contacts import get_contact_model
+from contacts.models import Contact
 
-import test_utils
-
-Contact = get_contact_model()
-
+# Local Imports
+from . import test_utils
 
 class SystemCheckTest(test.TestCase):
 
@@ -116,31 +113,30 @@ class ParticipantSerializerTests(rf_test.APITestCase):
         self.client.login(username="test", password="test")
 
     def test_participant_list(self):
-        response = self.client.get(url.reverse('participant-list'))
+        response = self.client.get(urls.reverse('participant-list'))
         self.assertEqual(len(response.data), 2)
 
     def test_participant_detail(self):
-        response = self.client.get(url.reverse('participant-detail',args=['0001']))
-        self.assertEqual(response.data['nickname'],'P1 one')
-        self.assertEqual(response.data['study_id'],'0001')
+        response = self.client.get(urls.reverse('participant-detail', args=['0001']))
+        self.assertEqual(response.data['nickname'], 'P1 one')
+        self.assertEqual(response.data['study_id'], '0001')
 
     def test_pending(self):
         # Check pending home page countso
 
         # Send a message to P1 so there is some data
-        import transports
-        transports.receive("P1 Connection", "Message Content")
+        from transports import router
+        router.receive("P1 Connection", "Message Content")
 
-        response = self.client.get(url.reverse("pending-list"))
+        response = self.client.get(urls.reverse("pending-list"))
         self.assertEqual(len(response.data), 8)
         self.assertEqual(response.data["messages"], 1)
         self.assertEqual(response.data["translations"], 1)
 
-        response = self.client.get(url.reverse("pending-messages"))
+        response = self.client.get(urls.reverse("pending-messages"))
         self.assertEqual(len(response.data), 1)
         self.assertEqual(response.data[0]['text'], "Message Content")
 
-    @unittest.skipUnless(not settings.TEST_CONTACT_SWAPPING, "not compatible with swapped models")
     def test_create(self):
 
         start_count = Contact.objects.count()
@@ -148,7 +144,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
                  "language":"english","phone_number":"0700000004","nickname":"Test","birthdate":"1990-02-05",
                  "relationship_status":"single","due_date":"2016-07-29","hiv_messaging":"none","condition":"normal",
                  "clinic_visit":"2016-07-22","send_day":0,"send_time":8}
-        response = self.client.post(url.reverse("participant-list"), data, format="json")
+        response = self.client.post(urls.reverse("participant-list"), data, format="json")
         # import code;code.interact(local=locals())
 
         try:
@@ -167,7 +163,6 @@ class ParticipantSerializerTests(rf_test.APITestCase):
         self.assertEqual(new_participant.message_set.first().text,self.signup_msg.english)
         self.assertEqual(new_participant.message_set.first().auto,self.signup_msg.description())
 
-    @unittest.skipUnless(not settings.TEST_CONTACT_SWAPPING, "not compatible with swapped models")
     def test_create_control(self):
 
         start_count = Contact.objects.count()
@@ -176,7 +171,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
                  "relationship_status":"single","partner_invited":"invited","due_date":"2016-07-29",
                  "clinic_visit":"2016-07-22","send_day":0,"send_time":8,"hiv_messaging":"none","condition":"normal"
                 }
-        response = self.client.post(url.reverse("participant-list"), data, format="json")
+        response = self.client.post(urls.reverse("participant-list"), data, format="json")
         # import code;code.interact(local=locals())
 
         try:

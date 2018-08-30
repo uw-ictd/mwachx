@@ -5,10 +5,8 @@ from django.conf import settings
 from jsonfield import JSONField
 from django.utils import timezone
 
-
 #Local Imports
-import swapper
-from visit import ScheduledPhoneCall
+from .visit import ScheduledPhoneCall
 import utils
 from utils.models import TimeStampedModel, BaseQuerySet, ForUserQuerySet
 
@@ -72,7 +70,7 @@ class Message(TimeStampedModel):
     is_viewed = models.BooleanField(default=False,verbose_name="Viewed")
     is_related = models.NullBooleanField(default=None,blank=True,null=True)
 
-    parent = models.ForeignKey('contacts.Message',related_name='replies',blank=True,null=True)
+    parent = models.ForeignKey('contacts.Message', models.CASCADE, related_name='replies',blank=True,null=True)
     action_time = models.DateTimeField(default=None,blank=True,null=True)
 
     # translation
@@ -84,9 +82,9 @@ class Message(TimeStampedModel):
     languages = models.CharField(max_length=50,help_text='Semi colon seperated list of languages',default='',blank=True)
     topic = models.CharField(max_length=25,help_text='The topic of this message',default='',blank=True)
 
-    admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, blank=True, null=True)
-    connection = models.ForeignKey(settings.MESSAGING_CONNECTION)
-    contact = models.ForeignKey(swapper.get_model_name('contacts', 'Contact'), blank=True, null=True)
+    admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
+    connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
+    contact = models.ForeignKey('contacts.Contact', models.CASCADE, blank=True, null=True)
 
     #Africa's Talking Data Only for outgoing messages
     external_id = models.CharField(max_length=50,blank=True)
@@ -161,7 +159,6 @@ class Message(TimeStampedModel):
                 return self.auto.split('.')[0] or 'empty_auto'
             else:
                 return self.sent_by()
-        return 'end'
 
     @property
     def previous_outgoing(self):
@@ -193,9 +190,9 @@ class PhoneCall(TimeStampedModel):
 
     objects = PhoneCallQuerySet.as_manager()
 
-    connection = models.ForeignKey(settings.MESSAGING_CONNECTION)
-    contact = models.ForeignKey(swapper.get_model_name('contacts', 'Contact'))
-    admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, blank=True, null=True)
+    connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
+    contact = models.ForeignKey('contacts.Contact', models.CASCADE)
+    admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
 
     is_outgoing = models.BooleanField(default=False)
     outcome = models.CharField(max_length=10,choices=OUTCOME_CHOICES,default='answered')
@@ -203,7 +200,7 @@ class PhoneCall(TimeStampedModel):
     comment = models.TextField(blank=True,null=True)
 
     # Link to scheduled phone call field
-    scheduled = models.ForeignKey(ScheduledPhoneCall,blank=True,null=True)
+    scheduled = models.ForeignKey(ScheduledPhoneCall, models.CASCADE, blank=True,null=True)
 
 
 class Note(TimeStampedModel):
@@ -214,8 +211,8 @@ class Note(TimeStampedModel):
 
     objects = BaseQuerySet.as_manager()
 
-    participant = models.ForeignKey(swapper.get_model_name('contacts', 'Contact'))
-    admin = models.ForeignKey(settings.MESSAGING_ADMIN, blank=True, null=True)
+    participant = models.ForeignKey('contacts.Contact', models.CASCADE)
+    admin = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
     comment = models.TextField(blank=True)
 
     def is_pregnant(self):

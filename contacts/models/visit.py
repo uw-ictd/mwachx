@@ -2,13 +2,11 @@
 #Django Imports
 from django.db import models
 from django.db.models import Q
-from django.conf import settings
 
 #Python Imports
 import datetime
 
 #Local Imports
-import swapper
 from utils.models import TimeStampedModel,ForUserQuerySet
 import utils
 
@@ -71,7 +69,7 @@ class ScheduledEvent(TimeStampedModel):
     # skipped = models.NullBooleanField(default=None)
     status = models.CharField(max_length=15,choices=STATUS_CHOICES,default='pending',help_text='current status of event')
 
-    participant = models.ForeignKey(swapper.get_model_name('contacts', 'Contact'))
+    participant = models.ForeignKey('contacts.Contact',models.CASCADE)
 
     def days_overdue(self):
         if self.status == 'pending':

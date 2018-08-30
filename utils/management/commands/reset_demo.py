@@ -28,28 +28,28 @@ class Command(BaseCommand):
     def handle(self,*args,**options):
 
         if options['dry_run']:
-            print 'Dry Run: No database changes'
+            print( 'Dry Run: No database changes' )
         else:
-            print 'Live Run: Changing database'
+            print( 'Live Run: Changing database' )
 
         try:
             # Make sure demo facility exists
             demo = cont.Facility.objects.get(name='demo')
-            print 'Demo Facility Exists....Deleting'
+            print( 'Demo Facility Exists....Deleting' )
             demo.delete()
             # Make sure participants exist
 
         except cont.Facility.DoesNotExist:
-            print 'Demo Facility Does Not Exist'
+            print( 'Demo Facility Does Not Exist' )
 
         if not options['dry_run']:
             demo = create_facility()
             admin_user = User.objects.get(username='admin')
             try:
                 admin_practitioner = cont.Practitioner.objects.get(user=admin_user)
-                print 'Admin Practitioner Exists'
+                print( 'Admin Practitioner Exists' )
             except cont.Practitioner.DoesNotExist as e:
-                print 'Admin Practitioner Does Not Exist....Creating'
+                print( 'Admin Practitioner Does Not Exist....Creating' )
                 cont.Practitioner.objects.create(user=User.objects.first(),facility=demo)
 
         excel_file = 'ignore/demo_messages.xlsx'
@@ -92,7 +92,7 @@ def make_client(row):
 
 def make_message(row):
     date,time,sender,client,message = get_values(row[:5])
-    print date,time,sender,client
+    print( date,time,sender,client )
     is_system = sender.startswith('S')
     is_outgoing = not sender.startswith('C')
     created = datetime.datetime.combine(make_date(date),time)

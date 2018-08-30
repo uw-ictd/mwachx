@@ -1,1 +1,4 @@
-from router import send, receive, TransportError
+
+class TransportError(Exception):
+    pass
+

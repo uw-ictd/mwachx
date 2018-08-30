@@ -5,8 +5,9 @@ from __future__ import absolute_import
 from django.db import models
 from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
-# Create your models here.
-from utils import enums
+
+# Local Imports
+from . import enums
 
 
 class TimeStampedModel(models.Model):
@@ -23,6 +24,7 @@ class TimeStampedModel(models.Model):
     class Meta:
         abstract = True
         ordering = ['-created']
+        app_label = 'utils'
 
 
 class BaseQuerySet(models.QuerySet):

@@ -1,7 +1,7 @@
 #Email Imports
-import smtplib,sys
-from email.MIMEMultipart import MIMEMultipart
-from email.MIMEText import MIMEText
+import smtplib
+from email.mime.multipart import MIMEMultipart
+from email.mime.text import MIMEText
 
 #Django imports
 from django.conf import settings
@@ -13,7 +13,7 @@ def send(to,message):
 def email(subject,message,to='default'):
     email_settings = getattr(settings,'EMAIL_SETUP',None)
     if not isinstance(email_settings,dict):
-        print "Email Settings",email_settings
+        print( "Email Settings",email_settings )
         return False
 
     from_address = email_settings.get('from')
@@ -22,7 +22,7 @@ def email(subject,message,to='default'):
     username = email_settings.get('username')
     server = email_settings.get('server')
     if from_address is None or to is None or password is None or username is None or server is None:
-        print "Email Settings Options", from_address, to, password, username, password
+        print( "Email Settings Options", from_address, to, password, username, password )
         return False
 
     # Make Message monspace and preserve whitespace

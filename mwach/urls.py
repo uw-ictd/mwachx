@@ -1,16 +1,16 @@
-from django.conf.urls import patterns, include, url
-from django.contrib import admin
-import contacts
+from django.urls import include, re_path
+from django.contrib import admin , auth, admindocs
+import contacts.urls as contacts_urls
 from transports import http, africas_talking
-urlpatterns = patterns('',
+urlpatterns = [
     # Main Angular Index and Rest API
-    url(r'^', include(contacts.urls)),
+    re_path(r'^', include(contacts_urls)),
 
-    url(r'^admin/doc/', include('django.contrib.admindocs.urls')),
-    url(r'^admin/', include(admin.site.urls)),
-    url(r'^accounts/login/$', 'django.contrib.auth.views.login', {'template_name': 'login.html'}),
-    url(r'^accounts/logout/$', 'django.contrib.auth.views.logout'),
+    re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
+    re_path(r'^admin/', admin.site.urls),
+    re_path(r'^accounts/login/$', auth.views.LoginView.as_view()),
+    re_path(r'^accounts/logout/$', auth.views.LogoutView.as_view()),
 
-    url(r'^message_test/',include(http.urls)),
-    url(r'^africas_talking/',include(africas_talking.urls)),
-)
+    re_path(r'^message_test/', include(http.urls)),
+    re_path(r'^africas_talking/', include(africas_talking.urls)),
+]

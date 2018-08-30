@@ -1,19 +1,13 @@
 #!/usr/bin/python
 import datetime
-from argparse import Namespace
-import code
-import operator, collections, re, argparse
 
-from django.core.management.base import BaseCommand, CommandError
-from django.utils import timezone
-from django.db import models
+from django.core.management.base import BaseCommand
 
-import contacts.models as cont
-import command_utils
+from . import command_utils
 from transports.email import email
 import transports.africas_talking.api as at
 import utils
-import reports
+from . import reports
 
 class Command(BaseCommand):
     '''Cron commands to manage project '''
@@ -51,7 +45,7 @@ class Command(BaseCommand):
 
         if self.options.get('success'):
             start = utils.make_date( datetime.date.today() - datetime.timedelta(days=self.options.get('delta_days') ) )
-            email_body.append( reports.message_status_groups(start,delta='day') )
+            email_body.append( reports.message_status_groups(start, delta='day') )
 
         if self.options.get('calls'):
             command_utils.set_edd_calls(email_body)

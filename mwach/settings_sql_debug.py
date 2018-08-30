@@ -1,7 +1,7 @@
 #!/usr/bin/python
-from settings_base import *
+from .settings_base import *
 
-MIDDLEWARE_CLASSES += ( 'qinspect.middleware.QueryInspectMiddleware', )
+MIDDLEWARE_CLASSES += ( 'inspect.middleware.QueryInspectMiddleware', )
 
 ########################################
 # QInspect Settings

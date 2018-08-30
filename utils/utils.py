@@ -6,7 +6,7 @@ import django.db.models as db
 
 def today(today=None):
     if today is not None:
-        return dateparse.parse_date(today) if isinstance(today,basestring) else today
+        return dateparse.parse_date(today) if isinstance(today,str) else today
     elif not getattr(settings, 'FAKE_DATE', True):
         return datetime.date.today()
     elif hasattr(config, 'CURRENT_DATE'):

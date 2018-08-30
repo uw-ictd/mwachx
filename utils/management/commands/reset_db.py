@@ -37,7 +37,7 @@ class Command(BaseCommand):
     def handle(self,*args,**options):
 
         #Delete old DB
-        print 'Deleting old sqlite db....'
+        print( 'Deleting old sqlite db....' )
         try:
             if settings.ON_OPENSHIFT:
                 os.remove(os.path.join(os.environ['OPENSHIFT_DATA_DIR'],'mwach.db'))
@@ -50,7 +50,7 @@ class Command(BaseCommand):
             sys.exit('JSON file %s Does Not Exist'%(JSON_DATA_FILE,))
 
         #Migrate new models
-        print 'Migrating new db....'
+        print( 'Migrating new db....' )
         utility = ManagementUtility(['reset_db.py','migrate'])
         utility.execute()
 
@@ -185,13 +185,13 @@ def get_due_date(status='pregnant'):
 
 def load_old_participants(options):
         n = options['participants']
-        print 'Loading %i Participants'%n
+        print( 'Loading %i Participants'%n )
         clients = json.load(open(JSON_DATA_FILE))
         IMPORT_COUNT = min(n,len(clients))
         clients = clients.values()[:IMPORT_COUNT]
 
         for i,c in enumerate(clients):
-            print add_client(c,i,options['facility'])
+            print( add_client(c,i,options['facility']) )
 
         #Mark the last message for each contact is_viewed=False
         last_messages = cont.Message.objects.filter(is_outgoing=False).values('contact_id').order_by().annotate(Max('id'))
@@ -207,7 +207,7 @@ def load_old_participants(options):
         cont.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None,skipped=None)
 
 def add_jennifers():
-    print 'Loading Fake Jennifer Users'
+    print( 'Loading Fake Jennifer Users' )
     for i,facility in FACILITY_LIST:
         create_jennifer(i,facility)
 
@@ -232,7 +232,7 @@ def create_backend():
 
 def create_users():
     #create admin user
-    print 'Creating Users'
+    print( 'Creating Users' )
     oscard = User.objects.create_superuser('admin',email='o@o.org',password='mwachx')
     cont.Practitioner.objects.create(facility='bondo',user=oscard)
     #create study nurse users

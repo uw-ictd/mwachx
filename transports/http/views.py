@@ -4,7 +4,7 @@ from django.shortcuts import render
 
 #Local Imports
 import contacts.models as cont
-import forms
+from . import forms
 import transports
 
 

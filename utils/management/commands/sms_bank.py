@@ -79,7 +79,7 @@ class Command(BaseCommand):
             counts[msg.track] += 1
 
         for track , count in counts.items():
-            print track, count, len(track)
+            print( track, count, len(track) )
 
 
     def make_messages(self):
@@ -100,8 +100,10 @@ class Command(BaseCommand):
 
         translations = sms.read_sms_bank(sms_bank,old_translations,'anc','postpartum','visits','special')
 
-        print "Total Found: {} Todo: {}".format( len(translations),
-            len([t for t in translations if t.is_todo()]) )
+        print( "Total Found: {} Todo: {}".format(
+            len(translations),
+            len([t for t in translations if t.is_todo()])
+        ) )
 
         swahili_wb = make_language_todos(translations,'swahili')
         luo_wb = make_language_todos(translations,'luo')
@@ -343,9 +345,9 @@ class Command(BaseCommand):
                     non_ascii[c] += 1
 
         # Print non ascii counts
-        print self.options.get('ascii_msg','non-ascii count: {count}').format(count=len(non_ascii))
+        print( self.options.get('ascii_msg','non-ascii count: {count}').format(count=len(non_ascii)) )
         for c,count in non_ascii.items():
-            print u'({0!r} {0!s}) => {1}'.format(c,count)
+            print( u'({0!r} {0!s}) => {1}'.format(c,count) )
 
         return len(non_ascii) > 0
 
@@ -354,7 +356,7 @@ class Command(BaseCommand):
         final_wb = xl.load_workbook(self.paths.final)
         old_translations = sms.message_dict(final_wb.active,sms.FinalRow)
 
-        print 'Count: {} Example: {!r}'.format(len(old_translations),old_translations.get(old_translations.keys()[0]))
+        print( 'Count: {} Example: {!r}'.format(len(old_translations),old_translations.get(old_translations.keys()[0])) )
 
 ########################################
 #  Utility Functions
@@ -368,7 +370,7 @@ def recursive_dd():
 def bank_or_translation(option):
     if option.startswith('b'):
         return 'bank'
-    elif options.startswith('t'):
+    elif option.startswith('t'):
         return 'translation'
     raise argparse.ArgumentTypeError('type must be either bank or translation')
 

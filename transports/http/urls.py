@@ -1,7 +1,6 @@
-from django.conf.urls import patterns, include, url
-import views
+from django.urls import re_path
+from . import views
 
-urlpatterns = patterns('',
-    # Examples:
-    url(r'^$',views.send_message),
-)
+urlpatterns = [
+    re_path(r'^$',views.send_message),
+]

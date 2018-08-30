@@ -1,7 +1,6 @@
 # Python Imports
 import datetime
 import csv
-import itertools as it
 import collections as co
 import argparse
 import os
@@ -56,7 +55,7 @@ class Command(BaseCommand):
 
     def handle(self,*args,**options):
 
-        print options
+        print( options )
         self.options = options
         getattr(self,options['action'])()
 
@@ -82,7 +81,7 @@ class Command(BaseCommand):
         HeaderRow = co.namedtuple( "HeaderRow",next(at_csv) )
         row_maker = row_factory_maker( HeaderRow )
 
-        for row in it.imap(row_maker, at_csv ):
+        for row in map(row_maker, at_csv ):
             msgs = find_msg_match(row)
 
             if msgs.count() == 1:
@@ -116,7 +115,7 @@ class Command(BaseCommand):
 
         counts = co.Counter( (row.at_status,row.msg_status) for row in at_csv )
         for count in counts.items():
-            print count
+            print( count )
         self.stdout.write( self.style.SQL_KEYWORD( 'Total: {}'.format( sum(counts.values()) ) ) )
 
     def current_status(self):
@@ -135,7 +134,7 @@ class Command(BaseCommand):
         at_final = csv.writer(open(self.dif_fp('at_update_ids.csv'),'w'))
         at_final.writerow( ('date','at_id','at_status','msg_status') )
 
-        for row in it.imap( row_maker , at_csv):
+        for row in map( row_maker , at_csv):
             if row.status != row.msg_status:
                 at_final.writerow( (
                     row.date,
@@ -176,7 +175,7 @@ def csv_row_maker(fp):
     # Make header row tuple
     HeaderRow = co.namedtuple( "HeaderRow",next(csv_fp) )
     row_maker = row_factory_maker( HeaderRow )
-    return it.imap( row_maker , csv_fp )
+    return map( row_maker , csv_fp )
 
 def row_factory_maker(row_cls):
     """ Return a funciton that takes a row and returns a row_cls tuple

@@ -8,19 +8,17 @@ from django.db import transaction, models
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework import status
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
 #Local Imports
 import contacts.models as cont
-import backend.models as back
 import contacts.forms as forms
 import utils
 
-from messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
-from visits import VisitSimpleSerializer , VisitSerializer
-from misc import PhoneCallSerializer, NoteSerializer
+from .messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
+from .visits import VisitSimpleSerializer , VisitSerializer
+from .misc import PhoneCallSerializer, NoteSerializer
 
 #############################################
 #  Serializer Definitions
@@ -61,9 +59,10 @@ class ParticipantSerializer(serializers.ModelSerializer):
     phonecall_count = serializers.SerializerMethodField()
     note_count = serializers.SerializerMethodField()
 
+
     class Meta:
-        # todo: can this be changed to a swappable version?
         model = cont.Contact
+        fields = '__all__'
 
     def get_hiv_disclosed_display(self,obj):
         return utils.null_boolean_display(obj.hiv_disclosed)
@@ -96,7 +95,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     lookup_field = 'study_id'
 
     def get_queryset(self):
-        qs = cont.get_contact_model().objects.all().order_by('study_id')
+        qs = cont.Contact.objects.all().order_by('study_id')
         # Only return the participants for this user's facility
         if self.action == 'list':
             return qs.for_user(self.request.user,superuser=True)
@@ -186,7 +185,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         instance.hiv_messaging = request.data['hiv_messaging']
 
         instance.save()
-        instance_serialized = ParticipantSerializer(cont.get_contact_model().objects.get(pk=instance.pk),
+        instance_serialized = ParticipantSerializer(cont.Contact.objects.get(pk=instance.pk),
                                                     context={'request':request}).data
         return Response(instance_serialized)
 
@@ -211,7 +210,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
         elif request.method == 'POST':
             '''A POST to participant/:study_id:/messages sends a new message to that participant'''
-            # print 'Participant Message Post: ',request.data
+            # print( 'Participant Message Post: ',request.data )
             participant = self.get_object()
             message = {
                 'text':request.data['message'],
@@ -321,7 +320,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 comment = "{}\nSAE event recorded by {}. Opt-In: {}".format(reason,request.user.practitioner,receive_sms)
                 note=True
 
-            print "SAE {} continue {}".format(loss_date,receive_sms)
+            print( "SAE {} continue {}".format(loss_date,receive_sms) )
             instance.set_status(status,comment=comment,note=note,user=request.user)
 
         elif instance.status == 'other':

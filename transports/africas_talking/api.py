@@ -2,10 +2,10 @@
 from django.conf import settings
 
 #Python Imports
-import requests, os, code
+import requests, os
 
 #Local Imports
-from at_utils import AfricasTalkingException
+from .at_utils import AfricasTalkingException
 
 #Import Afica's Talking Settings
 AFRICAS_TALKING_SETTINGS = getattr(settings,'AFRICAS_TALKING',{})

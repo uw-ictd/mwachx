@@ -1,5 +1,5 @@
 import re
-from validators import KeywordValidator, Validator
+from .validators import KeywordValidator, Validator
 
 # Arrary of validator actions
 validators = []
@@ -14,7 +14,7 @@ validators.append(stop_validator)
 
 @stop_validator.set('action')
 def validator_action(message):
-    print 'STOP messaging for {}'.format(message.contact)
+    print( 'STOP messaging for {}'.format(message.contact) )
     message.contact.set_status('stopped','Participant sent stop keyword')
     message.text += ' - participant withdrew'
     message.contact.send_automated_message(
@@ -46,7 +46,7 @@ def validator_action(message):
 
 @validation_validator.set('action')
 def validator_action(message):
-    # print 'VALIDATION ACTION for {}'.format(contact)
+    # print( 'VALIDATION ACTION for {}'.format(contact) )
     message.contact.is_validated = True
     message.contact.save()
     return False # Don't continue validation check  s
