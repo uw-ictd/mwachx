@@ -10,8 +10,6 @@ https://docs.djangoproject.com/en/1.7/ref/settings/
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 import os
-#Determain if we are running on OpenShift
-ON_OPENSHIFT = True if 'OPENSHIFT_REPO_DIR' in os.environ else False
 
 # The top directory for this project. Contains requirements/, manage.py,
 PROJECT_ROOT = os.path.dirname(os.path.dirname(__file__))
@@ -111,7 +109,7 @@ WSGI_APPLICATION = 'wsgi.application'
 
 # Database
 # https://docs.djangoproject.com/en/1.7/ref/settings/#databases
-SQLITE_DB_FOLDER = os.environ['OPENSHIFT_DATA_DIR'] if ON_OPENSHIFT else PROJECT_PATH
+SQLITE_DB_FOLDER = PROJECT_PATH
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.sqlite3',
@@ -133,8 +131,6 @@ USE_TZ = True
 
 STATIC_URL = '/static/'
 STATIC_ROOT = os.path.join(PROJECT_ROOT,'static')
-if ON_OPENSHIFT:
-    STATIC_ROOT = os.path.join(os.environ.get('OPENSHIFT_REPO_DIR'),'wsgi','static')
 
 # List of finder classes that know how to find static files in
 # various locations.
@@ -157,8 +153,8 @@ CONSTANCE_CONFIG = {
 ################
 # Logging
 ################
-LOGGING_DIR = os.environ['OPENSHIFT_DATA_DIR'] if ON_OPENSHIFT else PROJECT_PATH
-LOGGING =   {
+LOGGING_DIR = PROJECT_PATH
+LOGGING = {
     'version': 1,
     'disable_existing_loggers': False,
     'handlers': {
