@@ -9,20 +9,22 @@ from django.conf import settings
 from contacts import models as cont
 from . import validation
 
+
 def send(identity, message, transport_name=None):
     ''' Main hook for sending message to identity.
         If transport_name is None will use settings.SMS_TRANSPORT or default
     '''
     # Find name of transport module
     if transport_name is None:
-        transport_name = getattr(settings,'SMS_TRANSPORT','default')
+        transport_name = getattr(settings, 'SMS_TRANSPORT', 'default')
 
     # Get transport send Function
     transport = importlib.import_module(f'transports.{transport_name}')
-    id, success, data = transport.send(identity,message)
+    id, success, data = transport.send(identity, message)
     return id, success, data
 
-def receive(identity,message_text,external_id='',**kwargs):
+
+def receive(identity, message_text, external_id='', **kwargs):
     '''
     Main hook for receiving messages
         * identity: the phone number of the incoming message
@@ -30,8 +32,8 @@ def receive(identity,message_text,external_id='',**kwargs):
         * external_id: id associated with external transport
         * kwargs: dict of extra data associated with transport
     '''
-    #Get incoming connection or create if not found
-    connection,created = cont.Connection.objects.get_or_create(identity=identity)
+    # Get incoming connection or create if not found
+    connection, created = cont.Connection.objects.get_or_create(identity=identity)
     contact = None if created else connection.contact
     message = cont.Message(
         is_system=False,

@@ -2,13 +2,15 @@ import datetime
 
 from django.contrib.auth import models as auth
 
-import contacts.models as cont
 import backend.models as auto
+import contacts.models as cont
+
 
 def setup_auth_user(cls):
     # Creat dummy admin user
-    cls.user = auth.User.objects.create_user("test", "t@t.com", "test",first_name="Test Nurse")
+    cls.user = auth.User.objects.create_user("test", "t@t.com", "test", first_name="Test Nurse")
     cont.Practitioner.objects.create(user=cls.user, facility="bondo")
+
 
 def setup_auto_messages(cls):
     # Create dummy auto messages
@@ -45,6 +47,7 @@ def setup_auto_messages(cls):
         hiv_messaging=False,
         todo=False
     )
+
 
 def setup_basic_contacts(cls):
     # Create basic contact objects

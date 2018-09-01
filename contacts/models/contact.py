@@ -1,20 +1,21 @@
 #!/usr/bin/python
 # Python Imports
-from hashlib import sha256
 import collections
-import datetime, numbers
+import datetime
+import numbers
+from hashlib import sha256
 
 # Django Imports
 from django.conf import settings
 from django.db import models
 
-# Local Imports
-from contacts.models import PhoneCall, Practitioner, Visit, Connection
-from utils import enums
-from utils.models import TimeStampedModel, ForUserQuerySet
 import backend.models as back
 import utils
+# Local Imports
+from contacts.models import PhoneCall, Practitioner, Visit, Connection
 from transports import router, TransportError
+from utils import enums
+from utils.models import TimeStampedModel, ForUserQuerySet
 
 
 class ContactQuerySet(ForUserQuerySet):
@@ -236,8 +237,8 @@ class Contact(TimeStampedModel):
         app_label = 'contacts'
 
     def __init__(self, *args, **kwargs):
-        ''' Override __init__ to save old status'''
-        super().__init__(*args,**kwargs)
+        """ Override __init__ to save old status"""
+        super().__init__(*args, **kwargs)
         self._old_status = self.status
         self._old_hiv_messaging = self.hiv_messaging
 
@@ -267,7 +268,7 @@ class Contact(TimeStampedModel):
     def connection(self):
         # Use connection_set.all() instead of .filter to take advantage of prefetch_related
         for connection in self.connection_set.all():
-            if connection.is_primary == True:
+            if connection.is_primary is True:
                 return connection
 
     def phone_number(self):
@@ -290,7 +291,7 @@ class Contact(TimeStampedModel):
         return int((delta.days - delta.seconds / 86400.0) / 365.2425)
 
     def next_visit(self):
-        ''' Return The Next Visit'''
+        """ Return The Next Visit"""
         pending = self.visit_set.filter(scheduled__gte=datetime.date.today(), status='pending').last()
         if pending is None:
             # Check for a pending past date
@@ -301,12 +302,12 @@ class Contact(TimeStampedModel):
         return pending
 
     def tca_date(self):
-        ''' Return To Come Again Date or None '''
+        """ Return To Come Again Date or None """
         pending = self.next_visit()
         return pending.scheduled if pending is not None else None
 
     def tca_type(self):
-        ''' Return next visit type '''
+        """ Return next visit type """
         pending = self.next_visit()
         return pending.visit_type.capitalize() if pending is not None else None
 
@@ -314,18 +315,18 @@ class Contact(TimeStampedModel):
         return self.status == 'pregnant' or self.status == 'over'
 
     def was_pregnant(self, today=None):
-        '''
+        """
         Returns true if the contact was pregnant at date today
-        '''
+        """
         if self.delivery_date is not None:
             today = utils.today(today)
             return today <= self.delivery_date
         return True
 
     def delta_days(self, today=None):
-        '''
+        """
         Return the number days until EDD or since delivery
-        '''
+        """
         today = utils.today(today)
         if self.was_pregnant(today):
             if self.delivery_date is None:
@@ -380,7 +381,7 @@ class Contact(TimeStampedModel):
     def get_validation_key(self):
         # todo: what is this used by/for?
         sha = sha256(
-                ('%s%s%s%s' % (self.study_id, self.nickname, self.anc_num, self.birthdate) ).encode('utf-8')
+            ('%s%s%s%s' % (self.study_id, self.nickname, self.anc_num, self.birthdate)).encode('utf-8')
         ).hexdigest()[:5]
         key = ''.join([str(int(i, 16)) for i in sha])
         return key[:5]
@@ -440,7 +441,7 @@ class Contact(TimeStampedModel):
         '''
 
         if self.delivery_date is None:
-            ''' No delivery date so call schedual post_edd call'''
+            # No delivery date so call schedual post_edd call
             return self.schedule_edd_call(created)
 
         one_month_call = self.scheduledphonecall_set.filter(call_type='m').first()
@@ -468,10 +469,10 @@ class Contact(TimeStampedModel):
         return one_month_call
 
     def schedule_edd_call(self, created=False):
-        ''' If no delivery date is set schedule a 14 day post edd call
+        """ If no delivery date is set schedule a 14 day post edd call
                 param: created(boolean): flag to return created,call tuple
             This function is idempotent
-        '''
+        """
         if self.delivery_date is not None:
             # There is a delivery date so don't schedule an edd call
             if created:
@@ -497,10 +498,10 @@ class Contact(TimeStampedModel):
         return one_month_call
 
     def schedule_year_call(self, created=False):
-        ''' Schedule 1yr calls as needed
+        """ Schedule 1yr calls as needed
                 param: created(boolean): flag to return created,call tuple
             This function is idempotent
-        '''
+        """
         one_year_call = self.scheduledphonecall_set.get_or_none(call_type='y')
         was_created = False
 
@@ -564,7 +565,7 @@ class Contact(TimeStampedModel):
         return new_message
 
     def send_automated_message(self, control=False, send=True, exact=False, extra_kwargs=None, **kwargs):
-        ''' kwargs get passed into self.description
+        """ kwargs get passed into self.description
             :param control bool - if True allow sending to control
             :param exact bool - if True only send exact match
             :param send bool - if True send message
@@ -575,7 +576,7 @@ class Contact(TimeStampedModel):
                 - send_base - string send_base
                 - send_offset - int send_offset (or calculated from today)
                 - condition - defaults to self.condition
-        '''
+        """
         description = self.description(**kwargs)
         message = back.AutomatedMessage.objects.from_description(description, exact=exact)
         if message is None:
@@ -606,7 +607,7 @@ class Contact(TimeStampedModel):
     ########################################
 
     def validation_delta(self):
-        ''' Return the number of seconds between welcome message and validation '''
+        """ Return the number of seconds between welcome message and validation """
         if self.is_validated:
             welcome_msg = self.message_set.filter(auto__startswith='signup', auto__endswith='0').first()
             validation_msg = self.message_set.filter(topic='validation').last()
@@ -615,7 +616,7 @@ class Contact(TimeStampedModel):
                 return delta.total_seconds()
 
     def delivery_delta(self):
-        ''' Return the number of days between the delivery and delivery notification '''
+        """ Return the number of days between the delivery and delivery notification """
         if self.delivery_date is None:
             return None
         else:
@@ -647,7 +648,7 @@ class StatusChange(TimeStampedModel):
     class Meta:
         app_label = 'contacts'
 
-    contact = models.ForeignKey(Contact,models.CASCADE)
+    contact = models.ForeignKey(Contact, models.CASCADE)
 
     old = models.CharField(max_length=20)
     new = models.CharField(max_length=20)

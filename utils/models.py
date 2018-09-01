@@ -1,9 +1,9 @@
 # Python Imports
 from __future__ import absolute_import
 
+from django.core.exceptions import ObjectDoesNotExist
 # Django Imports
 from django.db import models
-from django.core.exceptions import ObjectDoesNotExist
 from django.utils import timezone
 
 # Local Imports
@@ -32,10 +32,11 @@ class BaseQuerySet(models.QuerySet):
     A simple query set that adds some utility functions for getting objects
     with default values.
     """
-    def get_or_none(self,**kwargs):
-        return self.get_or_default(None,**kwargs)
 
-    def get_or_default(self,default=None,**kwargs):
+    def get_or_none(self, **kwargs):
+        return self.get_or_default(None, **kwargs)
+
+    def get_or_default(self, default=None, **kwargs):
         try:
             return self.get(**kwargs)
         except ObjectDoesNotExist:
@@ -43,10 +44,9 @@ class BaseQuerySet(models.QuerySet):
 
 
 class ForUserQuerySet(BaseQuerySet):
-
     participant_field = 'participant'
 
-    def for_user(self,user, superuser=False):
+    def for_user(self, user, superuser=False):
         if superuser and user.is_superuser:
             return self.all()
 
@@ -58,7 +58,7 @@ class ForUserQuerySet(BaseQuerySet):
 
         return self.by_facility(facility)
 
-    def by_facility(self,facility):
+    def by_facility(self, facility):
         return self.filter(self._participant_Q(facility=facility))
 
     def active_users(self):
@@ -67,18 +67,18 @@ class ForUserQuerySet(BaseQuerySet):
         return self.exclude(q)
 
     def pregnant(self):
-        q = self._participant_Q(status__in=('pregnant','over'))
+        q = self._participant_Q(status__in=('pregnant', 'over'))
         return self.filter(q)
 
     def post_partum(self):
-        q = self._participant_Q(status__in=('post','ccc'))
+        q = self._participant_Q(status__in=('post', 'ccc'))
         return self.filter(q)
 
-    def _participant_Q(self,**kwargs):
+    def _participant_Q(self, **kwargs):
         ''' Return a Q object with participant_field appended
         Example:  participant_Q(study_group='two-way',is_validated=False)
             returns: Q(participant__study_group='two-way',participant__is_validated=False)
         '''
-        prefix = self.participant_field+'__' if self.participant_field is not None else ''
-        kwargs = {prefix+key:value for key,value in kwargs.items()}
+        prefix = self.participant_field + '__' if self.participant_field is not None else ''
+        kwargs = {prefix + key: value for key, value in kwargs.items()}
         return models.Q(**kwargs)

@@ -1,12 +1,13 @@
 # Rest Framework Imports
+from django.utils import timezone
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.response import Response
 from rest_framework.decorators import detail_route
-from django.utils import timezone
+from rest_framework.response import Response
 
-#Local Imports
+# Local Imports
 import contacts.models as cont
+
 
 #############################################
 #  Serializers Definitions
@@ -54,8 +55,8 @@ class MessageSerializer(serializers.HyperlinkedModelSerializer):
     class Meta:
         model = cont.Message
         fields = (
-        'id', 'href', 'text', 'contact', 'translated_text', 'translation_status', 'is_outgoing', 'is_pending',
-        'sent_by', 'is_related', 'topic', 'created')
+            'id', 'href', 'text', 'contact', 'translated_text', 'translation_status', 'is_outgoing', 'is_pending',
+            'sent_by', 'is_related', 'topic', 'created')
 
 
 class MessageSimpleSerializer(serializers.HyperlinkedModelSerializer):

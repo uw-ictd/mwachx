@@ -1,10 +1,9 @@
 # From Django
 from django.urls import reverse
-
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route, api_view, list_route
+from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 # Local Imports

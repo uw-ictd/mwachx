@@ -1,7 +1,7 @@
 #!/usr/bin/python
 from .settings_base import *
 
-MIDDLEWARE_CLASSES += ( 'inspect.middleware.QueryInspectMiddleware', )
+MIDDLEWARE_CLASSES += ('inspect.middleware.QueryInspectMiddleware',)
 
 ########################################
 # QInspect Settings
@@ -12,13 +12,13 @@ QUERY_INSPECT_LOG_QUERIES = True
 
 # Add loggers
 LOGGING['loggers']['qinspect'] = {
-            'handlers': ['console'],
-            'level': 'DEBUG',
-            'propagate': True,
-        }
+    'handlers': ['console'],
+    'level': 'DEBUG',
+    'propagate': True,
+}
 
 LOGGING['loggers']['django.db.backends'] = {
-            'handlers': ['console'],
-            'level': 'INFO',
-            'propagate': True,
-        }
+    'handlers': ['console'],
+    'level': 'INFO',
+    'propagate': True,
+}

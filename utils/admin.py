@@ -1,6 +1,7 @@
-from django.contrib.admin import SimpleListFilter , FieldListFilter
+from django.contrib.admin import FieldListFilter
 from django.contrib.admin.utils import prepare_lookup_value
 from django.utils.translation import ugettext_lazy as _
+
 
 # https://github.com/django-extensions/django-extensions/blob/master/django_extensions/admin/filter.py
 class NullFieldListFilter(FieldListFilter):

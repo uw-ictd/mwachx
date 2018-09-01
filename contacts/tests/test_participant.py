@@ -3,19 +3,21 @@ import datetime
 
 # Django Imports
 from django import test, urls
+from django.core import management
 from django.db import models
 from django.test import override_settings
 from rest_framework import test as rf_test
-from django.core import management
-from contacts.models import Contact
 
+from contacts.models import Contact
 # Local Imports
 from . import test_utils
+
 
 class SystemCheckTest(test.TestCase):
 
     def test_check(self):
         management.call_command('check')
+
 
 class ParticipantBasicTests(test.TestCase):
 
@@ -56,8 +58,8 @@ class ParticipantBasicTests(test.TestCase):
         self.assertEqual(self.p3.description(send_base='signup', send_offset=0), "signup.control.art.N.0")
 
         # Test FP Methods
-        def plus_td(weeks=0,days=0):
-            return datetime.date.today() + datetime.timedelta(days=days,weeks=weeks)
+        def plus_td(weeks=0, days=0):
+            return datetime.date.today() + datetime.timedelta(days=days, weeks=weeks)
 
         self.assertEqual(self.p2.description(today=plus_td(days=2)), "dd.two-way.normal.Y.3")
         self.assertEqual(self.p2.description(today=plus_td(days=8)), "dd.two-way.normal.Y.4")
@@ -66,40 +68,40 @@ class ParticipantBasicTests(test.TestCase):
         self.assertEqual(self.p2.description(today=plus_td(7)), "dd.two-way.normal.Y.10")
 
     def test_send_batch(self):
-
         participants = Contact.objects.annotate(msg_count=models.Count('message'))
-        self.assertEqual( participants.count() , 3 )
+        self.assertEqual(participants.count(), 3)
 
-        before_count = sum( p.msg_count for p in participants )
+        before_count = sum(p.msg_count for p in participants)
 
         # Test Send = False
-        participants.send_batch('English Message','Swahili Message','Luo Message',
-            auto='test',send=False)
-        participants = participants.filter() # reload participants from db
-        after_count = sum( p.msg_count for p in participants )
-        self.assertEqual( before_count , after_count )
+        participants.send_batch('English Message', 'Swahili Message', 'Luo Message',
+                                auto='test', send=False)
+        participants = participants.filter()  # reload participants from db
+        after_count = sum(p.msg_count for p in participants)
+        self.assertEqual(before_count, after_count)
 
         # Test send = true
-        participants.send_batch('English Message','Swahili Message','Luo Message',
-            auto='test',send=True)
-        participants = participants.filter() # reload participants from db
-        after_count = sum( p.msg_count for p in participants )
-        self.assertEqual( before_count + len(participants) - 1 , after_count )
+        participants.send_batch('English Message', 'Swahili Message', 'Luo Message',
+                                auto='test', send=True)
+        participants = participants.filter()  # reload participants from db
+        after_count = sum(p.msg_count for p in participants)
+        self.assertEqual(before_count + len(participants) - 1, after_count)
 
         new_message = self.p2.message_set.first()
-        self.assertEqual( new_message.auto , 'custom.test' )
-        self.assertEqual( new_message.translation_status , 'cust' )
-        self.assertEqual( new_message.text , 'Luo Message' )
-        self.assertEqual( new_message.translated_text, 'English Message' )
-        self.assertTrue( new_message.is_outgoing )
-        self.assertFalse( new_message.is_system )
-        self.assertEqual( new_message.contact , self.p2 )
+        self.assertEqual(new_message.auto, 'custom.test')
+        self.assertEqual(new_message.translation_status, 'cust')
+        self.assertEqual(new_message.text, 'Luo Message')
+        self.assertEqual(new_message.translated_text, 'English Message')
+        self.assertTrue(new_message.is_outgoing)
+        self.assertFalse(new_message.is_system)
+        self.assertEqual(new_message.contact, self.p2)
 
         # Test send = true no auto tag
-        participants.send_batch('English Message','Swahili Message','Luo Message',send=True)
+        participants.send_batch('English Message', 'Swahili Message', 'Luo Message', send=True)
         new_message = self.p2.message_set.first()
-        self.assertEqual( new_message.auto , 'custom' )
-        self.assertEqual( new_message.translation_status , 'cust' )
+        self.assertEqual(new_message.auto, 'custom')
+        self.assertEqual(new_message.translation_status, 'cust')
+
 
 class ParticipantSerializerTests(rf_test.APITestCase):
 
@@ -140,36 +142,38 @@ class ParticipantSerializerTests(rf_test.APITestCase):
     def test_create(self):
 
         start_count = Contact.objects.count()
-        data = { "previous_pregnancies":0,"study_id":"0004","anc_num":"0004","study_group":"two-way",
-                 "language":"english","phone_number":"0700000004","nickname":"Test","birthdate":"1990-02-05",
-                 "relationship_status":"single","due_date":"2016-07-29","hiv_messaging":"none","condition":"normal",
-                 "clinic_visit":"2016-07-22","send_day":0,"send_time":8}
+        data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "two-way",
+                "language": "english", "phone_number": "0700000004", "nickname": "Test", "birthdate": "1990-02-05",
+                "relationship_status": "single", "due_date": "2016-07-29", "hiv_messaging": "none",
+                "condition": "normal",
+                "clinic_visit": "2016-07-22", "send_day": 0, "send_time": 8}
         response = self.client.post(urls.reverse("participant-list"), data, format="json")
         # import code;code.interact(local=locals())
 
         try:
             new_participant = Contact.objects.get(study_id="0004")
         except Contact.DoesNotExist as e:
-            self.fail( response )
+            self.fail(response)
 
         # Check that the participant was created
-        self.assertEqual(Contact.objects.count(),start_count+1)
-        self.assertEqual(new_participant.nickname,'Test')
-        self.assertEqual(new_participant.facility,self.user.practitioner.facility)
-        self.assertEqual(new_participant.phone_number(),"+254700000004")
+        self.assertEqual(Contact.objects.count(), start_count + 1)
+        self.assertEqual(new_participant.nickname, 'Test')
+        self.assertEqual(new_participant.facility, self.user.practitioner.facility)
+        self.assertEqual(new_participant.phone_number(), "+254700000004")
 
         # Check that the welcome message was sent
-        self.assertEqual(new_participant.message_set.count(),1)
-        self.assertEqual(new_participant.message_set.first().text,self.signup_msg.english)
-        self.assertEqual(new_participant.message_set.first().auto,self.signup_msg.description())
+        self.assertEqual(new_participant.message_set.count(), 1)
+        self.assertEqual(new_participant.message_set.first().text, self.signup_msg.english)
+        self.assertEqual(new_participant.message_set.first().auto, self.signup_msg.description())
 
     def test_create_control(self):
 
         start_count = Contact.objects.count()
-        data = { "previous_pregnancies":0,"study_id":"0004","anc_num":"0004","study_group":"control",
-                 "language":"english","nickname":"Test","phone_number":"0700000004","birthdate":"1990-02-05",
-                 "relationship_status":"single","partner_invited":"invited","due_date":"2016-07-29",
-                 "clinic_visit":"2016-07-22","send_day":0,"send_time":8,"hiv_messaging":"none","condition":"normal"
+        data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "control",
+                "language": "english", "nickname": "Test", "phone_number": "0700000004", "birthdate": "1990-02-05",
+                "relationship_status": "single", "partner_invited": "invited", "due_date": "2016-07-29",
+                "clinic_visit": "2016-07-22", "send_day": 0, "send_time": 8, "hiv_messaging": "none",
+                "condition": "normal"
                 }
         response = self.client.post(urls.reverse("participant-list"), data, format="json")
         # import code;code.interact(local=locals())
@@ -177,15 +181,15 @@ class ParticipantSerializerTests(rf_test.APITestCase):
         try:
             new_participant = Contact.objects.get(study_id="0004")
         except Contact.DoesNotExist as e:
-            self.fail( response )
+            self.fail(response)
 
         # Check that the participant was created
-        self.assertEqual(Contact.objects.count(),start_count+1)
-        self.assertEqual(new_participant.nickname,'Test')
-        self.assertEqual(new_participant.facility,self.user.practitioner.facility)
-        self.assertEqual(new_participant.phone_number(),"+254700000004")
+        self.assertEqual(Contact.objects.count(), start_count + 1)
+        self.assertEqual(new_participant.nickname, 'Test')
+        self.assertEqual(new_participant.facility, self.user.practitioner.facility)
+        self.assertEqual(new_participant.phone_number(), "+254700000004")
 
         # Check that the welcome message was sent
-        self.assertEqual(new_participant.message_set.count(),1)
-        self.assertEqual(new_participant.message_set.first().text,self.signup_control_msg.english)
-        self.assertEqual(new_participant.message_set.first().auto,self.signup_control_msg.description())
+        self.assertEqual(new_participant.message_set.count(), 1)
+        self.assertEqual(new_participant.message_set.first().text, self.signup_control_msg.english)
+        self.assertEqual(new_participant.message_set.first().auto, self.signup_control_msg.description())

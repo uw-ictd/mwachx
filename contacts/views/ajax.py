@@ -1,8 +1,8 @@
 # Django Imports
-from django.shortcuts import render, redirect
-from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
-from django.contrib.auth.decorators import login_required
 from django.conf import settings
+from django.contrib.auth.decorators import login_required
+from django.shortcuts import render
+from django.views.decorators.csrf import csrf_protect, ensure_csrf_cookie
 
 
 @csrf_protect

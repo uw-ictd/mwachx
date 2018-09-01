@@ -1,4 +1,2 @@
-
 class TransportError(Exception):
     pass
-
