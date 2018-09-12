@@ -1,7 +1,7 @@
 #!/usr/bin/python
-import json,datetime,sys,os,code,random
+import json,datetime,sys,os,code,random,subprocess
+import openpyxl as xl
 import dateutil.parser
-from optparse import make_option
 
 #Django Imports
 from django.contrib.auth.models import User
@@ -16,229 +16,238 @@ from django.conf import settings
 import mwbase.models as mwbase
 import backend.models as back
 import utils
+from utils import enums
 
-JSON_DATA_FILE =  os.path.join(settings.PROJECT_ROOT,'tools','small.json')
-if settings.ON_OPENSHIFT:
-    JSON_DATA_FILE = os.path.join(os.environ['OPENSHIFT_DATA_DIR'],'small.json')
-FACILITY_LIST = ['bondo','ahero','mathare']
+FACILITY_LIST = [ choice[0] for choice in enums.FACILITY_CHOICES ]
 
 class Command(BaseCommand):
 
     help = 'Delete old sqlite file, migrate new models, and load fake data'
 
-    option_list = BaseCommand.option_list + (
-            make_option('-P','--add-participants',type=int,dest='participants',
-                default=0,help='Number of participants to add. Default = 0'),
-            make_option('-J','--jennifer',default=False,action='store_true',
-                help='Add a fake account for Jennifer to each facility'),
-            make_option('-F','--facility',default=None,help='Force participants into one facility'),
-        )
+    def add_arguments(self, parser):
+        parser.add_argument('-n','--count',type=int,default=10,help='Number of participants to add. Default = 10')
 
     def handle(self,*args,**options):
 
-        #Delete old DB
-        print( 'Deleting old sqlite db....' )
-        try:
-            if settings.ON_OPENSHIFT:
-                os.remove(os.path.join(os.environ['OPENSHIFT_DATA_DIR'],'mwach.db'))
-            else:
-                os.remove(os.path.join(settings.PROJECT_PATH,'mwach.db'))
-        except OSError:
-            pass
-
-        if not os.path.isfile(JSON_DATA_FILE):
-            sys.exit('JSON file %s Does Not Exist'%(JSON_DATA_FILE,))
-
-        #Migrate new models
-        print( 'Migrating new db....' )
-        utility = ManagementUtility(['reset_db.py','migrate'])
-        utility.execute()
-
-        #Turn off Autocommit
-        #transaction.set_autocommit(False)
-
+        self.options = options
         config.CURRENT_DATE = datetime.date.today()
-        with transaction.atomic():
-            create_backend()
+        self.create_backend()
 
-            if options['participants'] > 0:
-                load_old_participants(options)
-
-            if options['jennifer']:
-                add_jennifers()
-
-        #commit data
-        #transaction.commit()
-
-###################
-# Utility Functions
-###################
-
-study_groups = ['control','one-way','two-way']
-def add_client(client,study_id,facility=None):
-    status = 'post' if random.random() < .5 else 'pregnant'
-    new_client = {
-        'study_id':study_id,
-        'anc_num':client['anc_num'],
-        'ccc_num':client['anc_num'],
-        'nickname':client['nickname'],
-        'birthdate':client['birth_date'],
-        'study_group':random.choice(study_groups),
-        'due_date':get_due_date(status),
-        'last_msg_client':client['last_msg_client'],
-        'facility':FACILITY_LIST[study_id%3] if facility is None else facility,
-        'status':status
-        }
-    participant = mwbase.Participant(**new_client)
-    participant.validation_key = participant.get_validation_key()
-    participant.save()
-    connection = mwbase.Connection.objects.create(identity='+2500' + client['phone_number'][:8], participant=participant, is_primary=True)
-
-    message_count = len(client['messages'])
-    for i,m in enumerate(client['messages']):
-        #only make translations for last five messages
-        translate = i < message_count - 5
-        add_message(m,participant,connection,translate)
-    for v in client['visits']:
-        add_visit(v,participant)
-    for n in client['notes']:
-        add_note(n,participant)
-    add_new_visit(participant,study_id)
-    add_new_calls(participant)
-    add_new_scheduled_call(participant,study_id)
-
-    return new_client
-
-def add_message(message, participant, connection, translate=False):
-    outgoing = message['sent_by'] != 'Client'
-    system = message['sent_by'] == 'System'
-
-    new_message = {
-        'text':message['content'],
-        'is_outgoing':outgoing,
-        'is_system':system,
-        'participant':participant,
-        'connection':connection,
-        'created':dateutil.parser.parse(message['date']) + datetime.timedelta(days=365),
-    }
-    _message = mwbase.Message.objects.create(**new_message)
-
-    if translate and not system:
-        _message.translated_text = "(translated)" + message['content']
-        _message.translation_status = 'done'
-        _message.lanagues = random.choice(('english','swahili','sheng','luo'))
-
-    _message.save()
-
-def add_visit(visit, participant):
-    if visit['scheduled_date']:
-        new_visit = {
-            'scheduled':dateutil.parser.parse(visit['scheduled_date']) + datetime.timedelta(days=365),
-            'notification_last_seen':dateutil.parser.parse(visit['scheduled_date'])-datetime.timedelta(days=1),
-            'arrived':visit['date'],
-            'skipped':True if random.random() < .25 else False,
-            'comment':visit['comments'],
-            'participant':participant
-        }
-        mwbase.Visit.objects.create(**new_visit)
-
-VISIT_COUNT = 0
-def add_new_visit(participant, i):
-    new_visit = {
-        'scheduled':utils.today() + datetime.timedelta(days=i+1),
-        'participant':participant,
-        'visit_type':'clinic' if random.random() < 0.5 else 'study'
-    }
-    mwbase.Visit.objects.create(**new_visit)
-
-def add_new_calls(participant):
-
-    participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0], is_outgoing=False,
-                         comment = 'This is a phone call that came in. Do we need a field for length')
-
-    participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0],
-                         comment = 'This is an outgoing phone call. It was probably made at 1 month')
-
-def add_new_scheduled_call(participant, i):
-
-    scheduled_date = utils.today() + datetime.timedelta(days=2*i+1)
-    mwbase.ScheduledPhoneCall.objects.create(scheduled=scheduled_date, participant=participant)
-    mwbase.ScheduledPhoneCall.objects.create(
-        scheduled=scheduled_date+datetime.timedelta(days=1),
-        participant=participant,
-        call_type='y')
-
-def add_note(note, participant):
-    new_note = {
-        'participant':participant,
-        'comment':note['content'],
-        'created':note['date'],
-    }
-
-    _note = mwbase.Note.objects.create(**new_note)
-    _note.save()
+        self.load_messages()
 
 
-def get_due_date(status='pregnant'):
-    direction = -1 if status == 'post' else 1
-    return datetime.date.today() + direction * datetime.timedelta(days=random.randint(0,100))
+        self.BDAY_START = datetime.date(1980,1,1)
+        self.BDAY_END = datetime.date(1998,1,1)
+        self.DUE_DATE_START = utils.today() + datetime.timedelta(days=14)
+        self.DUE_DATE_END = utils.today() + datetime.timedelta(days=111)
 
-def load_old_participants(options):
-        n = options['participants']
-        print( 'Loading %i Participants'%n )
-        clients = json.load(open(JSON_DATA_FILE))
-        IMPORT_COUNT = min(n,len(clients))
-        clients = clients.values()[:IMPORT_COUNT]
+        self.create_participants()
 
-        for i,c in enumerate(clients):
-            print( add_client(c,i,options['facility']) )
 
-        #Mark the last message for each participant is_viewed=False
+    ###################
+    # Utility Functions
+    ###################
+
+    def create_backend(self):
+        self.create_users()
+        self.create_automated_messages()
+
+    def create_users(self):
+
+        print( 'Creating Users' )
+        # Create admin user
+        admin_user = User.objects.create_superuser('admin',email='o@o.org',password='admin')
+        mwbase.Practitioner.objects.create(facility=FACILITY_LIST[0], user=admin_user)
+
+        # Create study nurse users
+        for f in FACILITY_LIST:
+            user = User.objects.create_user('n_{}'.format(f),password=f)
+            mwbase.Practitioner.objects.create(facility=f, user=user)
+
+    def create_automated_messages(self):
+        pass
+
+    def create_participants(self):
+
+        print( 'Creating Participants' )
+        for i in range(self.options['count']):
+            self.add_client(i)
+
+        # Mark the last message for each participant is_viewed=False
         last_messages = mwbase.Message.objects.filter(is_outgoing=False).values('participant_id').order_by().annotate(Max('id'))
         mwbase.Message.objects.exclude(id__in=[d['id__max'] for d in last_messages]).update(is_viewed=True)
-        #Move the last message to the front of the message que
+
+        # Move the last message to the front of the message queue
         for msg in mwbase.Message.objects.filter(id__in=[d['id__max'] for d in last_messages]):
             before_msg = msg.participant.message_set.all()[random.randint(1,3)]
             msg.created = before_msg.created + datetime.timedelta(seconds=600)
             msg.save()
 
         # Make last visit arrived = None.
-        last_visits = mwbase.Visit.objects.all().values('participant_id').order_by().annotate(Max('id'))
-        mwbase.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None, skipped=None)
+        # last_visits = mwbase.Visit.objects.all().values('participant_id').order_by().annotate(Max('id'))
+        # mwbase.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None, skipped=None)
 
-def add_jennifers():
-    print( 'Loading Fake Jennifer Users' )
-    for i,facility in FACILITY_LIST:
-        create_jennifer(i,facility)
+    def add_client(self,n,facility=None):
+        status = 'post' if random.random() < .5 else 'pregnant'
+        new_client = {
+            'study_id': f'{n:05d}',
+            'anc_num': f'00-{n:05d}',
+            'ccc_num': f'00-{n:05d}',
+            'nickname': f'P-{n:05d}',
+            'birthdate': random_date(self.BDAY_START,self.BDAY_END),
+            'study_group':random.choice(enums.GROUP_CHOICES)[0],
+            'due_date': random_date( self.DUE_DATE_START,self.DUE_DATE_END),
+            'facility':random.choice(enums.FACILITY_CHOICES)[0],
+            'language':random.choice(mwbase.Participant.LANGUAGE_CHOICES)[0],
+            'status':status,
+            'previous_pregnancies':random.randint(0,3),
+            'condition':random.choice(mwbase.Participant.CONDITION_CHOICES)[0],
+            'family_planning':random.choice(mwbase.Participant.FAMILY_PLANNING_CHOICES)[0]
+            }
 
-def create_jennifer(i,facility):
-    new_client = {
-        'study_id':1000+i,
-        'anc_num':'100{}'.format(i),
-        'nickname':'Jennifer',
-        'birthdate':'1900-01-01',
-        'study_group':random.choice(study_groups),
-        'due_date':get_due_date(),
-        'facility':facility,
-        'status':'pregnant',
+        participant = mwbase.Participant(**new_client)
+        participant.validation_key = participant.get_validation_key()
+
+        if status == 'post':
+            participant.delivery_date = utils.today() - datetime.timedelta(days=random.randint(14,70))
+            participant.delivery_source = random.choice(mwbase.Participant.DELIVERY_SOURCE_CHOICES)[0]
+
+        participant.save()
+        connection = mwbase.Connection.objects.create(identity='+2500' + f'{n:08d}', participant=participant, is_primary=True)
+
+        message_count = random.randint(10,20)
+        for i in range(message_count):
+            # only make translations for last five messages
+            translate = i < message_count - 5
+            self.add_message(participant,connection,translate)
+
+        # for v in client['visits']:
+        #     add_visit(v,participant)
+
+        # for n in client['notes']:
+        #     add_note(n,participant)
+
+        # add_new_visit(participant,study_id)
+        # add_new_calls(participant)
+        # add_new_scheduled_call(participant,study_id)
+
+        return new_client
+
+    def add_message(self,participant, connection, translate=True):
+        outgoing = random.random() < 0.5
+        if outgoing is True:
+            system = random.random() < 0.5
+        else:
+            system = False
+
+        message = random.choice(self.message_list)[participant.language]
+
+        if outgoing is True:
+            message = message.format(name=participant.nickname,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
+
+        new_message = {
+            'text':message,
+            'is_outgoing':outgoing,
+            'is_system':system,
+            'participant':participant,
+            'connection':connection,
+            # 'created':dateutil.parser.parse(message['date']) + datetime.timedelta(days=365),
         }
-    participant = mwbase.Participant.objects.create(**new_client)
-    connection = mwbase.Connection.objects.create(identity='+00{}'.format(i), participant=participant, is_primary=True)
+        _message = mwbase.Message.objects.create(**new_message)
 
+        if not participant.language == 'english' and (translate or system):
+            _message.translated_text = "(translated)" + message
+            _message.translation_status = 'done'
+            _message.lanagues = participant.language[0]
 
-def create_backend():
-    create_users()
-    create_automated_messages()
+        _message.save()
 
-def create_users():
-    #create admin user
-    print( 'Creating Users' )
-    oscard = User.objects.create_superuser('admin',email='o@o.org',password='mwachx')
-    mwbase.Practitioner.objects.create(facility='bondo', user=oscard)
-    #create study nurse users
-    for f in FACILITY_LIST:
-        user = User.objects.create_user('n_{}'.format(f),password='mwachx')
-        mwbase.Practitioner.objects.create(facility=f, user=user)
+    def load_messages(self):
 
-def create_automated_messages():
-    pass
+        self.stdout.write("Loading Message Database")
+        translations_file = 'translations/translations.xlsx'
+        if os.path.isfile(translations_file):
+            self.message_list = []
+            wb = xl.load_workbook(translations_file,read_only=True)
+            for row in wb.active:
+                self.message_list.append( {'english':row[6].value, 'swahili':row[7].value, 'luo':row[8].value } )
+        else:
+            self.message_list = [
+                {
+                    'english':'{name}, this is {nurse} from {clinic}. Please tell us if you need help or advice. We are here for you and your baby.',
+                    'swahili':'{name}, huyu ni {nurse} kutoka {clinic}. Tafadhali tuambie kama unahitaji usaidizi au mawaidha.Tuko hapa kwa ajili yako na mwanao.',
+                    'luo':'{name}, mae en {nurse} mawuok {clinic} Yie inyiswa ka idwaro kony kata medo paro. Wan kae ne in kod nyathini.'
+                },
+                {
+                    'english':"{name}, this is {nurse} from {clinic}. It's time for your clinic visit in {days} days on {date}. If you have any questions, ask the nurse.",
+                    'swahili':"{name}, huyu ni {nurse} kutoka {clinic}. Ni wakati wa ziara yako kwa siku {days} tarehe {date}. Kama una swali lolote juu ya afya yako, uulize muuguzi wako.",
+                    'luo':"{name}, mae en {nurse} mawuok {clinic}.odong' ndalo {days} mondo ibi e limbe chieng' {date}.Kaintiere kod penjo moro amora, penj nas."
+                },
+                {
+                    'english':"{name}, this is {nurse} from {clinic}. If you are having any challenges with your pregnancy or health, please talk to the nurse at clinic. Is there someone who can come with you? We can help.",
+                    'swahili':"{name}, huyu ni {nurse} kutoka {clinic}. ukiwa na changamoto zozote na ujauzito au afya yako,tafadhali ongea na muuguzi katika kliniki.Kuna mtu unayeweza kuja naye? Tunaweza saidia.",
+                    'luo':"{name}, mae en {nurse} mawuok {clinic} Ka intie kod chandruok moro amora ka iyach kata ngimani, Yie iwuo kod sista manie klinik. Bende nitiere ng'at manyalo keli?Wanyalo konyo."
+                },
+                {
+                    'english':"{name}, this is {nurse} from {clinic}. Many women feel sick in early pregnancy and find it difficult to take their vitamins. Try some ginger tea, lemon or eat biscuits. If you are too sick to eat or drink please come in to clinic.",
+                    'swahili':"{name}, huyu ni {nurse} kutoka {clinic}. wanawake wengi huhisi ugonjwa siku za mwanzo za ujauzito na hupata ugumu kumeza madawa zao za vitamini.jaribu kunywa chai ya tangawizi, ndimu au kula biskuti.ukiwa mgonjwa sana hadi huwezi kula au kunywa,tafadhali kuja kliniki.",
+                    'luo':"{name}, mae en {nurse} mawuok {clinic} Mine mangeny bedo matuo ekinde ma ich ochakore kendo giyudo pek ekaw dhadhu. Tem imadh chae mar tangausi, ndim kata icham buskut. Kaponi ituo matek maok inyal metho kata chiemo to? Yie ibi e klinik."
+                },
+            ]
+
+    def add_visit(self, visit, participant):
+        if visit['scheduled_date']:
+            new_visit = {
+                'scheduled':dateutil.parser.parse(visit['scheduled_date']) + datetime.timedelta(days=365),
+                'notification_last_seen':dateutil.parser.parse(visit['scheduled_date'])-datetime.timedelta(days=1),
+                'arrived':visit['date'],
+                'skipped':True if random.random() < .25 else False,
+                'comment':visit['comments'],
+                'participant':participant
+            }
+            mwbase.Visit.objects.create(**new_visit)
+
+    # TODO: The Visit, Call, and Notes functions do not currently work
+    def add_new_visit(self, participant, i):
+        new_visit = {
+            'scheduled':utils.today() + datetime.timedelta(days=i+1),
+            'participant':participant,
+            'visit_type':'clinic' if random.random() < 0.5 else 'study'
+        }
+        mwbase.Visit.objects.create(**new_visit)
+
+    def add_new_calls(self, participant):
+
+        participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0], is_outgoing=False,
+                             comment = 'This is a phone call that came in. Do we need a field for length')
+
+        participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0],
+                             comment = 'This is an outgoing phone call. It was probably made at 1 month')
+
+    def add_new_scheduled_call(self, participant, i):
+
+        scheduled_date = utils.today() + datetime.timedelta(days=2*i+1)
+        mwbase.ScheduledPhoneCall.objects.create(scheduled=scheduled_date, participant=participant)
+        mwbase.ScheduledPhoneCall.objects.create(
+            scheduled=scheduled_date+datetime.timedelta(days=1),
+            participant=participant,
+            call_type='y')
+
+    def add_note(self, note, participant):
+        new_note = {
+            'participant':participant,
+            'comment':note['content'],
+            'created':note['date'],
+        }
+
+        _note = mwbase.Note.objects.create(**new_note)
+        _note.save()
+
+def date_range(start_date,end_date):
+    days = (end_date - start_date).days
+    for i in range(days):
+        yield start_date + datetime.timedelta(i)
+
+def random_date(start_date,end_date):
+    return random.choice( list( date_range(start_date,end_date) ) )
+

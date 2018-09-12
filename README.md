@@ -53,7 +53,8 @@ $ echo "from .settings_base import *" > mwach/local_settings_2.py
 ## Setup database
 
 ```
-$ ./manage.py migrate
+# To reset the databae and create 20 new participants
+$ ./tools/reset_db -n 20 
 ```
 
 ## Start the backend and build the frontend with Gulp:
