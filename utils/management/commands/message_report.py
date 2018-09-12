@@ -1,15 +1,13 @@
 #!/usr/bin/python
- # -*- coding: utf-8 -*-
+# -*- coding: utf-8 -*-
+
 import datetime, openpyxl as xl, os
-from argparse import Namespace
 import operator, collections, re, argparse, csv, code
 
 from django.core.management.base import BaseCommand, CommandError
-from django.db import models
 from django.utils import timezone , dateparse
 
-import backend.models as back
-import contacts.models as cont
+import mwbase.models as mwbase
 
 class Command(BaseCommand):
 
@@ -75,10 +73,10 @@ class Command(BaseCommand):
 
         # get a default message set with no time filters
         if study_group == 'anonymous':
-            messages = cont.Message.objects.filter(contact__isnull=True)
+            messages = mwbase.Message.objects.filter(participant__isnull=True)
         else:
-            messages = cont.Message.objects.filter(
-                contact__study_group=study_group,
+            messages = mwbase.Message.objects.filter(
+                participant__study_group=study_group,
                 is_outgoing=False
             ).exclude(
                 topic='validation'
@@ -104,7 +102,7 @@ class Command(BaseCommand):
             ws.append( ("Study ID","Message","Date","Previous","Date","Type","Delta") )
             for msg in messages:
                 ws.append( (
-                    msg.contact.study_id,
+                    msg.participant.study_id,
                     msg.translated_text if msg.translated_text != '' else msg.text,
                     msg.created,
                     msg.previous_outgoing.text,
@@ -145,7 +143,7 @@ class Command(BaseCommand):
             end = dateparse.parse_date(self.options['end'])
 
         start , end = to_datetime(start) , to_datetime(end)
-        messages = cont.Message.objects.filter(contact__isnull=False,created__range=(start,end))
+        messages = mwbase.Message.objects.filter(participant__isnull=False, created__range=(start, end))
 
         self.stdout.write( 'Creating One Way Report: {}'.format(self.file_name) )
         self.stdout.write( 'Found {} messages from {} to {}'.format(messages.count(),start,end))
@@ -238,7 +236,7 @@ def make_message_row(messages):
             if msg.topic == 'validation':
                 row['validation'] += 1
             else:
-                row[msg.contact.study_group] += 1
+                row[msg.participant.study_group] += 1
     return row
 
 def get_suffex_char(msg):

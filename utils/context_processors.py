@@ -1,6 +1,6 @@
 import datetime
 
-import contacts.models
+import mwbase.models
 import utils
 
 
@@ -18,11 +18,11 @@ def brand_status(context):
 
     # do we have work to do?
     nonzero = 0
-    visits = contacts.models.Visit.objects.for_user(context.user)
+    visits = mwbase.models.Visit.objects.for_user(context.user)
     if visits.get_bookcheck().count() + visits.get_upcoming_visits().count() > 0: nonzero = nonzero + 1
-    if contacts.models.Message.objects.for_user(context.user).filter(is_viewed=False).count() > 0: nonzero = nonzero + 1
+    if mwbase.models.Message.objects.for_user(context.user).filter(is_viewed=False).count() > 0: nonzero = nonzero + 1
     if 0 > 0: nonzero = nonzero + 1
-    if contacts.models.Message.objects.for_user(context.user).to_translate().count() > 0: nonzero = nonzero + 1
+    if mwbase.models.Message.objects.for_user(context.user).to_translate().count() > 0: nonzero = nonzero + 1
 
     if nonzero > 0:
         # if nonzero == 1:

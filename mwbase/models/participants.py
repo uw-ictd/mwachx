@@ -12,20 +12,20 @@ from django.db import models
 import backend.models as back
 import utils
 # Local Imports
-from contacts.models import PhoneCall, Practitioner, Visit, Connection
+from mwbase.models import PhoneCall, Practitioner, Visit, Connection
 from transports import router, TransportError
 from utils import enums
 from utils.models import TimeStampedModel, ForUserQuerySet
 
 
-class ContactQuerySet(ForUserQuerySet):
+class ParticipantQuerySet(ForUserQuerySet):
     participant_field = None
 
     def get_from_phone_number(self, phone_number):
         try:
-            return Connection.objects.get(identity=phone_number).contact
+            return Connection.objects.get(identity=phone_number).participant
         except Connection.DoesNotExist as e:
-            raise Contact.DoesNotExist()
+            raise Participant.DoesNotExist()
 
     def annotate_messages(self):
 
@@ -88,10 +88,10 @@ class ContactQuerySet(ForUserQuerySet):
         return send_count
 
 
-class ContactManager(models.Manager):
+class ParticipantManager(models.Manager):
 
     def get_queryset(self):
-        qs = super(ContactManager, self).get_queryset()
+        qs = super(ParticipantManager, self).get_queryset()
         return qs.annotate(
             note_count=models.Count('note', distinct=True),
             phonecall_count=models.Count('phonecall', distinct=True),
@@ -105,7 +105,7 @@ class ContactManager(models.Manager):
                            )
 
 
-class Contact(TimeStampedModel):
+class Participant(TimeStampedModel):
     STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
@@ -180,24 +180,24 @@ class Contact(TimeStampedModel):
     )
 
     # Set Custom Manager
-    objects = ContactManager.from_queryset(ContactQuerySet)()
-    objects_no_link = ContactQuerySet.as_manager()
+    objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
+    objects_no_link = ParticipantQuerySet.as_manager()
 
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
     anc_num = models.CharField(max_length=15, verbose_name='ANC #')
     ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
-    facility = models.CharField(max_length=15, choices=settings.FACILITY_CHOICES)
+    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
 
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
 
-    # Required Client Personal Information
+    # Required Participant Personal Information
     nickname = models.CharField(max_length=20)
     birthdate = models.DateField(verbose_name='DOB')
 
-    # Optional Clinet Personal Informaiton
+    # Optional Participant Personal Informaiton
     partner_name = models.CharField(max_length=40, blank=True, verbose_name='Partner Name')
     relationship_status = models.CharField(max_length=15, choices=RELATIONSHIP_CHOICES,
                                            verbose_name='Relationship Status', blank=True)
@@ -234,7 +234,7 @@ class Contact(TimeStampedModel):
     validation_key = models.CharField(max_length=5, blank=True)
 
     class Meta:
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     def __init__(self, *args, **kwargs):
         """ Override __init__ to save old status"""
@@ -278,7 +278,7 @@ class Contact(TimeStampedModel):
 
     @property
     def is_active(self):
-        # True if contact is receiving SMS messages
+        # True if participant is receiving SMS messages
         return self.status not in enums.NOT_ACTIVE_STATUS
 
     @property
@@ -316,7 +316,7 @@ class Contact(TimeStampedModel):
 
     def was_pregnant(self, today=None):
         """
-        Returns true if the contact was pregnant at date today
+        Returns true if the participant was pregnant at date today
         """
         if self.delivery_date is not None:
             today = utils.today(today)
@@ -339,9 +339,9 @@ class Contact(TimeStampedModel):
 
     def description(self, **kwargs):
         """
-        Description is a special formatted string that represents the state of a contact.
+        Description is a special formatted string that represents the state of a participant.
         It contains a series of dot-separated fields that map to the relevant attributes of the
-        contact in determining an SMS message to send.
+        participant in determining an SMS message to send.
 
         See the equivalent section in the `AutomatedMessageQuerySet` class.
         """
@@ -396,7 +396,7 @@ class Contact(TimeStampedModel):
         else:
             created = utils.angular_datepicker(created)
 
-        new_call = PhoneCall.objects.create(outcome=outcome, contact=self, is_outgoing=is_outgoing,
+        new_call = PhoneCall.objects.create(outcome=outcome, participant=self, is_outgoing=is_outgoing,
                                             comment=comment, created=created, connection=self.connection(),
                                             length=length,
                                             scheduled=scheduled)
@@ -627,7 +627,6 @@ class Contact(TimeStampedModel):
 
 
 class StatusChangeQuerySet(ForUserQuerySet):
-    participant_field = 'contact'
 
     def get_hiv_changes(self, td_kwargs=None):
 
@@ -637,18 +636,18 @@ class StatusChangeQuerySet(ForUserQuerySet):
             td_kwargs = {'hours': td_kwargs}
 
         td = datetime.timedelta(**td_kwargs)
-        hiv_status = self.filter(type='hiv').prefetch_related('contact')
+        hiv_status = self.filter(type='hiv').prefetch_related('participant')
 
-        return [s for s in hiv_status if s.created - s.contact.created > td]
+        return [s for s in hiv_status if s.created - s.participant.created > td]
 
 
 class StatusChange(TimeStampedModel):
     objects = StatusChangeQuerySet.as_manager()
 
     class Meta:
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
-    contact = models.ForeignKey(Contact, models.CASCADE)
+    participant = models.ForeignKey(Participant, models.CASCADE)
 
     old = models.CharField(max_length=20)
     new = models.CharField(max_length=20)

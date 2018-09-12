@@ -6,7 +6,7 @@ from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
 # Local Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 
 
 #############################################
@@ -24,7 +24,7 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = cont.Contact
+        model = mwbase.Participant
         fields = ('nickname', 'study_id', 'study_group', 'anc_num', 'phone_number', 'status',
                   'study_base_date', 'last_msg_client', 'href', 'next_visit_date', 'next_visit_type')
 
@@ -50,12 +50,12 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
 
 class MessageSerializer(serializers.HyperlinkedModelSerializer):
     href = serializers.HyperlinkedIdentityField(view_name='message-detail')
-    contact = ParticipantSimpleSerializer()
+    participant = ParticipantSimpleSerializer()
 
     class Meta:
-        model = cont.Message
+        model = mwbase.Message
         fields = (
-            'id', 'href', 'text', 'contact', 'translated_text', 'translation_status', 'is_outgoing', 'is_pending',
+            'id', 'href', 'text', 'participant', 'translated_text', 'translation_status', 'is_outgoing', 'is_pending',
             'sent_by', 'is_related', 'topic', 'created')
 
 
@@ -63,7 +63,7 @@ class MessageSimpleSerializer(serializers.HyperlinkedModelSerializer):
     href = serializers.HyperlinkedIdentityField(view_name='message-detail')
 
     class Meta:
-        model = cont.Message
+        model = mwbase.Message
         fields = ('id', 'href', 'text', 'translated_text', 'translation_status', 'is_outgoing', 'is_pending',
                   'sent_by', 'is_related', 'topic', 'created')
 
@@ -77,8 +77,8 @@ class MessageViewSet(viewsets.ModelViewSet):
     API endpoint that allows users to be viewed or edited.
     """
     serializer_class = MessageSerializer
-    queryset = cont.Message.objects.all().select_related('connection', 'contact').prefetch_related(
-        'contact__connection_set')
+    queryset = mwbase.Message.objects.all().select_related('connection', 'participant').prefetch_related(
+        'participant__connection_set')
 
     @detail_route(methods=['put'])
     def dismiss(self, request, pk, *args, **kwargs):

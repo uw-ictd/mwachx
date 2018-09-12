@@ -2,12 +2,12 @@ from django.contrib import admin
 from django.contrib.auth import views as auth_views
 from django.urls import include, re_path
 
-import contacts.urls as contacts_urls
+import mwbase.urls as base_urls
 from transports import http, africas_talking
 
 urlpatterns = [
     # Main Angular Index and Rest API
-    re_path(r'^', include(contacts_urls)),
+    re_path(r'^', include(base_urls)),
 
     re_path(r'^admin/doc/', include('django.contrib.admindocs.urls')),
     re_path(r'^admin/', admin.site.urls),

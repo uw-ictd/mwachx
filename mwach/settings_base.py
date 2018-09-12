@@ -50,7 +50,7 @@ INSTALLED_APPS = (
     'transports',
 
     # mWaChx setup
-    'contacts',
+    'mwbase',
     'backend',
     'utils',
 
@@ -182,16 +182,7 @@ LOGGING = {
 # Custom Settings
 #############
 
-MESSAGING_CONNECTION = 'contacts.Connection'
+MESSAGING_CONNECTION = 'mwbase.Connection'
 MESSAGING_ADMIN = 'auth.User'
 
-FACILITY_CHOICES = (
-    ('mathare', 'Mathare'),
-    ('bondo', 'Bondo'),
-    ('ahero', 'Ahero'),
-    ('siaya', 'Siaya'),
-    ('rachuonyo', 'Rachuonyo'),
-    ('riruta', 'Riruta'),
-)
-
-TEST_CONTACT_SWAPPING = False
+TEST_PARTICIPANT_SWAPPING = False

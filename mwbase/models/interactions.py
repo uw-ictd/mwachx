@@ -12,7 +12,6 @@ from .visit import ScheduledPhoneCall
 
 
 class MessageQuerySet(ForUserQuerySet):
-    participant_field = 'contact'
 
     def pending(self):
         return self.filter(is_viewed=False, is_outgoing=False)
@@ -27,8 +26,8 @@ class MessageQuerySet(ForUserQuerySet):
 
     def add_study_dt(self):
         return self.annotate(
-            study_dt=utils.sqlite_date_diff('contact__created', 'created', days=True),
-            delivery_dt=utils.sqlite_date_diff('contact__delivery_date', 'created', days=True)
+            study_dt=utils.sqlite_date_diff('participant__created', 'created', days=True),
+            delivery_dt=utils.sqlite_date_diff('participant__delivery_date', 'created', days=True)
         )
 
 
@@ -59,7 +58,7 @@ class Message(TimeStampedModel):
 
     class Meta:
         ordering = ('-created',)
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     text = models.TextField(help_text='Text of the SMS message')
 
@@ -69,7 +68,7 @@ class Message(TimeStampedModel):
     is_viewed = models.BooleanField(default=False, verbose_name="Viewed")
     is_related = models.NullBooleanField(default=None, blank=True, null=True)
 
-    parent = models.ForeignKey('contacts.Message', models.CASCADE, related_name='replies', blank=True, null=True)
+    parent = models.ForeignKey('mwbase.Message', models.CASCADE, related_name='replies', blank=True, null=True)
     action_time = models.DateTimeField(default=None, blank=True, null=True)
 
     # translation
@@ -86,7 +85,7 @@ class Message(TimeStampedModel):
 
     admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
     connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
-    contact = models.ForeignKey('contacts.Contact', models.CASCADE, blank=True, null=True)
+    participant = models.ForeignKey('mwbase.Participant', models.CASCADE, blank=True, null=True)
 
     # Africa's Talking Data Only for outgoing messages
     external_id = models.CharField(max_length=50, blank=True)
@@ -117,10 +116,10 @@ class Message(TimeStampedModel):
         return 'participant'
 
     def days_str(self):
-        return self.contact.days_str(today=self.created.date())
+        return self.participant.days_str(today=self.created.date())
 
     def is_pregnant(self):
-        return self.contact.was_pregnant(today=self.created.date())
+        return self.participant.was_pregnant(today=self.created.date())
 
     def dismiss(self, is_related=None, topic='', **kwargs):
         if is_related is not None:
@@ -155,7 +154,7 @@ class Message(TimeStampedModel):
     def msg_type(self):
         if self.is_outgoing is False:
             try:
-                return self.contact.study_group or 'empty_study_group'
+                return self.participant.study_group or 'empty_study_group'
             except AttributeError as e:
                 return 'anonymous'
         else:
@@ -169,14 +168,9 @@ class Message(TimeStampedModel):
         try:
             return self._previous_outgoing
         except AttributeError as e:
-            self._previous_outgoing = self.contact.message_set.filter(created__lt=self.created,
+            self._previous_outgoing = self.participant.message_set.filter(created__lt=self.created,
                                                                       is_outgoing=True).first()
             return self._previous_outgoing
-
-
-class PhoneCallQuerySet(ForUserQuerySet):
-    participant_field = 'contact'
-
 
 class PhoneCall(TimeStampedModel):
     """
@@ -186,7 +180,7 @@ class PhoneCall(TimeStampedModel):
 
     class Meta:
         ordering = ('-created',)
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     OUTCOME_CHOICES = (
         ('no_ring', 'No Ring'),
@@ -194,10 +188,10 @@ class PhoneCall(TimeStampedModel):
         ('answered', 'Answered'),
     )
 
-    objects = PhoneCallQuerySet.as_manager()
+    objects = ForUserQuerySet.as_manager()
 
     connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
-    contact = models.ForeignKey('contacts.Contact', models.CASCADE)
+    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
     admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
 
     is_outgoing = models.BooleanField(default=False)
@@ -212,11 +206,11 @@ class PhoneCall(TimeStampedModel):
 class Note(TimeStampedModel):
     class Meta:
         ordering = ('-created',)
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     objects = BaseQuerySet.as_manager()
 
-    participant = models.ForeignKey('contacts.Contact', models.CASCADE)
+    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
     admin = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
     comment = models.TextField(blank=True)
 

@@ -3,14 +3,13 @@
 from django.shortcuts import render
 
 #Local Imports
-import contacts.models as cont
 from . import forms
 import transports
 
 
 def send_message(request):
 
-    contact = None
+    participant = None
     system = None
     participant_send_form = forms.ParticipantSendForm()
     system_send_form = forms.SystemSendForm()
@@ -19,7 +18,7 @@ def send_message(request):
         if request.POST.get('participant-send',False):
             participant_send_form = forms.ParticipantSendForm(request.POST)
             if participant_send_form.is_valid():
-                identity = participant_send_form.cleaned_data['contact'].phone_number()
+                identity = participant_send_form.cleaned_data['participant'].phone_number()
                 text = participant_send_form.cleaned_data['text']
                 transports.receive(identity=identity,message_text=text)
 
@@ -29,13 +28,13 @@ def send_message(request):
         elif request.POST.get('system-send',False):
             system_send_form = forms.SystemSendForm(request.POST)
             if system_send_form.is_valid():
-                contact = system_send_form .cleaned_data['contact']
+                participant = system_send_form .cleaned_data['participant']
                 text = system_send_form .cleaned_data['text']
-                message = contact.send_message(text)
+                message = participant.send_message(text)
 
                 #reset form on valid
                 system_send_form = forms.SystemSendForm()
 
     return render(request,'transports/http/send_message.html',
-        {'participant_form':participant_send_form,'contact':contact,
+        {'participant_form':participant_send_form,'participant':participant,
           'system_form':system_send_form,'system':system})

@@ -11,7 +11,7 @@ from django.core.management.base import BaseCommand
 from django.db import models
 from django.utils import timezone
 
-import contacts.models as cont
+import mwbase.models as mwbase
 import utils
 
 
@@ -157,7 +157,7 @@ class Command(BaseCommand):
 
         self.print_header("Participant Send Times")
 
-        c_all = cont.Contact.objects_no_link.all().order_by('send_day','send_time')
+        c_all = mwbase.Participant.objects_no_link.all().order_by('send_day', 'send_time')
         time_counts = c_all.exclude(study_group='control').values('send_day','send_time') \
             .annotate(count=models.Count('send_day'))
 
@@ -185,7 +185,7 @@ class Command(BaseCommand):
 
         self.print_header("Participant By Facility")
 
-        group_counts = cont.Contact.objects.values('facility','study_group') \
+        group_counts = mwbase.Participant.objects.values('facility', 'study_group') \
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -211,7 +211,7 @@ class Command(BaseCommand):
 
         self.print_header('Validation Stats')
 
-        c_all = cont.Contact.objects_no_link.all()
+        c_all = mwbase.Participant.objects_no_link.all()
 
         stats = collections.OrderedDict( ( ('< 1h',0) , ('< 1d',0) ,('> 1d',0) , ('None',0) ) )
         for c in c_all:
@@ -242,19 +242,19 @@ class Command(BaseCommand):
         self.print_header('Message Statistics (system-participant-nurse)')
 
         # Get messages grouped by facility, system and outgoing
-        m_all = cont.Message.objects.all()
+        m_all = mwbase.Message.objects.all()
         group_counts = m_all.order_by().values(
-            'contact__facility','contact__study_group','is_system','is_outgoing'
-        ).annotate(count=models.Count('contact__facility'))
+            'participant__facility','participant__study_group','is_system','is_outgoing'
+        ).annotate(count=models.Count('participant__facility'))
 
         # Piviot Group Counts based on facility
         counts = collections.defaultdict(MessageRow)
         for g in group_counts:
-            facility = g['contact__facility']
+            facility = g['participant__facility']
             if facility is None:
                 continue
 
-            study_group = g['contact__study_group']
+            study_group = g['participant__study_group']
             sender = 'system'
             if not g['is_system']:
                 sender = 'nurse' if g['is_outgoing'] else 'participant'
@@ -265,10 +265,10 @@ class Command(BaseCommand):
         total_row = MessageRow()
         for facility , row in counts.items():
             total_row += row
-            row['two-way'].replies = m_all.filter(parent__isnull=False,contact__facility=facility).count()
+            row['two-way'].replies = m_all.filter(parent__isnull=False,participant__facility=facility).count()
             self.stdout.write( '{:<10}{}  {} ({})'.format(facility.capitalize(),row,row.total(),row.total().total() ) )
 
-        none_count = m_all.filter(contact__isnull=True).count()
+        none_count = m_all.filter(participant__isnull=True).count()
         total_count = total_row.total()
         total_row['two-way'].replies = m_all.filter(parent__isnull=False).count()
         self.stdout.write( '{:<10}{}  {} ({})'.format('Total',total_row,total_count,sum(total_count) ) )
@@ -281,7 +281,7 @@ class Command(BaseCommand):
     def print_messages(self,weeks=None):
 
         # Get all two-way messages
-        m_all = cont.Message.objects.filter(contact__study_group='two-way')
+        m_all = mwbase.Message.objects.filter(participant__study_group='two-way')
 
         # Get start date
         study_start_date = timezone.make_aware(datetime.datetime(2015,11,23))
@@ -313,9 +313,9 @@ class Command(BaseCommand):
         self.print_header('Histogram of message send hour (two-way only)')
 
         messages , hour_counts = {} , {}
-        messages['p'] = cont.Message.objects.filter(is_outgoing=False,contact__study_group='two-way')
-        messages['s'] = cont.Message.objects.filter(is_outgoing=True,is_system=True,contact__study_group='two-way')
-        messages['n'] = cont.Message.objects.filter(is_outgoing=True,is_system=False,contact__study_group='two-way')
+        messages['p'] = mwbase.Message.objects.filter(is_outgoing=False, participant__study_group='two-way')
+        messages['s'] = mwbase.Message.objects.filter(is_outgoing=True, is_system=True, participant__study_group='two-way')
+        messages['n'] = mwbase.Message.objects.filter(is_outgoing=True, is_system=False, participant__study_group='two-way')
 
         for k in messages.keys():
             hours = [0 for _ in range(24)]
@@ -332,7 +332,7 @@ class Command(BaseCommand):
 
         self.print_header('HIV Messaging Preference (none-initiated-system)')
 
-        hiv_messaging_groups = cont.Contact.objects.order_by().values('facility','study_group','hiv_messaging') \
+        hiv_messaging_groups = mwbase.Participant.objects.order_by().values('facility', 'study_group', 'hiv_messaging') \
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -358,7 +358,7 @@ class Command(BaseCommand):
 
         self.print_header('Language Statistics (english,swahili,luo)')
 
-        language_groups = cont.Contact.objects.order_by().values('facility','study_group','language') \
+        language_groups = mwbase.Participant.objects.order_by().values('facility', 'study_group', 'language') \
             .annotate(count=models.Count('study_id',distinct=True))
 
 
@@ -383,14 +383,14 @@ class Command(BaseCommand):
         print( '' )
         self.print_header('Language of Messages (participant,nurse)')
 
-        message_groups = cont.Message.objects.order_by().filter(contact__study_group='two-way',is_system=False)\
-            .prefetch_related('contact').values('languages','contact__language','is_outgoing')\
+        message_groups = mwbase.Message.objects.order_by().filter(participant__study_group='two-way', is_system=False)\
+            .prefetch_related('participant').values('languages','participant__language','is_outgoing')\
             .exclude(languages='').annotate(count=models.Count('id',distinct=True))
 
         # Piviot Group Counts
         language_counts = collections.defaultdict(LanguageMessageRow)
         for g in message_groups:
-            language_counts[g['languages']][g['contact__language']][g['is_outgoing']] = g['count']
+            language_counts[g['languages']][g['participant__language']][g['is_outgoing']] = g['count']
 
         # Print Group Counts
         self.stdout.write( "{:^12}{:^12}{:^12}{:^12}{:^12}".format("","English","Swahili","Luo","Total") )
@@ -409,7 +409,7 @@ class Command(BaseCommand):
 
         self.print_header('Participant Status (control,one-way,two-way)')
 
-        status_groups = cont.Contact.objects.order_by().values('facility','status','study_group')\
+        status_groups = mwbase.Participant.objects.order_by().values('facility', 'status', 'study_group')\
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -431,7 +431,7 @@ class Command(BaseCommand):
         self.print_header('Participant Delivery Stats')
 
         today = datetime.date.today()
-        c_all = cont.Contact.objects.all()
+        c_all = mwbase.Participant.objects.all()
         edd = c_all.filter(status='pregnant').order_by('due_date')
         post = edd.filter(due_date__lt=today)
         self.stdout.write( 'Found {:d} pregnant participants with {:d} post edd'.format(
@@ -499,7 +499,7 @@ class Command(BaseCommand):
 
         self.print_header('Participant Delivery Source (control,one-way,two-way)')
 
-        source_groups = cont.Contact.objects_no_link.filter(delivery_date__isnull=False).order_by().values('facility',\
+        source_groups = mwbase.Participant.objects_no_link.filter(delivery_date__isnull=False).order_by().values('facility',\
             'study_group','delivery_source').annotate(count=models.Count('delivery_source'))
 
         # for g in source_groups:
@@ -524,7 +524,7 @@ class Command(BaseCommand):
 
         self.print_header('Participant Enrollment By Week')
 
-        c_all = cont.Contact.objects.all()
+        c_all = mwbase.Participant.objects.all()
 
         enrollment_counts = collections.OrderedDict()
 
@@ -549,7 +549,7 @@ class Command(BaseCommand):
 
         self.print_header('Incoming Message Topic')
 
-        msgs = cont.Message.objects.filter(is_outgoing=False,contact__isnull=False)
+        msgs = mwbase.Message.objects.filter(is_outgoing=False, participant__isnull=False)
         topics = collections.Counter( m.topic for m in msgs )
 
         print( "%s\t%s" % ('Topic','Count') )
@@ -561,7 +561,7 @@ class Command(BaseCommand):
 
         self.print_header('Success Times')
 
-        participant_message_counts = cont.Contact.objects_no_link.annotate_messages().order_by('-msg_missed')[:13]
+        participant_message_counts = mwbase.Participant.objects_no_link.annotate_messages().order_by('-msg_missed')[:13]
         def display_phone_number(num):
             participant = participant_message_counts[num-1]
             return " |\t{!r:<40} O: {:<3} D: {:<3} M: {:<3} I: {:<3}".format(
@@ -591,7 +591,7 @@ class Command(BaseCommand):
         ]
 
         # Add success_dt and filter messages from start of collection: Nov 30, 2016
-        messages = cont.Message.objects.exclude(external_status='Failed').add_success_dt()
+        messages = mwbase.Message.objects.exclude(external_status='Failed').add_success_dt()
         for i in range(1,len(intervals)):
             count = messages.filter(
                 success_dt__range=(intervals[i-1][1],intervals[i][1])
@@ -615,7 +615,7 @@ class Command(BaseCommand):
         print( message_status_groups(delta=self.options['message_status']) )
 
         print( "Other Types" )
-        status_groups = cont.Message.objects.order_by().values('external_status'). \
+        status_groups = mwbase.Message.objects.order_by().values('external_status'). \
             exclude(external_status__in=('Success','Sent','Failed')).exclude(is_outgoing=False). \
             annotate(count=models.Count('external_status'))
         for group in status_groups:
@@ -624,7 +624,7 @@ class Command(BaseCommand):
 
         print( "\nFailed Reasons" )
         reasons = collections.Counter()
-        for msg in cont.Message.objects.filter(is_outgoing=True).exclude(external_status__in=('Success','Sent')):
+        for msg in mwbase.Message.objects.filter(is_outgoing=True).exclude(external_status__in=('Success', 'Sent')):
             reasons[msg.external_data.get('reason','No Reason')] += 1
         for reason , count in reasons.items():
             print( "\t{:<20}: {}".format(reason,count) )
@@ -652,22 +652,22 @@ class Command(BaseCommand):
             ('phone_shared', null_boolean_factory('phone_shared')),
         ])
 
-        contacts = cont.Contact.objects.all().order_by('study_id')
+        participants = mwbase.Participant.objects.all().order_by('study_id')
         file_path = os.path.join(self.options['dir'],'hiv_messaging.csv')
 
-        make_csv(columns,contacts,file_path)
+        make_csv(columns,participants,file_path)
         return file_path
 
     def make_hiv_statuschange_csv(self):
         ''' Basic csv dump of hiv messaging status changes '''
         columns = collections.OrderedDict([
-            ('study_id','contact.study_id'),
+            ('study_id','participant.study_id'),
             ('old','old'),
             ('new', 'new'),
             ('date','created'),
-            ('since_enrollment', lambda obj: obj.created - obj.contact.created ),
+            ('since_enrollment', lambda obj: obj.created - obj.participant.created ),
         ])
-        status_changes = cont.StatusChange.objects.filter(type='hiv')
+        status_changes = mwbase.StatusChange.objects.filter(type='hiv')
 
         file_path = os.path.join(self.options['dir'],'hiv_status_changes.csv')
 
@@ -684,7 +684,7 @@ class Command(BaseCommand):
             ('arrived','arrived'),
         ])
 
-        visits = cont.Visit.objects.all().order_by('participant__study_id').prefetch_related('participant')
+        visits = mwbase.Visit.objects.all().order_by('participant__study_id').prefetch_related('participant')
         file_path = os.path.join(self.options['dir'],'visit_dump.csv')
         make_csv(columns,visits,file_path)
         return file_path
@@ -701,13 +701,13 @@ class Command(BaseCommand):
             ('rate',lambda p: round(p.msg_received / float(p.msg_out),4) if p.msg_out != 0 else 0 ),
             ('msg_in','msg_in')
         ])
-        p_all = cont.Contact.objects_no_link.annotate_messages().order_by('-study_group','-msg_missed','-msg_out')
+        p_all = mwbase.Participant.objects_no_link.annotate_messages().order_by('-study_group', '-msg_missed', '-msg_out')
         file_path = os.path.join(self.options['dir'],'message_success.csv')
         make_csv(columns,p_all,file_path)
         return file_path
 
     def make_enrollment_csv(self):
-        c_all = cont.Contact.objects.all()
+        c_all = mwbase.Participant.objects.all()
 
         enrollment_counts = collections.OrderedDict()
 
@@ -737,7 +737,7 @@ class Command(BaseCommand):
     def make_messages_csv(self):
         """ Messages per week csv """
 
-        m_all = cont.Message.objects.all().order_by('created')
+        m_all = mwbase.Message.objects.all().order_by('created')
 
         msg_type_counts = collections.OrderedDict()
 
@@ -768,14 +768,14 @@ class Command(BaseCommand):
         """ Dump stats for each message to csv """
         columns = collections.OrderedDict([
             ('timestamp','created'),
-            ('study_id','contact.study_id'),
-            ('group','contact.study_group'),
+            ('study_id','participant.study_id'),
+            ('group','participant.study_group'),
             ('sent_by','sent_by'),
             ('status','external_status'),
             ('topic','topic'),
             ('related','related'),
         ])
-        m_all = cont.Message.objects.exclude(contact__isnull=True).order_by('contact_study_id').prefetch_related('contact')
+        m_all = mwbase.Message.objects.exclude(participant__isnull=True).order_by('participant_study_id').prefetch_related('participant')
         file_path = os.path.join(self.options['dir'],'message_dump.csv')
         make_csv(columns,m_all,file_path)
         return file_path
@@ -783,7 +783,7 @@ class Command(BaseCommand):
     def make_edd_csv(self):
         """ Make report of delivery_date to edd time delta in weeks """
 
-        c_all = cont.Contact.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss','sae'))
+        c_all = mwbase.Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
 
         edd_deltas = collections.Counter( (c.delivery_date - c.due_date).days / 7 for c in c_all )
         weeks = sorted(edd_deltas.keys())
@@ -802,7 +802,7 @@ class Command(BaseCommand):
 
     def make_delivery_csv(self):
         """ Create csv of time delta in weeks between delivery and delivery notification """
-        c_all = cont.Contact.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss','sae'))
+        c_all = mwbase.Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
 
         delivery_deltas = collections.defaultdict( GroupRowCount )
         max_week = 0
@@ -832,7 +832,7 @@ class Command(BaseCommand):
 
     def make_sae_csv(self):
 
-        loss = cont.Contact.objects.filter(loss_date__isnull=False)
+        loss = mwbase.Participant.objects.filter(loss_date__isnull=False)
 
         loss_deltas = collections.defaultdict( GroupRowCount )
         max_week = 0
@@ -936,21 +936,21 @@ interaction_columns = collections.OrderedDict([
 
 def make_interaction_columns():
 
-    contacts = { c.id:c for c in
-        cont.Contact.objects_no_link.annotate_messages().filter(msg_outgoing__gt=9)
-        # cont.Contact.objects_no_link.annotate_messages().order_by('-msg_failed')[:20]
-    }
+    participants = {c.id:c for c in
+                mwbase.Participant.objects_no_link.annotate_messages().filter(msg_outgoing__gt=9)
+                # mwbase.Participant.objects_no_link.annotate_messages().order_by('-msg_failed')[:20]
+                }
 
-    # Add all messages to contacts.messages
-    messages = cont.Message.objects.filter(contact__in=contacts.keys()).order_by('created')
+    # Add all messages to mwbase.messages
+    messages = mwbase.Message.objects.filter(participant__in=participants.keys()).order_by('created')
     for m in messages:
-        c = contacts[m.contact_id]
+        c = participants[m.participant_id]
         if hasattr(c,'messages'):
             c.messages.append(m)
         else:
             c.messages = [m]
 
-    for id , c in contacts.items():
+    for id , c in participants.items():
         start_streak, start_streak_flag = 0 , False
         longest_streak , current_streak = 0 , 0
         miss_streak , current_miss_streak = 0 , 0
@@ -1046,12 +1046,12 @@ def make_interaction_columns():
             for idx , count in enumerate(buckets):
                 setattr(c,"%s%i"%(char,idx+1), zero_or_precent(count,bucket_sizes[idx]))
 
-    return contacts.values()
+    return participants.values()
 
 def make_facility_worksheet(columns,ws,facility):
-    contacts = cont.Contact.objects.filter(facility=facility)
+    participants = mwbase.Participant.objects.filter(facility=facility)
     ws.title = facility.capitalize()
-    make_worksheet(columns,ws,contacts)
+    make_worksheet(columns,ws,participants)
 
 
 def make_worksheet(columns,ws,queryset,column_widths=None):
@@ -1080,14 +1080,14 @@ def make_weekly_wb():
     ws.freeze_panes = 'A2'
     while week_start < today:
         week_end = week_start + datetime.timedelta(days=7)
-        messages = cont.Message.objects.filter(created__gte=week_start,created__lt=week_end)
+        messages = mwbase.Message.objects.filter(created__gte=week_start, created__lt=week_end)
 
-        count = cont.Contact.objects.filter(created__lt=week_end).count()
+        count = mwbase.Participant.objects.filter(created__lt=week_end).count()
         system = messages.filter(is_outgoing=True,is_system=True).count()
         success = messages.filter(is_outgoing=True,is_system=True,external_status='Success').count()
         nurse = messages.filter(is_outgoing=True,is_system=False).count()
-        participant = messages.filter(is_outgoing=False,is_system=False,contact__isnull=False).count()
-        spam = messages.filter(is_outgoing=False,is_system=False,contact__isnull=True).count()
+        participant = messages.filter(is_outgoing=False,is_system=False,participant__isnull=False).count()
+        spam = messages.filter(is_outgoing=False,is_system=False,participant__isnull=True).count()
 
         ws.append( (week_start.date(),week_end.date(),count,system,success,participant,nurse,spam) )
 
@@ -1322,9 +1322,9 @@ def message_status_groups(start=None,delta='day'):
 
     out_string = ['Message Success Stats From: {} To: {}'.format(start.strftime('%Y-%m-%d'),end.strftime('%Y-%m-%d')), '']
 
-    messages = cont.Message.objects.filter(created__range=(start,end))
+    messages = mwbase.Message.objects.filter(created__range=(start, end))
     msg_groups = messages.order_by().values(
-        'external_status','contact__study_group'
+        'external_status','participant__study_group'
     ).annotate(
         count=models.Count('external_status'),
     )
@@ -1339,7 +1339,7 @@ def message_status_groups(start=None,delta='day'):
     ] )
 
     for group in msg_groups:
-        group_dict = msg_dict[group['contact__study_group']]
+        group_dict = msg_dict[group['participant__study_group']]
         try:
             group_dict[group['external_status']] += group['count']
         except KeyError as e:

@@ -2,7 +2,7 @@
 from django.forms import ModelForm,ModelChoiceField
 
 #Local App Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 
 class SpecialModelChoiceField(ModelChoiceField):
 
@@ -16,18 +16,18 @@ class ParticipantSendForm(ModelForm):
 
     def __init__(self,*args,**kwargs):
         super(ParticipantSendForm,self).__init__(*args,**kwargs)
-        self.fields['contact'] = SpecialModelChoiceField(queryset=cont.Contact.objects.filter(study_group='two-way'))
+        self.fields['participant'] = SpecialModelChoiceField(queryset=mwbase.Participant.objects.filter(study_group='two-way'))
 
     class Meta:
-        model = cont.Message
-        fields = ['text','contact']
+        model = mwbase.Message
+        fields = ['text', 'participant']
 
 class SystemSendForm(ModelForm):
 
     def __init__(self,*args,**kwargs):
         super(SystemSendForm,self).__init__(*args,**kwargs)
-        self.fields['contact'] = SpecialModelChoiceField(queryset=cont.Contact.objects.all())
+        self.fields['participant'] = SpecialModelChoiceField(queryset=mwbase.Participant.objects.all())
 
     class Meta:
-        model = cont.Message
-        fields = ['text','contact']
+        model = mwbase.Message
+        fields = ['text', 'participant']

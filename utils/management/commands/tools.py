@@ -9,7 +9,7 @@ import importlib
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction, connection
 
-import contacts.models as cont
+import mwbase.models as mwbase
 import backend.models as back
 import transports
 from . import tasks
@@ -60,7 +60,7 @@ class Command(BaseCommand):
 
         regex = re.compile("&nbsp;|<br>")
 
-        translations = cont.Message.objects.filter(translation_status="done")
+        translations = mwbase.Message.objects.filter(translation_status="done")
 
         total , changed = 0 , 0
         for msg in translations:
@@ -102,13 +102,13 @@ class Command(BaseCommand):
                 Duration: 0:00:03.175598
         """
 
-        auto_messages = cont.Message.objects.filter(translation_status='auto').prefetch_related('contact')
+        auto_messages = mwbase.Message.objects.filter(translation_status='auto').prefetch_related('participant')
 
         with transaction.atomic():
             counts = Namespace(total=0,changed=0,not_found=[],english=0)
             for msg in auto_messages:
                 counts.total += 1
-                if msg.contact.language == 'english':
+                if msg.participant.language == 'english':
                     counts.english += 1
                     continue
                 auto_message = back.AutomatedMessage.objects.from_description(msg.auto,exact=True)
@@ -149,15 +149,15 @@ class Command(BaseCommand):
 
             if action.strip() == "":
                 try:
-                    contact = cont.Contact.objects.get_from_phone_number(phone_number)
-                except cont.Contact.DoesNotExist as e:
+                    participant = mwbase.Participant.objects.get_from_phone_number(phone_number)
+                except mwbase.Participant.DoesNotExist as e:
                     print( "Missing:" , phone_number , " -> " , text )
                     if self.options['send']:
                         transports.send( phone_number , text )
                     missing += 1
                 else:
                     if self.options['send']:
-                        contact.send_message( text )
+                        participant.send_message( text )
                     sent += 1
             else:
                 skipped += 1

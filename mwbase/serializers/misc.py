@@ -7,7 +7,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 # Local Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 from .messages import MessageSerializer, ParticipantSimpleSerializer
 from .visits import VisitSerializer
 
@@ -21,40 +21,40 @@ class PendingViewSet(viewsets.ViewSet):
     def list(self, request):
         pending = {
             'message_url': request.build_absolute_uri(reverse('pending-messages')),
-            'messages': cont.Message.objects.for_user(request.user).pending().count(),
+            'messages': mwbase.Message.objects.for_user(request.user).pending().count(),
 
-            'visits': cont.Visit.objects.for_user(request.user).get_visit_checks().count(),
+            'visits': mwbase.Visit.objects.for_user(request.user).get_visit_checks().count(),
             'visits_url': request.build_absolute_uri(reverse('pending-visits')),
 
-            'calls': cont.ScheduledPhoneCall.objects.for_user(request.user).pending_calls().count(),
+            'calls': mwbase.ScheduledPhoneCall.objects.for_user(request.user).pending_calls().count(),
             'calls_url': request.build_absolute_uri(reverse('pending-calls')),
 
-            'translations': cont.Message.objects.for_user(request.user).to_translate().count(),
+            'translations': mwbase.Message.objects.for_user(request.user).to_translate().count(),
             'translations_url': request.build_absolute_uri(reverse('pending-translations')),
         }
         return Response(pending)
 
     @list_route()
     def messages(self, request):
-        messages = cont.Message.objects.for_user(request.user).pending()
+        messages = mwbase.Message.objects.for_user(request.user).pending()
         messages_seri = MessageSerializer(messages, many=True, context={'request': request})
         return Response(messages_seri.data)
 
     @list_route()
     def visits(self, request):
-        visit_checks = cont.Visit.objects.for_user(request.user).get_visit_checks()
+        visit_checks = mwbase.Visit.objects.for_user(request.user).get_visit_checks()
         serialized_visits = VisitSerializer(visit_checks, many=True, context={'request': request})
         return Response(serialized_visits.data)
 
     @list_route()
     def calls(self, request):
-        calls_pending = cont.ScheduledPhoneCall.objects.for_user(request.user).pending_calls()
+        calls_pending = mwbase.ScheduledPhoneCall.objects.for_user(request.user).pending_calls()
         serialized_calls = PendingCallSerializer(calls_pending, many=True, context={'request': request})
         return Response(serialized_calls.data)
 
     @list_route()
     def translations(self, request):
-        messages = cont.Message.objects.for_user(request.user).to_translate()
+        messages = mwbase.Message.objects.for_user(request.user).to_translate()
         serialized_messages = MessageSerializer(messages, many=True, context={'request': request})
         return Response(serialized_messages.data)
 
@@ -65,14 +65,14 @@ class PendingViewSet(viewsets.ViewSet):
 
 class PhoneCallSerializer(serializers.ModelSerializer):
     class Meta:
-        model = cont.PhoneCall
+        model = mwbase.PhoneCall
 
 
 class NoteSerializer(serializers.ModelSerializer):
     is_pregnant = serializers.BooleanField(read_only=True)
 
     class Meta:
-        model = cont.Note
+        model = mwbase.Note
 
 
 ########################################
@@ -88,13 +88,13 @@ class PendingCallSerializer(serializers.ModelSerializer):
     participant = PendingCallParticipantSerializer()
 
     class Meta:
-        model = cont.ScheduledPhoneCall
+        model = mwbase.ScheduledPhoneCall
         fields = ('id', 'participant', 'scheduled', 'arrived', 'notification_last_seen', 'status',
                   'call_type', 'days_overdue', 'notify_count', 'href')
 
 
 class PendingCallViewSet(viewsets.ModelViewSet):
-    queryset = cont.ScheduledPhoneCall.objects.all()
+    queryset = mwbase.ScheduledPhoneCall.objects.all()
     serializer_class = PendingCallSerializer
 
     @detail_route(methods=['put'])

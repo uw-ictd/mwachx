@@ -13,7 +13,7 @@ from constance import config
 from django.db import transaction
 from django.conf import settings
 
-import contacts.models as cont
+import mwbase.models as mwbase
 import backend.models as back
 import utils
 
@@ -89,27 +89,27 @@ def add_client(client,study_id,facility=None):
         'facility':FACILITY_LIST[study_id%3] if facility is None else facility,
         'status':status
         }
-    contact = cont.Contact(**new_client)
-    contact.validation_key = contact.get_validation_key()
-    contact.save()
-    connection = cont.Connection.objects.create(identity='+2500'+client['phone_number'][:8],contact=contact,is_primary=True)
+    participant = mwbase.Participant(**new_client)
+    participant.validation_key = participant.get_validation_key()
+    participant.save()
+    connection = mwbase.Connection.objects.create(identity='+2500' + client['phone_number'][:8], participant=participant, is_primary=True)
 
     message_count = len(client['messages'])
     for i,m in enumerate(client['messages']):
         #only make translations for last five messages
         translate = i < message_count - 5
-        add_message(m,contact,connection,translate)
+        add_message(m,participant,connection,translate)
     for v in client['visits']:
-        add_visit(v,contact)
+        add_visit(v,participant)
     for n in client['notes']:
-        add_note(n,contact)
-    add_new_visit(contact,study_id)
-    add_new_calls(contact)
-    add_new_scheduled_call(contact,study_id)
+        add_note(n,participant)
+    add_new_visit(participant,study_id)
+    add_new_calls(participant)
+    add_new_scheduled_call(participant,study_id)
 
     return new_client
 
-def add_message(message,contact,connection,translate=False):
+def add_message(message, participant, connection, translate=False):
     outgoing = message['sent_by'] != 'Client'
     system = message['sent_by'] == 'System'
 
@@ -117,11 +117,11 @@ def add_message(message,contact,connection,translate=False):
         'text':message['content'],
         'is_outgoing':outgoing,
         'is_system':system,
-        'contact':contact,
+        'participant':participant,
         'connection':connection,
         'created':dateutil.parser.parse(message['date']) + datetime.timedelta(days=365),
     }
-    _message = cont.Message.objects.create(**new_message)
+    _message = mwbase.Message.objects.create(**new_message)
 
     if translate and not system:
         _message.translated_text = "(translated)" + message['content']
@@ -130,7 +130,7 @@ def add_message(message,contact,connection,translate=False):
 
     _message.save()
 
-def add_visit(visit,contact):
+def add_visit(visit, participant):
     if visit['scheduled_date']:
         new_visit = {
             'scheduled':dateutil.parser.parse(visit['scheduled_date']) + datetime.timedelta(days=365),
@@ -138,44 +138,44 @@ def add_visit(visit,contact):
             'arrived':visit['date'],
             'skipped':True if random.random() < .25 else False,
             'comment':visit['comments'],
-            'participant':contact
+            'participant':participant
         }
-        cont.Visit.objects.create(**new_visit)
+        mwbase.Visit.objects.create(**new_visit)
 
 VISIT_COUNT = 0
-def add_new_visit(contact,i):
+def add_new_visit(participant, i):
     new_visit = {
         'scheduled':utils.today() + datetime.timedelta(days=i+1),
-        'participant':contact,
+        'participant':participant,
         'visit_type':'clinic' if random.random() < 0.5 else 'study'
     }
-    cont.Visit.objects.create(**new_visit)
+    mwbase.Visit.objects.create(**new_visit)
 
-def add_new_calls(contact):
+def add_new_calls(participant):
 
-    contact.add_call( outcome=random.choice(cont.PhoneCall.OUTCOME_CHOICES)[0],is_outgoing=False,
-        comment = 'This is a phone call that came in. Do we need a field for length')
+    participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0], is_outgoing=False,
+                         comment = 'This is a phone call that came in. Do we need a field for length')
 
-    contact.add_call(outcome=random.choice(cont.PhoneCall.OUTCOME_CHOICES)[0],
-        comment = 'This is an outgoing phone call. It was probably made at 1 month')
+    participant.add_call(outcome=random.choice(mwbase.PhoneCall.OUTCOME_CHOICES)[0],
+                         comment = 'This is an outgoing phone call. It was probably made at 1 month')
 
-def add_new_scheduled_call(contact,i):
+def add_new_scheduled_call(participant, i):
 
     scheduled_date = utils.today() + datetime.timedelta(days=2*i+1)
-    cont.ScheduledPhoneCall.objects.create(scheduled=scheduled_date,participant=contact)
-    cont.ScheduledPhoneCall.objects.create(
+    mwbase.ScheduledPhoneCall.objects.create(scheduled=scheduled_date, participant=participant)
+    mwbase.ScheduledPhoneCall.objects.create(
         scheduled=scheduled_date+datetime.timedelta(days=1),
-        participant=contact,
+        participant=participant,
         call_type='y')
 
-def add_note(note,contact):
+def add_note(note, participant):
     new_note = {
-        'participant':contact,
+        'participant':participant,
         'comment':note['content'],
         'created':note['date'],
     }
 
-    _note = cont.Note.objects.create(**new_note)
+    _note = mwbase.Note.objects.create(**new_note)
     _note.save()
 
 
@@ -193,18 +193,18 @@ def load_old_participants(options):
         for i,c in enumerate(clients):
             print( add_client(c,i,options['facility']) )
 
-        #Mark the last message for each contact is_viewed=False
-        last_messages = cont.Message.objects.filter(is_outgoing=False).values('contact_id').order_by().annotate(Max('id'))
-        cont.Message.objects.exclude(id__in=[d['id__max'] for d in last_messages]).update(is_viewed=True)
+        #Mark the last message for each participant is_viewed=False
+        last_messages = mwbase.Message.objects.filter(is_outgoing=False).values('participant_id').order_by().annotate(Max('id'))
+        mwbase.Message.objects.exclude(id__in=[d['id__max'] for d in last_messages]).update(is_viewed=True)
         #Move the last message to the front of the message que
-        for msg in cont.Message.objects.filter(id__in=[d['id__max'] for d in last_messages]):
-            before_msg = msg.contact.message_set.all()[random.randint(1,3)]
+        for msg in mwbase.Message.objects.filter(id__in=[d['id__max'] for d in last_messages]):
+            before_msg = msg.participant.message_set.all()[random.randint(1,3)]
             msg.created = before_msg.created + datetime.timedelta(seconds=600)
             msg.save()
 
         # Make last visit arrived = None.
-        last_visits = cont.Visit.objects.all().values('participant_id').order_by().annotate(Max('id'))
-        cont.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None,skipped=None)
+        last_visits = mwbase.Visit.objects.all().values('participant_id').order_by().annotate(Max('id'))
+        mwbase.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None, skipped=None)
 
 def add_jennifers():
     print( 'Loading Fake Jennifer Users' )
@@ -222,8 +222,8 @@ def create_jennifer(i,facility):
         'facility':facility,
         'status':'pregnant',
         }
-    contact = cont.Contact.objects.create(**new_client)
-    connection = cont.Connection.objects.create(identity='+00{}'.format(i),contact=contact,is_primary=True)
+    participant = mwbase.Participant.objects.create(**new_client)
+    connection = mwbase.Connection.objects.create(identity='+00{}'.format(i), participant=participant, is_primary=True)
 
 
 def create_backend():
@@ -234,11 +234,11 @@ def create_users():
     #create admin user
     print( 'Creating Users' )
     oscard = User.objects.create_superuser('admin',email='o@o.org',password='mwachx')
-    cont.Practitioner.objects.create(facility='bondo',user=oscard)
+    mwbase.Practitioner.objects.create(facility='bondo', user=oscard)
     #create study nurse users
     for f in FACILITY_LIST:
         user = User.objects.create_user('n_{}'.format(f),password='mwachx')
-        cont.Practitioner.objects.create(facility=f,user=user)
+        mwbase.Practitioner.objects.create(facility=f, user=user)
 
 def create_automated_messages():
     pass

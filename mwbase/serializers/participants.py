@@ -11,9 +11,9 @@ from rest_framework import viewsets
 from rest_framework.decorators import detail_route
 from rest_framework.response import Response
 
-import contacts.forms as forms
+import mwbase.forms as forms
 # Local Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 import utils
 from .messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
 from .misc import PhoneCallSerializer, NoteSerializer
@@ -60,7 +60,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     note_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = cont.Contact
+        model = mwbase.Participant
         fields = '__all__'
 
     def get_hiv_disclosed_display(self, obj):
@@ -94,7 +94,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     lookup_field = 'study_id'
 
     def get_queryset(self):
-        qs = cont.Contact.objects.all().order_by('study_id')
+        qs = mwbase.Participant.objects.all().order_by('study_id')
         # Only return the participants for this user's facility
         if self.action == 'list':
             return qs.for_user(self.request.user, superuser=True)
@@ -115,58 +115,58 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         ''' POST - create a new participant using the the participant ModelForm'''
-        cf = forms.ContactAdd(request.data)
+        cf = forms.ParticipantAdd(request.data)
 
         if cf.is_valid():
             with transaction.atomic():
-                # Create new contact but do not save in DB
-                contact = cf.save(commit=False)
+                # Create new participant but do not save in DB
+                participant = cf.save(commit=False)
 
-                # Set contacts facility to facility of current user
+                # Set mwbase facility to facility of current user
                 facility = ''  # Default to blank facility if none found
                 try:
                     facility = request.user.practitioner.facility
-                except cont.Practitioner.DoesNotExist:
+                except mwbase.Practitioner.DoesNotExist:
                     pass
 
-                contact.facility = facility
-                contact.validation_key = contact.get_validation_key()
+                participant.facility = facility
+                participant.validation_key = participant.get_validation_key()
                 # Important: save before making foreign keys
-                contact.save()
+                participant.save()
 
                 phone_number = '+254%s' % cf.cleaned_data['phone_number'][1:]
-                cont.Connection.objects.create(identity=phone_number, contact=contact, is_primary=True)
+                mwbase.Connection.objects.create(identity=phone_number, participant=participant, is_primary=True)
 
                 # Set the next visits
                 if cf.cleaned_data['clinic_visit']:
-                    cont.Visit.objects.create(scheduled=cf.cleaned_data['clinic_visit'],
-                                              participant=contact, visit_type='clinic')
+                    mwbase.Visit.objects.create(scheduled=cf.cleaned_data['clinic_visit'],
+                                                participant=participant, visit_type='clinic')
                 if cf.cleaned_data['due_date']:
                     # Set first study visit to 6 weeks (42 days) after EDD
-                    cont.Visit.objects.create(scheduled=cf.cleaned_data['due_date'] + datetime.timedelta(days=42),
-                                              participant=contact, visit_type='study')
+                    mwbase.Visit.objects.create(scheduled=cf.cleaned_data['due_date'] + datetime.timedelta(days=42),
+                                                participant=participant, visit_type='study')
 
                 # If edd is more than 35 weeks away reset and make note
-                if contact.due_date - datetime.date.today() > datetime.timedelta(weeks=35):
+                if participant.due_date - datetime.date.today() > datetime.timedelta(weeks=35):
                     new_edd = datetime.date.today() + datetime.timedelta(weeks=35)
-                    contact.note_set.create(
-                        participant=contact,
+                    participant.note_set.create(
+                        participant=participant,
                         comment="Inital EDD out of range. Automatically changed from {} to {} (35 weeks from enrollment).".format(
-                            contact.due_date.strftime("%Y-%m-%d"),
+                            participant.due_date.strftime("%Y-%m-%d"),
                             new_edd.strftime("%Y-%m-%d")
                         )
                     )
-                    contact.due_date = new_edd
-                    contact.save()
+                    participant.due_date = new_edd
+                    participant.save()
 
                 # Send Welcome Message
-                contact.send_automated_message(send_base='signup', send_offset=0,
-                                               control=True, hiv_messaging=False)
+                participant.send_automated_message(send_base='signup', send_offset=0,
+                                                   control=True, hiv_messaging=False)
 
-            contact.pending_visits = contact.visit_set.order_by('scheduled').filter(arrived__isnull=True,
-                                                                                    status='pending')
-            serialized_contact = ParticipantSerializer(contact, context={'request': request})
-            return Response(serialized_contact.data)
+            participant.pending_visits = participant.visit_set.order_by('scheduled').filter(arrived__isnull=True,
+                                                                                            status='pending')
+            serialized_participant = ParticipantSerializer(participant, context={'request': request})
+            return Response(serialized_participant.data)
 
         else:
             return Response({'errors': json.loads(cf.errors.as_json())})
@@ -185,7 +185,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         instance.hiv_messaging = request.data['hiv_messaging']
 
         instance.save()
-        instance_serialized = ParticipantSerializer(cont.Contact.objects.get(pk=instance.pk),
+        instance_serialized = ParticipantSerializer(mwbase.Participant.objects.get(pk=instance.pk),
                                                     context={'request': request}).data
         return Response(instance_serialized)
 
@@ -198,16 +198,16 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             min_id = request.query_params.get('min_id', None)
 
             # Create Message List and Serializer
-            contact_messages = cont.Message.objects.filter(contact__study_id=study_id).select_related(
-                'connection__contact', 'contact').prefetch_related('contact__connection_set')
+            participant_messages = mwbase.Message.objects.filter(participant__study_id=study_id).select_related(
+                'connection__participant', 'participant').prefetch_related('participant__connection_set')
             if max_id:
-                contact_messages = contact_messages.filter(pk__lt=max_id)
+                participant_messages = participant_messages.filter(pk__lt=max_id)
             if min_id:
-                contact_messages.filter(pk_gt=min_id)
+                participant_messages.filter(pk_gt=min_id)
             if limit:
-                contact_messages = contact_messages[:limit]
-            contact_messages = MessageSimpleSerializer(contact_messages, many=True, context={'request': request})
-            return Response(contact_messages.data)
+                participant_messages = participant_messages[:limit]
+            participant_messages = MessageSimpleSerializer(participant_messages, many=True, context={'request': request})
+            return Response(participant_messages.data)
 
         elif request.method == 'POST':
             '''A POST to participant/:study_id:/messages sends a new message to that participant'''
@@ -227,7 +227,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 message['translated_text'] = request.data['translated_text']
 
             if request.data.has_key('reply'):
-                message['parent'] = cont.Message.objects.get(pk=request.data['reply']['id'])
+                message['parent'] = mwbase.Message.objects.get(pk=request.data['reply']['id'])
                 message['parent'].action_time = timezone.now()
 
                 if message['parent'].is_pending:
@@ -241,7 +241,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     @detail_route(methods=['get', 'post'])
     def calls(self, request, study_id=None):
         if request.method == 'GET':  # Return serialized call history
-            call_history = cont.PhoneCall.objects.filter(contact__study_id=study_id)
+            call_history = mwbase.PhoneCall.objects.filter(participant__study_id=study_id)
             call_serialized = PhoneCallSerializer(call_history, many=True, context={'request': request})
             return Response(call_serialized.data)
         elif request.method == 'POST':  # Save a new call
@@ -272,14 +272,14 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     def notes(self, request, study_id=None):
         if request.method == 'GET':  # Return a serialized list of all notes
 
-            notes = cont.Note.objects.filter(participant__study_id=study_id)
+            notes = mwbase.Note.objects.filter(participant__study_id=study_id)
             notes_serialized = NoteSerializer(notes, many=True, context={'request', request})
             return Response(notes_serialized.data)
 
         elif request.method == 'POST':  # Add a new note
 
-            note = cont.Note.objects.create(participant=self.get_object(), admin=request.user,
-                                            comment=request.data['comment'])
+            note = mwbase.Note.objects.create(participant=self.get_object(), admin=request.user,
+                                              comment=request.data['comment'])
             note_serialized = NoteSerializer(note, context={'request', request})
             return Response(note_serialized.data)
 

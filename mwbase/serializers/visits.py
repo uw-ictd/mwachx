@@ -7,7 +7,7 @@ from rest_framework.decorators import detail_route, list_route
 from rest_framework.response import Response
 
 # Local Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 import utils
 from .messages import ParticipantSimpleSerializer
 
@@ -23,7 +23,7 @@ class VisitSerializer(serializers.ModelSerializer):
     visit_type_display = serializers.CharField(source='get_visit_type_display')
 
     class Meta:
-        model = cont.Visit
+        model = mwbase.Visit
         fields = ('id', 'href', 'participant', 'scheduled', 'arrived', 'notification_last_seen', 'status',
                   'comment', 'visit_type', 'visit_type_display', 'days_overdue', 'days_str', 'is_pregnant')
 
@@ -40,7 +40,7 @@ class VisitSimpleSerializer(serializers.ModelSerializer):
     visit_type_display = serializers.CharField(source='get_visit_type_display')
 
     class Meta:
-        model = cont.Visit
+        model = mwbase.Visit
         fields = ('id', 'href', 'scheduled', 'arrived', 'notification_last_seen', 'status',
                   'comment', 'visit_type', 'visit_type_display', 'days_overdue', 'days_str')
 
@@ -49,7 +49,7 @@ class VisitSimpleSerializer(serializers.ModelSerializer):
 
 
 class VisitViewSet(viewsets.ModelViewSet):
-    queryset = cont.Visit.objects.all()
+    queryset = mwbase.Visit.objects.all()
     serializer_class = VisitSerializer
 
     @list_route()
@@ -64,7 +64,7 @@ class VisitViewSet(viewsets.ModelViewSet):
         instance = self.get_object()
         instance.seen()
 
-        cont.EventLog.objects.create(user=request.user, event='visit.seen', data={'visit_id': instance.id})
+        mwbase.EventLog.objects.create(user=request.user, event='visit.seen', data={'visit_id': instance.id})
 
         visit = VisitSerializer(instance, context={'request': request})
         return Response(visit.data)
@@ -89,7 +89,7 @@ class VisitViewSet(viewsets.ModelViewSet):
         # send visit attended reminder
         instance.send_visit_attended_message()
 
-        cont.EventLog.objects.create(user=request.user, event='visit.attended', data={'visit_id': instance.id})
+        mwbase.EventLog.objects.create(user=request.user, event='visit.attended', data={'visit_id': instance.id})
         return Response({'visit': instance_serialized, 'next': next_visit_serialized})
 
     @detail_route(methods=['put'])

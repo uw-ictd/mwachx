@@ -8,7 +8,7 @@ from django.utils import dateparse
 from django.db import models
 
 
-import contacts.models as cont
+import mwbase.models as mwbase
 from transports.email import email
 
 
@@ -97,7 +97,7 @@ def weekly_messages(day,hour,date,email_body,options,send=False):
 
     email_body.append("***** Weekly Messages ******\n")
 
-    participants = cont.Contact.objects.active_users().filter(send_day=day)
+    participants = mwbase.Participant.objects.active_users().filter(send_day=day)
 
     vals = ns(times={8:0,13:0,20:0}, control=0,
         no_messages=[],sent_to=[],errors=[],exclude=[])
@@ -129,7 +129,7 @@ def appointment_reminders(date,hour,email_body,options,send=False):
     email_body.append( "***** Appointment Reminders *****\n" )
     # Find visits scheduled within delta_days and not attended early
     scheduled_date = date + datetime.timedelta(days=2)
-    upcoming_visits = cont.Visit.objects.pending(scheduled=scheduled_date)\
+    upcoming_visits = mwbase.Visit.objects.pending(scheduled=scheduled_date)\
         .to_send().select_related('participant')
 
     vals = ns(sent_to={}, no_messages=[], control=0, duplicates=0, not_active=0 , times={8:0,13:0,20:0},
@@ -171,7 +171,7 @@ def appointment_reminders(date,hour,email_body,options,send=False):
 def missed_visit_reminders(hour,email_body,options,send=False):
 
     email_body.append( "***** Missed Visit Reminders *****\n" )
-    missed_visits = cont.Visit.objects.get_missed_visits().to_send()
+    missed_visits = mwbase.Visit.objects.get_missed_visits().to_send()
 
     vals = ns(sent_to=[], no_messages=[], control=0, not_active=0, times={8:0,13:0,20:0},
         exclude=[],errors=[])

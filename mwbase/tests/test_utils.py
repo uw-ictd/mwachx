@@ -3,13 +3,13 @@ import datetime
 from django.contrib.auth import models as auth
 
 import backend.models as auto
-import contacts.models as cont
+import mwbase.models as mwbase
 
 
 def setup_auth_user(cls):
-    # Creat dummy admin user
+    # Create dummy admin user
     cls.user = auth.User.objects.create_user("test", "t@t.com", "test", first_name="Test Nurse")
-    cont.Practitioner.objects.create(user=cls.user, facility="bondo")
+    mwbase.Practitioner.objects.create(user=cls.user, facility="bondo")
 
 
 def setup_auto_messages(cls):
@@ -49,9 +49,9 @@ def setup_auto_messages(cls):
     )
 
 
-def setup_basic_contacts(cls):
-    # Create basic contact objects
-    cls.p1 = cont.Contact.objects.create(
+def setup_basic_participants(cls):
+    # Create basic participants objects
+    cls.p1 = mwbase.Participant.objects.create(
         study_id="0001",
         anc_num="0001",
         facility="bondo",
@@ -61,13 +61,13 @@ def setup_basic_contacts(cls):
         due_date=datetime.date.today() + datetime.timedelta(weeks=3),
     )
 
-    cls.p1_connection = cont.Connection.objects.create(
+    cls.p1_connection = mwbase.Connection.objects.create(
         identity="P1 Connection",
-        contact=cls.p1,
+        participant=cls.p1,
         is_primary=True
     )
 
-    cls.p2 = cont.Contact.objects.create(
+    cls.p2 = mwbase.Participant.objects.create(
         study_id="0002",
         anc_num="0002",
         facility="bondo",
@@ -81,13 +81,13 @@ def setup_basic_contacts(cls):
         hiv_messaging="system"
     )
 
-    cls.p2_connection = cont.Connection.objects.create(
+    cls.p2_connection = mwbase.Connection.objects.create(
         identity="P2 Connection",
-        contact=cls.p2,
+        participant=cls.p2,
         is_primary=True
     )
 
-    cls.p3 = cont.Contact.objects.create(
+    cls.p3 = mwbase.Participant.objects.create(
         study_id="0003",
         anc_num="0003",
         facility="ahero",
@@ -100,7 +100,7 @@ def setup_basic_contacts(cls):
         condition="art",
     )
 
-    cls.p3_connection = cont.Connection.objects.create(
+    cls.p3_connection = mwbase.Connection.objects.create(
         identity="P3 Connection",
-        contact=cls.p3,
+        participant=cls.p3,
     )

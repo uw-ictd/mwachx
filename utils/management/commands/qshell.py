@@ -1,13 +1,16 @@
 #!/usr/bin/python
-from django.core.management.base import BaseCommand, CommandError
-
-import contacts.models as cont
-import backend.models as back
-import transports.africas_talking.api as at
+import code, os
 import datetime as dt
+
+# Django Imports
 from django.db import models
 from django.db.models import Count
-import code, os
+from django.core.management.base import BaseCommand, CommandError
+
+# Local Imports
+import mwbase.models as mwbase
+import backend.models as back
+import transports.africas_talking.api as at
 
 def count_field(qs,field):
     groups = qs.order_by().values(field).annotate(count=models.Count(field))
@@ -56,10 +59,10 @@ class Command(BaseCommand):
             except NameError:
                 pass
 
-        c_all = cont.Contact.objects_no_link.all()
-        m_all = cont.Message.objects.all()
-        v_all = cont.Visit.objects.all()
-        s_all = cont.StatusChange.objects.all()
+        p_all = mwbase.Participant.objects_no_link.all()
+        m_all = mwbase.Message.objects.all()
+        v_all = mwbase.Visit.objects.all()
+        s_all = mwbase.StatusChange.objects.all()
 
         namespace = globals()
         namespace.update(locals())

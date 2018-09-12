@@ -9,7 +9,7 @@ from django.utils import timezone
 
 #Local Imports
 from . import forms
-import contacts.models as cont
+import mwbase.models as mwbase
 import transports
 
 
@@ -51,7 +51,7 @@ def delivery_report(request):
 		failure_reason = request.POST.get('failureReason')
 
 		try:
-			message = cont.Message.objects.get_or_none(external_id=message_id)
+			message = mwbase.Message.objects.get_or_none(external_id=message_id)
 		except NameError as e:
 			return HttpResponse("NO MESSAGE FOR ID FOUND")
 		else:

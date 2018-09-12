@@ -5,11 +5,11 @@ from crispy_forms.layout import Layout, Fieldset, Div, Submit
 from django import forms
 
 # Local App Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 import utils.forms as util
 
 
-class ContactAdd(forms.ModelForm):
+class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
                                    widget=forms.TextInput(attrs={'required': 'True', 'placeholder': '07xxxxxxx',
                                                                  'pattern': '^07[0-9]{8}'}))
@@ -17,7 +17,7 @@ class ContactAdd(forms.ModelForm):
     def clean_phone_number(self):
         ''' Add custom validation for unique phone number '''
         phone_number = '+254%s' % self.cleaned_data['phone_number'][1:]
-        connection = cont.Connection.objects.get_or_none(identity=phone_number)
+        connection = mwbase.Connection.objects.get_or_none(identity=phone_number)
         if connection is not None:
             raise forms.ValidationError("Phone number provided already exists", code="unique")
         return self.cleaned_data['phone_number']
@@ -25,7 +25,7 @@ class ContactAdd(forms.ModelForm):
     clinic_visit = forms.DateField(label='Next Clinic Visit')
 
     def __init__(self, *args, **kwargs):
-        super(ContactAdd, self).__init__(*args, **kwargs)
+        super(ParticipantAdd, self).__init__(*args, **kwargs)
 
         self.fields['due_date'].widget = util.AngularPopupDatePicker({'required': True}, min=3)
         self.fields['birthdate'].widget = util.AngularPopupDatePicker(
@@ -113,7 +113,7 @@ class ContactAdd(forms.ModelForm):
 
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = cont.Contact
+        model = mwbase.Participant
         exclude = ['status', 'facility']
 
         widgets = {
@@ -135,14 +135,14 @@ class ContactAdd(forms.ModelForm):
         }
 
 
-class ContactUpdate(forms.ModelForm):
+class ParticipantUpdate(forms.ModelForm):
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = cont.Contact
+        model = mwbase.Participant
         fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
 
     def __init__(self, *args, **kwargs):
-        super(ContactUpdate, self).__init__(*args, **kwargs)
+        super(ParticipantUpdate, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
         self.helper.form_id = 'participant-details-form'

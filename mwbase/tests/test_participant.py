@@ -8,7 +8,7 @@ from django.db import models
 from django.test import override_settings
 from rest_framework import test as rf_test
 
-from contacts.models import Contact
+from mwbase.models import Participant
 # Local Imports
 from . import test_utils
 
@@ -24,7 +24,7 @@ class ParticipantBasicTests(test.TestCase):
     @classmethod
     def setUpTestData(cls):
         test_utils.setup_auth_user(cls)
-        test_utils.setup_basic_contacts(cls)
+        test_utils.setup_basic_participants(cls)
         test_utils.setup_auto_messages(cls)
 
     def setUp(self):
@@ -68,7 +68,7 @@ class ParticipantBasicTests(test.TestCase):
         self.assertEqual(self.p2.description(today=plus_td(7)), "dd.two-way.normal.Y.10")
 
     def test_send_batch(self):
-        participants = Contact.objects.annotate(msg_count=models.Count('message'))
+        participants = Participant.objects.annotate(msg_count=models.Count('message'))
         self.assertEqual(participants.count(), 3)
 
         before_count = sum(p.msg_count for p in participants)
@@ -94,7 +94,7 @@ class ParticipantBasicTests(test.TestCase):
         self.assertEqual(new_message.translated_text, 'English Message')
         self.assertTrue(new_message.is_outgoing)
         self.assertFalse(new_message.is_system)
-        self.assertEqual(new_message.contact, self.p2)
+        self.assertEqual(new_message.participant, self.p2)
 
         # Test send = true no auto tag
         participants.send_batch('English Message', 'Swahili Message', 'Luo Message', send=True)
@@ -108,7 +108,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
     @classmethod
     def setUpTestData(cls):
         test_utils.setup_auth_user(cls)
-        test_utils.setup_basic_contacts(cls)
+        test_utils.setup_basic_participants(cls)
         test_utils.setup_auto_messages(cls)
 
     def setUp(self):
@@ -141,7 +141,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
     def test_create(self):
 
-        start_count = Contact.objects.count()
+        start_count = Participant.objects.count()
         data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "two-way",
                 "language": "english", "phone_number": "0700000004", "nickname": "Test", "birthdate": "1990-02-05",
                 "relationship_status": "single", "due_date": "2016-07-29", "hiv_messaging": "none",
@@ -151,12 +151,12 @@ class ParticipantSerializerTests(rf_test.APITestCase):
         # import code;code.interact(local=locals())
 
         try:
-            new_participant = Contact.objects.get(study_id="0004")
-        except Contact.DoesNotExist as e:
+            new_participant = Participant.objects.get(study_id="0004")
+        except Participant.DoesNotExist as e:
             self.fail(response)
 
         # Check that the participant was created
-        self.assertEqual(Contact.objects.count(), start_count + 1)
+        self.assertEqual(Participant.objects.count(), start_count + 1)
         self.assertEqual(new_participant.nickname, 'Test')
         self.assertEqual(new_participant.facility, self.user.practitioner.facility)
         self.assertEqual(new_participant.phone_number(), "+254700000004")
@@ -168,7 +168,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
     def test_create_control(self):
 
-        start_count = Contact.objects.count()
+        start_count = Participant.objects.count()
         data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "control",
                 "language": "english", "nickname": "Test", "phone_number": "0700000004", "birthdate": "1990-02-05",
                 "relationship_status": "single", "partner_invited": "invited", "due_date": "2016-07-29",
@@ -179,12 +179,12 @@ class ParticipantSerializerTests(rf_test.APITestCase):
         # import code;code.interact(local=locals())
 
         try:
-            new_participant = Contact.objects.get(study_id="0004")
-        except Contact.DoesNotExist as e:
+            new_participant = Participant.objects.get(study_id="0004")
+        except Participant.DoesNotExist as e:
             self.fail(response)
 
         # Check that the participant was created
-        self.assertEqual(Contact.objects.count(), start_count + 1)
+        self.assertEqual(Participant.objects.count(), start_count + 1)
         self.assertEqual(new_participant.nickname, 'Test')
         self.assertEqual(new_participant.facility, self.user.practitioner.facility)
         self.assertEqual(new_participant.phone_number(), "+254700000004")

@@ -12,7 +12,7 @@ for some high-level information about the future direction of the platform and d
 The following are the key apps in the codebase:
 
 * The `backend` app contains the models and logic for automated messages in the system.
-* The `contacts` app contains the main data models and logic for the (SMS) contacts in the system.
+* The `participants` app contains the main data models and logic for the (SMS) participants in the system.
 * The `transports` app has the logic around gateways and SMS routing and validation
 * The `utils` app contains shared utility code as well as management commands that handle the scheduled tasks for the system
   (including automated messages)
@@ -27,21 +27,21 @@ The messages are stored as instances of the `AutomatedMessage` model.
 Each `AutomatedMessage` has fields that contain information about when it should be sent (e.g. `send_base`, `group`, `condition`, etc.
 These fields are combined to form a `description` which is a (hopefully) unique text identifier combining the relevant fields
 of the message into a single identifier.
-This `description` is mapped to `Contact.description` and can be queried with logic in the `AutomatedMessageQuerySet` class.
+This `description` is mapped to `Participant.description` and can be queried with logic in the `AutomatedMessageQuerySet` class.
 
 ### Possible (Unvetted) Todos
 
-* The logic for getting a message from a contact / description is quite hard-coded and specific.
+* The logic for getting a message from a participant / description is quite hard-coded and specific.
   Maybe figure out a plug-in style architecture? Or maybe introduce project-specific subclasses.
 
-## mwachx.contact
+## mwbase.participant
 
-This module contains the main data models and logic for the contacts in the system.
+This module contains the main data models and logic for the participants in the system.
 
-The `Contact` model represents each person/participant in the system, and contains a slew of fields for representing their
-demographic and medical information and status. `StatusChange` tracks any status changes that happen to Contacts.
+The `Participant` model represents each person/participant in the system, and contains a slew of fields for representing their
+demographic and medical information and status. `StatusChange` tracks any status changes that happen to Participants.
 
-The `Message` and `PhoneCall` models (in `contacts.models.interactions`) represent individual instances of messages/calls.
+The `Message` and `PhoneCall` models (in `participants.models.interactions`) represent individual instances of messages/calls.
 
 The `Note` model is a very simple freetext note linked to a person.
 
@@ -49,11 +49,11 @@ The `EventLog` model logs web-based events (which are not used for anything curr
 
 ### Possible (Unvetted) Todos
 
-* Split out `Contact` into a generic base class and add project-specific implementations that live outside the core models.
+* Split out `Participant` into a generic base class and add project-specific implementations that live outside the core models.
   Some work was done in this space built on [django swappable models](https://github.com/wq/django-swappable-models).
-* Introduce a `Participant` model to separate the notion of contact from someone actually participating in a study
-* Lots of hard-coded scheduling logic living as methods on `Contact`. Could pull these out into an isolated place?
-* Generally reduce the footprint of the `Contact` model and pull helper code into helper / logical units
+* Introduce a `Participant` model to separate the notion of participant from someone actually participating in a study
+* Lots of hard-coded scheduling logic living as methods on `Participant`. Could pull these out into an isolated place?
+* Generally reduce the footprint of the `Participant` model and pull helper code into helper / logical units
 * Rename `SchedualQuerySet` to remove typo
 * Could the `EventLog` model be removed if it is not used?
 
@@ -68,7 +68,7 @@ The controller grabs some data (typically using Restangular), sets it in a `$sco
 ## mawchx.routes.js
 
 This is where the routes are defined. These largely correspond to pages/tabs in the app.
-Each route points to a template that is a *subset* of the overall template (which lives in `contacts/templates/app/index.html`),
+Each route points to a template that is a *subset* of the overall template (which lives in `participants/templates/app/index.html`),
 as well as a controller that is defined in a javascript file.
 
 ## mawchx.module.js
@@ -111,7 +111,7 @@ command in the `mwachx.utils` app. The logic goes approximately like this:
 1. For each eligible message type (e.g. weekly, missed visits, etc.):
 1. Determine the list of participants available for messages (handled by functions in the `send_messages` module)
 1. Send a message to those participants according to their current state (handled either by the functions in
-   the `send_messages` module, or by the `Contact.send_automated_message` function.
+   the `send_messages` module, or by the `Participant.send_automated_message` function.
 
 # Deployment
 
@@ -134,7 +134,7 @@ Originally the `MESSAGING_CONNECTION`, and `MESSAGING_ADMIN` settings were creat
 to make it possible to easily swap out different models for these things, however it is not
 expected that these will work as-advertised.
 
-For the `Contact` mode, the `swapper` utilities should be used.
+For the `Participant` mode, the `swapper` utilities should be used.
 
 # Overall (Unvetted) Todos
 
@@ -146,7 +146,7 @@ For the `Contact` mode, the `swapper` utilities should be used.
   * Explain purpose of `FAKE_DATE` and when to use it (looks like just for dev/debug purposes and yet it defaults to `True` if not present).
 * Architecture/Code
   * Consider getting rid of "description" passthroughs - convert to a class that knows how to serialize itself if necessary
-  * Consider removing `MESSAGING_CONTACT` (and similar) settings, or make it so that they are actually properly supported (partially done).
+  * Consider removing `MESSAGING_PARTICIPANT` (and similar) settings, or make it so that they are actually properly supported (partially done).
   * Consider making a concrete link between `Message` and `AutomatedMessage` in the case of automated messages being sent?
 * App / bugs
   * (very minor) header covers mother name a bit on certain screen sizes

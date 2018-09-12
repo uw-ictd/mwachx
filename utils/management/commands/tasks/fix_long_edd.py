@@ -3,13 +3,13 @@ import datetime
 import functools
 
 # Local imports
-import contacts.models as cont
+import mwbase.models as cont
 
 def main(dry_run=True):
     """ Set edd to 35 weeks after registration for far future edds """
 
     future_35wk = datetime.date.today() + datetime.timedelta(weeks=35)
-    participants = cont.Contact.objects.filter(due_date__gt=future_35wk)
+    participants = cont.Participant.objects.filter(due_date__gt=future_35wk)
 
     print( "Count: {} Dry-Run: {}".format(participants.count(),dry_run) )
     map( functools.partial(update_participant,dry_run=dry_run) , participants.all() )

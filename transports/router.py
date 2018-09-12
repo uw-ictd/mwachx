@@ -6,7 +6,7 @@ import importlib
 from django.conf import settings
 
 # Local imports
-from contacts import models as cont
+from mwbase import models as mwbase
 from . import validation
 
 
@@ -33,19 +33,19 @@ def receive(identity, message_text, external_id='', **kwargs):
         * kwargs: dict of extra data associated with transport
     '''
     # Get incoming connection or create if not found
-    connection, created = cont.Connection.objects.get_or_create(identity=identity)
-    contact = None if created else connection.contact
-    message = cont.Message(
+    connection, created = mwbase.Connection.objects.get_or_create(identity=identity)
+    participant = None if created else connection.participant
+    message = mwbase.Message(
         is_system=False,
         is_outgoing=False,
         text=message_text.strip(),
         connection=connection,
-        contact=contact,
+        participant=participant,
         external_id=external_id,
         external_data=kwargs,
     )
 
-    if contact:
+    if participant:
         for validator in validation.validators:
             valid = validator(message)
             if valid:
@@ -53,8 +53,8 @@ def receive(identity, message_text, external_id='', **kwargs):
                     break
 
         # Set last_msg_client
-        contact.last_msg_client = datetime.date.today()
-        contact.save()
+        participant.last_msg_client = datetime.date.today()
+        participant.save()
 
     message.save()
     return message

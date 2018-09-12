@@ -7,25 +7,26 @@ from jsonfield import JSONField
 
 # Local Imports
 import transports
+from utils import enums
 from utils.models import TimeStampedModel, BaseQuerySet
 
 
 class Connection(models.Model):
     class Meta:
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     objects = BaseQuerySet.as_manager()
 
     identity = models.CharField(max_length=25, primary_key=True)
-    contact = models.ForeignKey('contacts.Contact', models.CASCADE, blank=True, null=True)
+    participant = models.ForeignKey('mwbase.Participant', models.CASCADE, blank=True, null=True)
 
     description = models.CharField(max_length=30, blank=True, null=True,
-                                   help_text='Description of phone numbers relationship to contact')
+                                   help_text='Description of phone numbers relationship to participant')
 
     is_primary = models.BooleanField(default=False, verbose_name='Primary')
 
     def __unicode__(self):
-        return "{} ({})".format(self.contact.study_id if self.contact else '', self.identity)
+        return "{} ({})".format(self.participant.study_id if self.participant else '', self.identity)
 
     def send_custom(self, text, translated_text='', languages='', **kwargs):
 
@@ -67,12 +68,12 @@ class Practitioner(models.Model):
     '''
 
     class Meta:
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     objects = PractitionerQuerySet.as_manager()
 
     user = models.OneToOneField(User, models.CASCADE)
-    facility = models.CharField(max_length=15, choices=settings.FACILITY_CHOICES)
+    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
     password_changed = models.BooleanField(default=False)
 
     @property
@@ -95,7 +96,7 @@ class EventLog(TimeStampedModel):
     """
 
     class Meta:
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     objects = BaseQuerySet.as_manager()
 

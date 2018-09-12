@@ -30,7 +30,7 @@ Behind the scenes this will also call `bower install`.  You should find that you
 folders in your project.
 
 * `node_modules` - contains the npm packages for the tools we need
-* `contacts/static/app/bower_components` - contains the libraries (e.g., Angular) that we are relying on
+* `mwach/static/app/bower_components` - contains the libraries (e.g., Angular) that we are relying on
 
 > **Note:** the `bower_components` folder would normally be installed in the root folder but
 we change this location through the `.bowerrc` file.  Putting it in the `static/app` folder makes
@@ -72,14 +72,14 @@ You can also use [sniffer](https://pypi.python.org/pypi/sniffer) to run tests co
 
 ```
 pip install sniffer
-sniffer -x contacts.tests -x -s
+sniffer -x mwbase.tests -x -s
 ```
 
 To fully test swappable models add the following lines to your `local_settings.py`
 
 ```python
-TEST_CONTACT_SWAPPING = True
-CONTACTS_CONTACT_MODEL = 'example.ExampleContact'
+TEST_PARTICIPANT_SWAPPING = True
+PARTICIPANTS_PARTICIPANT_MODEL = 'example.ExampleParticipant'
 INSTALLED_APPS = INSTALLED_APPS + (
     'implementations.example',
 )

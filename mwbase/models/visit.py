@@ -60,7 +60,7 @@ class ScheduledEvent(TimeStampedModel):
     class Meta:
         abstract = True
         ordering = ('-scheduled',)
-        app_label = 'contacts'
+        app_label = 'mwbase'
 
     scheduled = models.DateField()
     arrived = models.DateField(blank=True, null=True, default=None)
@@ -70,7 +70,7 @@ class ScheduledEvent(TimeStampedModel):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending',
                               help_text='current status of event')
 
-    participant = models.ForeignKey('contacts.Contact', models.CASCADE)
+    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
 
     def days_overdue(self):
         if self.status == 'pending':

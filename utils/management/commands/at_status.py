@@ -11,7 +11,7 @@ from django.utils import timezone
 from django.db import models , transaction
 
 # Local Imports
-import contacts.models as cont
+import mwbase.models as mwbase
 
 class Command(BaseCommand):
 
@@ -122,7 +122,7 @@ class Command(BaseCommand):
 
         self.print_header( 'Current Status' )
 
-        counts = cont.Message.objects.order_by().values('external_status').annotate(count=models.Count('external_status'))
+        counts = mwbase.Message.objects.order_by().values('external_status').annotate(count=models.Count('external_status'))
 
         for count in counts:
             self.stdout.write( "  Status: {0[external_status]:<20.16} Count: {0[count]}".format(count) )
@@ -155,7 +155,7 @@ class Command(BaseCommand):
                 if row.at_status != row.msg_status:
                     scheduled += 1
                     if self.options['live_run']:
-                        updated += cont.Message.objects.filter(external_id=row.at_id).update(external_status=row.at_status)
+                        updated += mwbase.Message.objects.filter(external_id=row.at_id).update(external_status=row.at_status)
 
         self.stdout.write( self.style.WARNING( "Scheduled: {} Updated: {}".format(scheduled,updated) ) )
 
@@ -197,5 +197,5 @@ def find_msg_match(row,with_text=True,td=1):
     msg_Q = models.Q(created__range=(row.date,end_time),connection__identity=identity)
     if with_text is True:
         msg_Q &= models.Q(text=row.msg.strip())
-    msgs = cont.Message.objects.filter(msg_Q)
+    msgs = mwbase.Message.objects.filter(msg_Q)
     return msgs
