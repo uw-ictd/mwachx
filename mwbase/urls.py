@@ -23,4 +23,8 @@ urlpatterns = [
     # crispy-form partial
     re_path(r'^crispy-forms/participant/new/?$', views.crispy.participant_add),
     re_path(r'^crispy-forms/participant/update/?$', views.crispy.participant_update),
+    
+    # sms bank import
+    re_path(r'^check_sms_bank_file/', views.check_sms_bank, name='check_sms_bank'),
+    re_path(r'^import_sms_bank_file/', views.import_sms_bank, name='import_sms_bank'),
 ]

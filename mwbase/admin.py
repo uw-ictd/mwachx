@@ -7,6 +7,8 @@ import utils.admin as utils
 # Local Imports
 from mwbase import models as mwbase
 
+from mwbase.forms import ImportXLSXForm
+
 
 class ConnectionInline(admin.TabularInline):
     model = mwbase.Connection
@@ -92,6 +94,7 @@ class ParticipantAdminMixin(object):
 
 @admin.register(mwbase.Message)
 class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
+    change_list_template = "admin/messages_changelist.html"
     list_display = ('text', 'participant_name', 'identity', 'is_system',
                     'is_outgoing', 'is_reply', 'external_status', 'translation_status', 'created')
     list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter),
@@ -107,7 +110,15 @@ class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
         return html.format_html("<a href='./?q={0.identity}'>{0.identity}</a>".format(
             obj.connection
         ))
-
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['form'] = ImportXLSXForm
+        return super(MessageAdmin, self).changelist_view(request, extra_context=extra_context)
+    
+    def xlsx_check(self, request, extra_context=None):
+        return None
+        
     identity.short_description = 'Number'
     identity.admin_order_field = 'connection__identity'
 

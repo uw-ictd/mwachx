@@ -3,11 +3,11 @@ from crispy_forms.bootstrap import FormActions
 from crispy_forms.helper import FormHelper
 from crispy_forms.layout import Layout, Fieldset, Div, Submit
 from django import forms
+from django.urls import reverse
 
 # Local App Imports
 import mwbase.models as mwbase
 import utils.forms as util
-
 
 class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
@@ -157,3 +157,24 @@ class ParticipantUpdate(forms.ModelForm):
             field.field.widget.attrs.update({
                 'ng-model': 'participant.{0}'.format(field.name),
             })
+
+
+class ImportXLSXForm(forms.Form):
+    def __init__(self, *args, **kwargs):
+        super(ImportXLSXForm, self).__init__(*args, **kwargs)
+        self.helper = FormHelper()
+        self.helper.form_class = 'form-horizontal'
+        self.helper.form_id = 'import_form'
+        self.helper.form_method = 'post'
+        self.helper.form_action = reverse('check_sms_bank')
+        self.helper.add_input(Submit('submit', 'Check Import'))
+            
+    file = forms.FileField(label='Import new SMS Bank', required=True)
+    
+    def clean(self):
+        cleaned_data = super().clean()
+        file = cleaned_data.get("file")
+        # sms_bank.check_messages(file)
+        
+        return cleaned_data
+        

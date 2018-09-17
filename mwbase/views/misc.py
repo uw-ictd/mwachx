@@ -13,6 +13,7 @@ from django.utils.safestring import mark_safe
 
 # Local Imports
 import utils
+from mwbase.forms import ImportXLSXForm
 
 
 @staff_member_required
@@ -45,3 +46,20 @@ def change_password(request):
                 pass
             form.add_error(None, mark_safe("Passowrd successfully changed. Return to <a href='/'>dashboard</a>"))
     return render(request, 'change_password.html', {'form': form})
+
+@staff_member_required
+def check_sms_bank(request):
+    form = ImportXLSXForm(request.POST or None, request.FILES or None)
+    if form.is_valid():
+        pass
+    if request.method == 'POST':
+        return JsonResponse({})
+    else:
+        return JsonResponse({})
+        
+@staff_member_required
+def import_sms_bank(request):
+    if request.method == 'POST':
+        return JsonResponse({})
+    else:
+        return JsonResponse({})
