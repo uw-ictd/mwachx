@@ -13,7 +13,6 @@ from django.utils.safestring import mark_safe
 
 # Local Imports
 import utils
-from mwbase.forms import ImportXLSXForm
 
 
 @staff_member_required
