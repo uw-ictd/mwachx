@@ -1,13 +1,16 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.template.response import SimpleTemplateResponse, TemplateResponse
+from django.urls import path, reverse
 from django.utils import html
+
 
 import utils.admin as utils
 # Local Imports
 from mwbase import models as mwbase
-
 from mwbase.forms import ImportXLSXForm
+from mwbase.utils import sms_bank
 
 
 class ConnectionInline(admin.TabularInline):
@@ -116,8 +119,51 @@ class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
         extra_context['form'] = ImportXLSXForm
         return super(MessageAdmin, self).changelist_view(request, extra_context=extra_context)
     
-    def xlsx_check(self, request, extra_context=None):
-        return None
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(r'smsbank_check_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_check_view'),
+            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_import_view')
+        ]
+        urls = my_urls + urls
+        return urls
+    
+    def smsbank_import_view(self, request, extra_context=None):
+        pass
+    
+    def smsbank_check_view(self, request, extra_context=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+        items = duplicates = descriptions = total = todo = None
+        form = ImportXLSXForm(request.POST or None, request.FILES or None)
+
+        if request.method == 'POST':
+            if form.is_valid():
+                file = form.cleaned_data.get("file")
+                (items, duplicates, descriptions, total, todo ) = sms_bank.check_messages(file)
+                form.helper.form_action = reverse('admin:smsbank_import_view')
+                for input in form.helper.inputs:
+                    if input.name == 'submit':
+                        input.value = "Import File"
+        
+        context = {
+            **self.admin_site.each_context(request),
+            'module_name': str(opts.verbose_name_plural),
+            'opts': opts,
+            'form': form,
+            'items': items,
+            'duplicates': duplicates,
+            'descriptions': descriptions,
+            'total': total,
+            'todo': todo,
+            **(extra_context or {}),
+        }
+                
+        return TemplateResponse(request, [
+            'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
+            'admin/%s/sms_bank_check.html' % app_label,
+            'admin/sms_bank_check.html'
+        ], context)
         
     identity.short_description = 'Number'
     identity.admin_order_field = 'connection__identity'

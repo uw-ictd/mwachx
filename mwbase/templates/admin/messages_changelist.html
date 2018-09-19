@@ -2,32 +2,6 @@
 {% load crispy_forms_tags %}
 {% load mw_filters %}
 
-{% block extrahead %}
-{{ block.super }}
-<script>
-// django.jQuery(function() {
-//     var frm = django.jQuery('#import_form');
-//     frm.submit(function (e) {
-//         e.preventDefault();
-// 
-//         django.jQuery.ajax({
-//             type: frm.attr('method'),
-//             url: frm.attr('action'),
-//             data: frm.serialize(),
-//             success: function (data) {
-//                 console.log('Submission was successful.');
-//                 console.log(data);
-//             },
-//             error: function (data) {
-//                 console.log('An error occurred.');
-//                 console.log(data);
-//             },
-//         });
-//     });
-// });
-</script>
-{% endblock %}
-
 {% block object-tools %}
     <div>
         {% crispy form form.helper %}

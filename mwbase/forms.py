@@ -8,6 +8,7 @@ from django.urls import reverse
 # Local App Imports
 import mwbase.models as mwbase
 import utils.forms as util
+from mwbase.utils import sms_bank
 
 class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
@@ -166,15 +167,8 @@ class ImportXLSXForm(forms.Form):
         self.helper.form_class = 'form-horizontal'
         self.helper.form_id = 'import_form'
         self.helper.form_method = 'post'
-        self.helper.form_action = reverse('check_sms_bank')
+        self.helper.form_action = reverse('admin:smsbank_check_view')
         self.helper.add_input(Submit('submit', 'Check Import'))
             
     file = forms.FileField(label='Import new SMS Bank', required=True)
-    
-    def clean(self):
-        cleaned_data = super().clean()
-        file = cleaned_data.get("file")
-        # sms_bank.check_messages(file)
-        
-        return cleaned_data
         
