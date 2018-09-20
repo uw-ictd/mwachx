@@ -16,7 +16,7 @@
 
     mwachxAPI.participants.get($stateParams.study_id).then(function(participant){
       $scope.participant = participant;
-      $scope.messages = participant.getList('messages').$object;
+      $scope.messages = $scope.participant.recent_messages;
 
       $scope.detailsList      = [
       //  {'label': 'Nickname',               'value': 'nickname',},
@@ -139,6 +139,13 @@
           },
         });
     }
+
+// *************************************
+// Action Functions
+// *************************************
+  $scope.loadMessages = function() {
+    $scope.messages = $scope.participant.getList('messages').$object;
+  }
 
   $scope.visitDismiss = function(visit) {
     var modalInstance = $modal.open({
