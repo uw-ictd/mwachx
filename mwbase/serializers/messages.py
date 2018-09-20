@@ -2,7 +2,7 @@
 from django.utils import timezone
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # Local Imports
@@ -80,7 +80,7 @@ class MessageViewSet(viewsets.ModelViewSet):
     queryset = mwbase.Message.objects.all().select_related('connection', 'participant').prefetch_related(
         'participant__connection_set')
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def dismiss(self, request, pk, *args, **kwargs):
 
         instance = self.get_object()
@@ -89,7 +89,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         msg = MessageSerializer(instance, context={'request': request})
         return Response(msg.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def retranslate(self, request, pk, *args, **kwargs):
 
         instance = self.get_object()
@@ -99,7 +99,7 @@ class MessageViewSet(viewsets.ModelViewSet):
         msg = MessageSerializer(instance, context={'request': request})
         return Response(msg.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def translate(self, request, pk, *args, **kwargs):
 
         instance = self.get_object()

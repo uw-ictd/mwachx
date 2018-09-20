@@ -9,7 +9,7 @@ from django.db import models, transaction
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 import mwbase.forms as forms
@@ -195,7 +195,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                                                     context={'request': request}).data
         return Response(instance_serialized)
 
-    @detail_route(methods=['post', 'get'])
+    @action(methods=['post', 'get'], detail=True)
     def messages(self, request, study_id=None, *args, **kwargs):
         if request.method == 'GET':
             # Get Query Parameters
@@ -247,7 +247,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
             return Response(MessageSerializer(new_message, context={'request': request}).data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def calls(self, request, study_id=None):
         if request.method == 'GET':  # Return serialized call history
             call_history = mwbase.PhoneCall.objects.filter(participant__study_id=study_id)
@@ -259,7 +259,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             new_call_serialized = PhoneCallSerializer(new_call, context={'request': request})
             return Response(new_call_serialized.data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def visits(self, request, study_id=None, *args, **kwargs):
         if request.method == 'GET':  # Return a serialized list of all visits
 
@@ -277,7 +277,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             )
             return Response(VisitSerializer(next_visit, context={'request': request}).data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def notes(self, request, study_id=None):
         if request.method == 'GET':  # Return a serialized list of all notes
 
@@ -292,7 +292,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             note_serialized = NoteSerializer(note, context={'request', request})
             return Response(note_serialized.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def delivery(self, request, study_id=None):
 
         instance = self.get_object()
@@ -306,7 +306,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def stop_messaging(self, request, study_id=None):
         reason = request.data.get('reason', '')
         sae = request.data.get('sae', False)
