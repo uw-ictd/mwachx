@@ -1,12 +1,13 @@
 import datetime, openpyxl as xl, os
 import collections
+import importlib
 import utils.sms_utils as sms
 
-import datetime, openpyxl as xl, os
 from argparse import Namespace
 import code
 import operator, collections, re, argparse
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 import utils.sms_utils as sms
 import backend.models as back
@@ -21,6 +22,10 @@ def check_messages(file):
             track_HIV (count) [offset]
     '''
     sms_wb = xl.load_workbook(file)
+    
+    module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
+    smsbank_module = importlib.import_module(module_name)
+    smsbank_class = getattr(smsbank_module, class_name)
     messages = sms.parse_messages(sms_wb.active,sms.FinalRow)
 
     stats = recursive_dd()
@@ -43,24 +48,32 @@ def check_messages(file):
             
     return stats.items, duplicates, descriptions, total, len([m for m in messages if m.is_todo()])
 
-    for base_group, condition_hiv_groups in stats.items():
-        if base_group.startswith('dd'):
-            print( '{}'.format(base_group) )
-            for condition_hiv, items in condition_hiv_groups.items():
-                print( '\t{}: {}'.format( condition_hiv, len(items) ) )
-                offsets = ["{0: 3}".format(i) for i in sorted([i.offset for i in items]) ]
-                for i in range( int(len(offsets)/10) + 1 ):
-                    print( "\t\t{}".format( "".join(offsets[15*i:15*(i+1)]) ) )
-    print( 'Total: {} Todo: {}'.format( total,
-        len([m for m in messages if m.is_todo()])
-    ) )
+def import_messages(file):
+    sms_bank = xl.load_workbook(file)
+    
+    module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
+    smsbank_module = importlib.import_module(module_name)
+    smsbank_class = getattr(smsbank_module, class_name)
+    
+    messages = sms.parse_messages(sms_bank.active,sms.FinalRow)
 
-    if duplicates:
-        for d in duplicates:
-            print( 'Duplicate: {}'.format(d) )
-    else:
-        print(' No Duplicates ')
+    total , add , todo, create = 0 , 0 , 0 , 0
+    counts = collections.defaultdict(int)
+    diff , existing , todo_messages = [] , [] , []
+    for msg in messages:
+        counts['total'] += 1
+    
+        auto , status = back.AutomatedMessage.objects.from_excel(msg)
+        counts['add'] += 1
+        counts[status] += 1
 
-    # self.options['ascii_msg'] = 'Warning: non-ascii chars found: {count}'
-    # non_ascii_dict = self.non_ascii_count()
-    #
+        if status != 'created':
+            existing.append( (msg,auto) )
+        if status == 'changed':
+            diff.append( (msg,auto) )
+
+        if msg.is_todo():
+            todo_messages.append(msg.description())
+            counts['todo'] += 1
+    
+    return counts, existing, diff, todo_messages

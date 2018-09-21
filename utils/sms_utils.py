@@ -4,6 +4,8 @@ import itertools
 import operator
 import re
 
+from django.conf import settings
+
 
 class MessageRowBase(object):
 
@@ -33,7 +35,7 @@ class MessageRowBase(object):
 
     def description(self):
         ''' Return base_group_track_hiv_offset '''
-        return "{0.send_base}.{0.group}.{0.track}.{1}.{0.offset}".format(
+        return "{0.send_base}|{0.group}|{0.track}|{1}|{0.offset}".format(
             self, self.get_hiv_messaging_str())
 
     def kwargs(self):
@@ -144,8 +146,8 @@ class FinalRow(MessageRowBase):
     header = ('Todo', 'Group', 'Track', 'HIV', 'Base', 'Offset', 'English', 'Swahili', 'Luo', 'Comment')
 
     def __init__(self, row):
-        status, group, track, hiv, send_base, offset, english, swahili, luo, comment = \
-            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)(row))
+            status, group, track, hiv, send_base, offset, english, swahili, luo, comment = \
+                cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)(row))
         super(FinalRow, self).__init__(row, status, group, track, hiv, send_base, offset,
                                        english, swahili, luo, comment=comment)
 
@@ -153,6 +155,19 @@ class FinalRow(MessageRowBase):
         if self.status == 'done':
             self.status = 'clean'
 
+class NeoFinalRow(MessageRowBase):
+    header = ('Todo','Group','Track','Base','Offset','English','Swahili','Luo','Comment')
+
+    def __init__(self, row):
+        status, group, track, send_base, offset, english, swahili, luo, comment = \
+            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8)(row))
+            
+        super(NeoFinalRow, self).__init__(row, status, group, track, "N", send_base, offset,
+                                       english, swahili, luo, comment=comment)
+
+        # If message is translated make old equal new
+        if self.status == 'done':
+            self.status = 'clean'
 
 class MessageBankRow(MessageRowBase):
 

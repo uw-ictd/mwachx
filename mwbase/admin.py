@@ -123,13 +123,38 @@ class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
         urls = super().get_urls()
         my_urls = [
             path(r'smsbank_check_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_check_view'),
-            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_import_view')
+            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_import_view), name='smsbank_import_view')
         ]
         urls = my_urls + urls
         return urls
     
     def smsbank_import_view(self, request, extra_context=None):
-        pass
+        opts = self.model._meta
+        app_label = opts.app_label
+        form = ImportXLSXForm(request.POST or None, request.FILES or None)
+        counts, existing, diff, todo_messages = [], [], [], []
+        
+        if request.method == 'POST':
+            if form.is_valid():
+                file = form.cleaned_data.get("file")
+                counts, existing, diff, todo_messages = sms_bank.import_messages(file)
+                
+            context = {
+                **self.admin_site.each_context(request),
+                'module_name': str(opts.verbose_name_plural),
+                'opts': opts,
+                'counts': counts,
+                'existing': existing,
+                'diff': diff,
+                'todo_messages': todo_messages,
+                **(extra_context or {}),
+            }
+        
+            return TemplateResponse(request, [
+                'admin/%s/%s/sms_bank_import.html' % (app_label, opts.model_name),
+                'admin/%s/sms_bank_import.html' % app_label,
+                'admin/sms_bank_import.html'
+            ], context)
     
     def smsbank_check_view(self, request, extra_context=None):
         opts = self.model._meta
