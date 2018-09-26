@@ -8,6 +8,8 @@ from django.core.management.base import BaseCommand, CommandError
 import utils.sms_utils as sms
 import backend.models as back
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 class Command(BaseCommand):
 
@@ -316,7 +318,7 @@ class Command(BaseCommand):
     def test_participants(self):
 
         found , missing = 0 , []
-        for c in mwbase.Participant.objects.all():
+        for c in Participant.objects.all():
             auto = back.AutomatedMessage.objects.from_description( c.description() )
             if auto is None:
                 missing.append(c)

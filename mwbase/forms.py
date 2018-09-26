@@ -7,6 +7,8 @@ from django import forms
 # Local App Imports
 import mwbase.models as mwbase
 import utils.forms as util
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 
 class ParticipantAdd(forms.ModelForm):
@@ -113,7 +115,7 @@ class ParticipantAdd(forms.ModelForm):
 
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
+        model = Participant
         exclude = ['status', 'facility']
 
         widgets = {
@@ -138,7 +140,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
+        model = Participant
         fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
 
     def __init__(self, *args, **kwargs):

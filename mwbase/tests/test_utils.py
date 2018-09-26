@@ -4,7 +4,8 @@ from django.contrib.auth import models as auth
 
 import backend.models as auto
 import mwbase.models as mwbase
-
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 def setup_auth_user(cls):
     # Create dummy admin user
@@ -51,7 +52,7 @@ def setup_auto_messages(cls):
 
 def setup_basic_participants(cls):
     # Create basic participants objects
-    cls.p1 = mwbase.Participant.objects.create(
+    cls.p1 = Participant.objects.create(
         study_id="0001",
         anc_num="0001",
         facility="bondo",
@@ -67,7 +68,7 @@ def setup_basic_participants(cls):
         is_primary=True
     )
 
-    cls.p2 = mwbase.Participant.objects.create(
+    cls.p2 = Participant.objects.create(
         study_id="0002",
         anc_num="0002",
         facility="bondo",
@@ -87,7 +88,7 @@ def setup_basic_participants(cls):
         is_primary=True
     )
 
-    cls.p3 = mwbase.Participant.objects.create(
+    cls.p3 = Participant.objects.create(
         study_id="0003",
         anc_num="0003",
         facility="ahero",

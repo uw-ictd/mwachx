@@ -6,7 +6,9 @@ from django.utils import html
 import utils.admin as utils
 # Local Imports
 from mwbase import models as mwbase
+import swapper
 
+Participant = swapper.load_model("mwbase", "Participant")
 
 class ConnectionInline(admin.TabularInline):
     model = mwbase.Connection
@@ -37,7 +39,7 @@ def revert_status(modeladmin, request, queryset):
 revert_status.short_description = 'Revert to last status'
 
 
-@admin.register(mwbase.Participant)
+@admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
     list_display = ('study_id', 'nickname', 'status', 'description', 'facility',
                     'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')

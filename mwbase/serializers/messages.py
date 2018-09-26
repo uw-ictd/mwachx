@@ -7,6 +7,8 @@ from rest_framework.response import Response
 
 # Local Imports
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 
 #############################################
@@ -24,7 +26,7 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
+        model = Participant
         fields = ('nickname', 'study_id', 'study_group', 'anc_num', 'phone_number', 'status',
                   'study_base_date', 'last_msg_client', 'href', 'next_visit_date', 'next_visit_type')
 

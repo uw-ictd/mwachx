@@ -25,7 +25,7 @@ PROJECT_PATH = os.path.join(PROJECT_ROOT, 'mwach')
 SECRET_KEY = 'a638cezc!olqzorlxr_@kq#z5+3(v8c&31by99i$nh+o3x=jkt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
 ALLOWED_HOSTS = []
 
 # Application definition
@@ -186,3 +186,8 @@ MESSAGING_CONNECTION = 'mwbase.Connection'
 MESSAGING_ADMIN = 'auth.User'
 
 TEST_PARTICIPANT_SWAPPING = False
+
+try:
+    from .local_settings_2 import *
+except ImportError:
+    raise Exception("Import error")

@@ -11,6 +11,8 @@ from django.db import models
 
 import backend.models as back
 import utils
+import swapper
+
 # Local Imports
 from mwbase.models import PhoneCall, Practitioner, Visit, Connection
 from transports import router, TransportError
@@ -104,8 +106,27 @@ class ParticipantManager(models.Manager):
                            )
                            )
 
+class BaseParticipant(TimeStampedModel):
+    # Set Custom Manager
+    objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
+    objects_no_link = ParticipantQuerySet.as_manager()
 
-class Participant(TimeStampedModel):
+    # Required Participant Personal Information
+    nickname = models.CharField(max_length=20)
+    birthdate = models.DateField(verbose_name='DOB')
+
+    class Meta:
+        abstract = True
+
+    def save(self, force_insert=False, force_update=False, *args, **kwargs):
+        # Force capitalization of nickname
+        self.nickname = self.nickname.capitalize()
+
+        super().save(force_insert, force_update, *args, **kwargs)
+
+
+
+class Participant(BaseParticipant):
     STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
@@ -179,10 +200,6 @@ class Participant(TimeStampedModel):
         ('other', 'Other'),
     )
 
-    # Set Custom Manager
-    objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
-    objects_no_link = ParticipantQuerySet.as_manager()
-
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
     anc_num = models.CharField(max_length=15, verbose_name='ANC #')
@@ -192,10 +209,6 @@ class Participant(TimeStampedModel):
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
-
-    # Required Participant Personal Information
-    nickname = models.CharField(max_length=20)
-    birthdate = models.DateField(verbose_name='DOB')
 
     # Optional Participant Personal Informaiton
     partner_name = models.CharField(max_length=40, blank=True, verbose_name='Partner Name')
@@ -235,6 +248,7 @@ class Participant(TimeStampedModel):
 
     class Meta:
         app_label = 'mwbase'
+        swappable = swapper.swappable_setting('mwbase', 'Participant')
 
     def __init__(self, *args, **kwargs):
         """ Override __init__ to save old status"""
@@ -251,9 +265,6 @@ class Participant(TimeStampedModel):
             print(self._old_hiv_messaging, self.hiv_messaging)
             self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
                                          comment='HIV messaging changed', type='hiv')
-
-        # Force capitalization of nickname
-        self.nickname = self.nickname.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
         self._old_status = self.status

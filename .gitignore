@@ -24,3 +24,8 @@ ignore/
 translations/
 local_settings.py
 **/commands/tests.py
+
+#vagrant files
+Vagrantfile
+/deployment
+.vagrant/
