@@ -14,7 +14,8 @@ def setup_auth_user(cls):
 
 def setup_auto_messages(cls):
     # Create dummy auto messages
-    cls.signup_control_msg = auto.AutomatedMessage.objects.create(
+    auto_mess_class = swapper.load_model("backend", "AutomatedMessage")
+    cls.signup_control_msg = auto_mess_class.objects.create(
         send_base="signup",
         english="Control English Signup Message",
         hiv_messaging=False,
@@ -23,7 +24,7 @@ def setup_auto_messages(cls):
         condition='normal',
     )
 
-    cls.signup_msg = auto.AutomatedMessage.objects.create(
+    cls.signup_msg = auto_mess_class.objects.create(
         send_base="signup",
         english="English Signup Message",
         hiv_messaging=False,
@@ -32,7 +33,7 @@ def setup_auto_messages(cls):
         condition='normal',
     )
 
-    cls.auto_edd_message = auto.AutomatedMessage.objects.create(
+    cls.auto_edd_message = auto_mess_class.objects.create(
         send_base="edd",
         send_offset=3,
         english="Hi {name} Hi",
@@ -40,7 +41,7 @@ def setup_auto_messages(cls):
         todo=False
     )
 
-    cls.auto_dd_message = auto.AutomatedMessage.objects.create(
+    cls.auto_dd_message = auto_mess_class.objects.create(
         send_base="fp",
         send_offset=2,
         english="DD {name} DD",

@@ -142,7 +142,7 @@ class Message(TimeStampedModel):
     @property
     def auto_type(self):
         if self.auto:
-            split = self.auto.split('.')
+            split = self.auto.split('|')
             if split[0] in ('edd', 'dd', 'signup', 'loss', 'stop'):
                 return '{0[0]}.{0[4]}'.format(split)
             elif split[0] == 'visit':
@@ -159,7 +159,7 @@ class Message(TimeStampedModel):
                 return 'anonymous'
         else:
             if self.is_system is True:
-                return self.auto.split('.')[0] or 'empty_auto'
+                return self.auto.split('|')[0] or 'empty_auto'
             else:
                 return self.sent_by()
 

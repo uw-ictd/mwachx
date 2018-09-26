@@ -3,6 +3,7 @@
 import collections
 import datetime
 import numbers
+import swapper
 from hashlib import sha256
 
 # Django Imports
@@ -578,7 +579,8 @@ class Participant(TimeStampedModel):
                 - condition - defaults to self.condition
         """
         description = self.description(**kwargs)
-        message = back.AutomatedMessage.objects.from_description(description, exact=exact)
+        auto_mess_class = swapper.load_model("backend", "AutomatedMessage")
+        message = auto_mess_class.objects.from_description(description, exact=exact)
         if message is None:
             return None  # TODO: logging on this
 

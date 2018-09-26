@@ -26,7 +26,7 @@ SECRET_KEY = 'a638cezc!olqzorlxr_@kq#z5+3(v8c&31by99i$nh+o3x=jkt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = []
+ALLOWED_HOSTS = ["192.168.111.222"]
 
 # Application definition
 
@@ -41,6 +41,7 @@ INSTALLED_APPS = (
 
     'crispy_forms',
     'rest_framework',
+    'swapper',
 
     # constane setup
     'constance',
@@ -186,3 +187,7 @@ MESSAGING_CONNECTION = 'mwbase.Connection'
 MESSAGING_ADMIN = 'auth.User'
 
 TEST_PARTICIPANT_SWAPPING = False
+
+SMSBASE_IMPORT_FORMAT = {}
+SMSBANK_CLASS = 'utils.sms_utils.FinalRow'
+# BACKEND_AUTOMATEDMESSAGE_MODEL = "backend.models.AutomatedMessageHIV"

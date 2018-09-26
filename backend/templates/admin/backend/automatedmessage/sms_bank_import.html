@@ -28,34 +28,20 @@
 <a href="{% url 'admin:index' %}">{% trans 'Home' %}</a>
 &rsaquo; <a href="{% url 'admin:app_list' app_label=opts.app_label %}">{{ opts.app_config.verbose_name }}</a>
 &rsaquo; <a href="{% url 'admin:mwbase_message_changelist' %}">{{ opts.verbose_name_plural|capfirst }}</a>
-&rsaquo; SMS Bank Import Check
+&rsaquo; SMS Bank Import
 </div>
 {% endblock %}
 
 {% block content %}
-<div class="row">
-    <div class="col-sm-6">
-        {% crispy form form.helper %}
-    </div>
-    <div class="col-sm-6">
-        <input type="button" name="create_smsbank">Create SMS Bank XLSX</input>
-    </div>
-</div>
-<br />
-{% if request.POST %}
-<div>
-    <br />
-    Total: {{ total }}
-    <br />
-    ToDo: {{ todo }}
-    <br />
-    {% if duplicates %}
-        {% for duplicate in duplicates %}
-            Duplicate: {{ duplicate }}
-        {% endfor %}
-    {% else %}
-        No Duplicates
-    {% endif %}
-</div>
+{% if error %}
+{{ error }}
+{% else %}
+Counts: <br />
+Total: {{ counts.total }} <br />
+Adds: {{ counts.add }}<br />
+Same: {{ counts.same }}<br />
+Created: {{ counts.created}} <br />
+Diff: {{ diff|length }}<br />
+ToDo Messages: {{ todo_messages|length }}
 {% endif %}
 {% endblock %}

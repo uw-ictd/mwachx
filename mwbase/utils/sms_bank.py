@@ -6,6 +6,7 @@ import utils.sms_utils as sms
 from argparse import Namespace
 import code
 import operator, collections, re, argparse
+import swapper
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
@@ -26,7 +27,7 @@ def check_messages(file):
     module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
     smsbank_module = importlib.import_module(module_name)
     smsbank_class = getattr(smsbank_module, class_name)
-    messages = sms.parse_messages(sms_wb.active,sms.FinalRow)
+    messages = sms.parse_messages(sms_wb.active,smsbank_class)
 
     stats = recursive_dd()
     descriptions = set()
@@ -36,9 +37,10 @@ def check_messages(file):
         total += 1
         base_group = stats[ '{}_{}'.format(msg.send_base,msg.group) ]
         base_group.default_factory = list
-
-        condition_hiv = base_group[ '{}_HIV_{}'.format(msg.track,msg.get_hiv_messaging_str()) ]
-        condition_hiv.append(msg)
+        
+        if hasattr(msg, 'hiv'):
+            condition_hiv = base_group[ '{}_HIV_{}'.format(msg.track,msg.get_hiv_messaging_str()) ]
+            condition_hiv.append(msg)
 
         description = msg.description()
         if description not in descriptions:
@@ -55,15 +57,17 @@ def import_messages(file):
     smsbank_module = importlib.import_module(module_name)
     smsbank_class = getattr(smsbank_module, class_name)
     
-    messages = sms.parse_messages(sms_bank.active,sms.FinalRow)
+    messages = sms.parse_messages(sms_bank.active,smsbank_class)
 
     total , add , todo, create = 0 , 0 , 0 , 0
     counts = collections.defaultdict(int)
     diff , existing , todo_messages = [] , [] , []
     for msg in messages:
         counts['total'] += 1
+        
+        auto_mess_class = swapper.load_model("backend", "AutomatedMessage")
     
-        auto , status = back.AutomatedMessage.objects.from_excel(msg)
+        auto , status = auto_mess_class.objects.from_excel(msg)
         counts['add'] += 1
         counts[status] += 1
 
