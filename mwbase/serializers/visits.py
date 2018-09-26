@@ -3,7 +3,7 @@
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # Local Imports
@@ -52,14 +52,14 @@ class VisitViewSet(viewsets.ModelViewSet):
     queryset = mwbase.Visit.objects.all()
     serializer_class = VisitSerializer
 
-    @list_route()
+    @action(detail=False)
     def upcoming(self, request):
         queryset = self.queryset.for_user(request.user).visit_range(start={'days': -14}, end={'days': 0}).order_by(
             'scheduled')
         serializer = self.get_serializer(queryset, many=True)
         return Response(serializer.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def seen(self, request, pk):
         instance = self.get_object()
         instance.seen()
@@ -69,7 +69,7 @@ class VisitViewSet(viewsets.ModelViewSet):
         visit = VisitSerializer(instance, context={'request': request})
         return Response(visit.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def attended(self, request, pk):
         instance = self.get_object()
 
@@ -92,7 +92,7 @@ class VisitViewSet(viewsets.ModelViewSet):
         mwbase.EventLog.objects.create(user=request.user, event='visit.attended', data={'visit_id': instance.id})
         return Response({'visit': instance_serialized, 'next': next_visit_serialized})
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def missed(self, request, pk):
         instance = self.get_object()
         instance.set_status('missed')
@@ -100,7 +100,7 @@ class VisitViewSet(viewsets.ModelViewSet):
 
         return Response(instance_serialized)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def edit(self, request, pk):
         instance = self.get_object()
         instance.scheduled = utils.angular_datepicker(request.data['scheduled'])

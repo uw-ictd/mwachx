@@ -2,13 +2,14 @@
 import datetime
 import json
 
-from django.db import transaction
 # Django imports
 from django.utils import timezone
+from django.db import models, transaction
+
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 import mwbase.forms as forms
@@ -51,13 +52,12 @@ class ParticipantSerializer(serializers.ModelSerializer):
     calls_url = serializers.HyperlinkedIdentityField(view_name='participant-calls', lookup_field='study_id')
     notes_url = serializers.HyperlinkedIdentityField(view_name='participant-notes', lookup_field='study_id')
 
-    # TODO: Change calls to call count and remove messages and visits
-    # calls = PhoneCallSerializer(source='phonecall_set',many=True)
-    # messages = MessageSerializer(source='get_pending_messages',many=True)
+    recent_messages = MessageSerializer(source='get_recent_messages',many=True)
     visits = VisitSimpleSerializer(source='pending_visits', many=True)
 
     phonecall_count = serializers.SerializerMethodField()
     note_count = serializers.SerializerMethodField()
+    message_count = serializers.SerializerMethodField()
 
     class Meta:
         model = mwbase.Participant
@@ -80,6 +80,12 @@ class ParticipantSerializer(serializers.ModelSerializer):
             return getattr(obj, 'phonecall_count')
         except AttributeError as e:
             return obj.phonecall_set.count()
+
+    def get_message_count(self, obj):
+        try:
+            return getattr(obj, 'message_count')
+        except AttributeError as e:
+            return obj.message_set.count()
 
 
 #############################################
@@ -189,7 +195,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                                                     context={'request': request}).data
         return Response(instance_serialized)
 
-    @detail_route(methods=['post', 'get'])
+    @action(methods=['post', 'get'], detail=True)
     def messages(self, request, study_id=None, *args, **kwargs):
         if request.method == 'GET':
             # Get Query Parameters
@@ -198,14 +204,17 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             min_id = request.query_params.get('min_id', None)
 
             # Create Message List and Serializer
-            participant_messages = mwbase.Message.objects.filter(participant__study_id=study_id).select_related(
-                'connection__participant', 'participant').prefetch_related('participant__connection_set')
-            if max_id:
-                participant_messages = participant_messages.filter(pk__lt=max_id)
-            if min_id:
-                participant_messages.filter(pk_gt=min_id)
-            if limit:
-                participant_messages = participant_messages[:limit]
+            participant_Q = models.Q(participant__study_id=study_id)
+            if max_id is not None:
+                participant_Q &= models.Q(pk__lte=int(max_id))
+            if min_id is not None:
+                participant_Q &= models.Q(pk__gte=int(min_id))
+            if limit is not None:
+                limit = int(limit)
+
+            participant_messages = mwbase.Message.objects.filter(participant_Q).select_related(
+                'connection__participant', 'participant'
+                ).prefetch_related('participant__connection_set')[:limit]
             participant_messages = MessageSimpleSerializer(participant_messages, many=True, context={'request': request})
             return Response(participant_messages.data)
 
@@ -238,7 +247,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
             return Response(MessageSerializer(new_message, context={'request': request}).data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def calls(self, request, study_id=None):
         if request.method == 'GET':  # Return serialized call history
             call_history = mwbase.PhoneCall.objects.filter(participant__study_id=study_id)
@@ -250,7 +259,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             new_call_serialized = PhoneCallSerializer(new_call, context={'request': request})
             return Response(new_call_serialized.data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def visits(self, request, study_id=None, *args, **kwargs):
         if request.method == 'GET':  # Return a serialized list of all visits
 
@@ -268,7 +277,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             )
             return Response(VisitSerializer(next_visit, context={'request': request}).data)
 
-    @detail_route(methods=['get', 'post'])
+    @action(methods=['get', 'post'], detail=True)
     def notes(self, request, study_id=None):
         if request.method == 'GET':  # Return a serialized list of all notes
 
@@ -283,7 +292,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             note_serialized = NoteSerializer(note, context={'request', request})
             return Response(note_serialized.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def delivery(self, request, study_id=None):
 
         instance = self.get_object()
@@ -297,7 +306,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         serializer = self.get_serializer(instance)
         return Response(serializer.data)
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def stop_messaging(self, request, study_id=None):
         reason = request.data.get('reason', '')
         sae = request.data.get('sae', False)

@@ -25,7 +25,6 @@
       </mw-action-btn>
     </div>
 
-    <!-- TODO:. Need to sort out the overflow scrolling bits and infinate scroll with angular and drf-->
     <div class="message-list">
       <mw-message
         message="msg"
@@ -34,6 +33,14 @@
         ng-repeat="msg in messages | orderBy:'created':true"
         class="clearfix">
       </mw-message>
+
+    <div ng-if="messages.length < participant.message_count">
+      <a class="btn btn-lg btn-info col-md-4 col-md-offset-4" tooltip="Load all messages" ng-click="loadMessages()">
+        Load All Messages
+        <i class="mw mw-comment"></i>
+      </a>
+    </div>
+
     </div>
 
   </div>

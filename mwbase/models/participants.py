@@ -96,6 +96,7 @@ class ParticipantManager(models.Manager):
         return qs.annotate(
             note_count=models.Count('note', distinct=True),
             phonecall_count=models.Count('phonecall', distinct=True),
+            message_count=models.Count('message', distinct=True),
         ).prefetch_related('connection_set',
                            models.Prefetch(
                                'visit_set',
@@ -103,7 +104,7 @@ class ParticipantManager(models.Manager):
                                                                                    status='pending'),
                                to_attr='pending_visits'
                            )
-                           )
+                       )
 
 
 class Participant(TimeStampedModel):
@@ -603,6 +604,12 @@ class Participant(TimeStampedModel):
             )
         else:
             return message
+
+    def get_recent_messages(self,n=8):
+        """
+        :return: most recent n messages for serialization
+        """
+        return self.message_set.all()[:n]
 
     ########################################
     # Reporting Functions
