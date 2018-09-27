@@ -9,6 +9,7 @@ from django.db.models import Q
 import utils
 # Local Imports
 from utils.models import TimeStampedModel, ForUserQuerySet
+import swapper
 
 
 class ScheduleQuerySet(ForUserQuerySet):
@@ -70,7 +71,7 @@ class ScheduledEvent(TimeStampedModel):
     status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pending',
                               help_text='current status of event')
 
-    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
 
     def days_overdue(self):
         if self.status == 'pending':

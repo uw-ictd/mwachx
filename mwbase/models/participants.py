@@ -125,7 +125,6 @@ class BaseParticipant(TimeStampedModel):
         super().save(force_insert, force_update, *args, **kwargs)
 
 
-
 class Participant(BaseParticipant):
     STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
@@ -658,7 +657,7 @@ class StatusChange(TimeStampedModel):
     class Meta:
         app_label = 'mwbase'
 
-    participant = models.ForeignKey(Participant, models.CASCADE)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
 
     old = models.CharField(max_length=20)
     new = models.CharField(max_length=20)
@@ -668,3 +667,5 @@ class StatusChange(TimeStampedModel):
 
     def __str__(self):
         return "{0.old} {0.new} ({0.type})".format(self)
+
+

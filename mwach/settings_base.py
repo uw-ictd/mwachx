@@ -54,6 +54,9 @@ INSTALLED_APPS = (
     'backend',
     'utils',
 
+    # Custom model Modules
+    # 'mwcustom',
+
     # tests
     'django_nose',
 )

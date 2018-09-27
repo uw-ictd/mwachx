@@ -9,6 +9,7 @@ from jsonfield import JSONField
 import transports
 from utils import enums
 from utils.models import TimeStampedModel, BaseQuerySet
+import swapper
 
 
 class Connection(models.Model):
@@ -18,7 +19,7 @@ class Connection(models.Model):
     objects = BaseQuerySet.as_manager()
 
     identity = models.CharField(max_length=25, primary_key=True)
-    participant = models.ForeignKey('mwbase.Participant', models.CASCADE, blank=True, null=True)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE, blank=True, null=True)
 
     description = models.CharField(max_length=30, blank=True, null=True,
                                    help_text='Description of phone numbers relationship to participant')

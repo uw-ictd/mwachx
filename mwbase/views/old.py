@@ -25,9 +25,9 @@ def dashboard(request):
 
 def get_status_by_group():
     by_status = Participant.objects.values('study_group', 'status').annotate(count=Count('study_id'))
-    statuses = [[s[1], 0, 0, 0] for s in mwbase.Participant.STATUS_CHOICES]
+    statuses = [[s[1], 0, 0, 0] for s in Participant.STATUS_CHOICES]
 
-    status_map = {s[0]: i for i, s in enumerate(mwbase.Participant.STATUS_CHOICES)}
+    status_map = {s[0]: i for i, s in enumerate(Participant.STATUS_CHOICES)}
     group_map = {'control': 1, 'one-way': 2, 'two-way': 3}
     for status in by_status:
         s_idx = status_map[status['status']]
