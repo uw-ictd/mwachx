@@ -14,7 +14,6 @@ from django.db import transaction
 from django.conf import settings
 
 import mwbase.models as mwbase
-import backend.models as back
 import utils
 from utils import enums
 

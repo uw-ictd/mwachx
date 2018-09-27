@@ -2,8 +2,9 @@ import datetime
 
 from django.contrib.auth import models as auth
 
-import backend.models as auto
 import mwbase.models as mwbase
+import swapper
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 
 
 def setup_auth_user(cls):
@@ -14,8 +15,7 @@ def setup_auth_user(cls):
 
 def setup_auto_messages(cls):
     # Create dummy auto messages
-    auto_mess_class = swapper.load_model("backend", "AutomatedMessage")
-    cls.signup_control_msg = auto_mess_class.objects.create(
+    cls.signup_control_msg = AutomatedMessage.objects.create(
         send_base="signup",
         english="Control English Signup Message",
         hiv_messaging=False,
@@ -24,7 +24,7 @@ def setup_auto_messages(cls):
         condition='normal',
     )
 
-    cls.signup_msg = auto_mess_class.objects.create(
+    cls.signup_msg = AutomatedMessage.objects.create(
         send_base="signup",
         english="English Signup Message",
         hiv_messaging=False,
@@ -33,7 +33,7 @@ def setup_auto_messages(cls):
         condition='normal',
     )
 
-    cls.auto_edd_message = auto_mess_class.objects.create(
+    cls.auto_edd_message = AutomatedMessage.objects.create(
         send_base="edd",
         send_offset=3,
         english="Hi {name} Hi",
@@ -41,7 +41,7 @@ def setup_auto_messages(cls):
         todo=False
     )
 
-    cls.auto_dd_message = auto_mess_class.objects.create(
+    cls.auto_dd_message = AutomatedMessage.objects.create(
         send_base="fp",
         send_offset=2,
         english="DD {name} DD",

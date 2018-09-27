@@ -33,7 +33,7 @@ class MessageRowBase(object):
 
     def description(self):
         ''' Return base_group_track_offset '''
-        return "{0.send_base}|{0.group}|{0.track}|{0.offset}".format(self)
+        return "{0.send_base}.{0.group}.{0.track}.{0.offset}".format(self)
 
     def kwargs(self):
         return {'send_base': self.send_base, 'send_offset': self.offset, 'group': self.group,
@@ -151,7 +151,7 @@ class FinalRowHIV(MessageRowBase):
 
     def description(self):
         ''' Return base_group_track_hiv_offset '''
-        return "{0.send_base}|{0.group}|{0.track}|{1}|{0.offset}".format(self, self.get_hiv_messaging_str())
+        return "{0.send_base}.{0.group}.{0.track}.{1}.{0.offset}".format(self, self.get_hiv_messaging_str())
     
     def kwargs(self):
         return {'send_base': self.send_base, 'send_offset': self.offset, 'group': self.group,

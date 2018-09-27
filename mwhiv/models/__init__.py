@@ -1,0 +1,1 @@
+from mwhiv.models.automatedmessagehiv import AutomatedMessageHIV

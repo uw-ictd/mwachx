@@ -9,7 +9,6 @@ from django.core.management.base import BaseCommand, CommandError
 
 # Local Imports
 import mwbase.models as mwbase
-import backend.models as back
 import transports.africas_talking.api as at
 
 def count_field(qs,field):

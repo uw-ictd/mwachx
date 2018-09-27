@@ -52,8 +52,8 @@ INSTALLED_APPS = (
 
     # mWaChx setup
     'mwbase',
-    'backend',
     'utils',
+    # 'mwhiv',
 
     # tests
     'django_nose',
@@ -190,4 +190,5 @@ TEST_PARTICIPANT_SWAPPING = False
 
 SMSBASE_IMPORT_FORMAT = {}
 SMSBANK_CLASS = 'utils.sms_utils.FinalRow'
-# BACKEND_AUTOMATEDMESSAGE_MODEL = "backend.models.AutomatedMessageHIV"
+# SMSBANK_CLASS = 'utils.sms_utils.FinalRowHIV'
+# MWBASE_AUTOMATEDMESSAGE_MODEL = "mwhiv.AutomatedMessageHIV"

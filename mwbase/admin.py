@@ -9,6 +9,11 @@ from django.utils import html
 import utils.admin as utils
 # Local Imports
 from mwbase import models as mwbase
+from mwbase.forms import ImportXLSXForm
+from mwbase.utils import sms_bank
+
+import swapper
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 
 
 class ConnectionInline(admin.TabularInline):
@@ -46,7 +51,7 @@ class ParticipantAdmin(admin.ModelAdmin):
                     'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
     list_display_links = ('study_id', 'nickname')
     list_filter = (
-    'facility', 'study_group', ('created', admin.DateFieldListFilter), 'hiv_messaging', 'status', 'is_validated',
+    'facility', 'study_group', ('created', admin.DateFieldListFilter), 'status', 'is_validated',
     'language', 'send_day')
 
     ordering = ('study_id',)
@@ -95,7 +100,6 @@ class ParticipantAdminMixin(object):
 
 @admin.register(mwbase.Message)
 class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
-    change_list_template = "admin/messages_changelist.html"
     list_display = ('text', 'participant_name', 'identity', 'is_system',
                     'is_outgoing', 'is_reply', 'external_status', 'translation_status', 'created')
     list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter),
@@ -182,3 +186,95 @@ class UserAdmin(UserAdmin):
 # Re-register UserAdmin
 admin.site.unregister(User)
 admin.site.register(User, UserAdmin)
+
+
+@admin.register(AutomatedMessage)
+class AutomatedMessageAdmin(admin.ModelAdmin):
+    list_display = ('description', 'english', 'todo')
+    list_filter = ('send_base', 'condition', 'group', 'todo')
+    change_list_template = "admin/mwbase/automatedmessage/change_list.html"
+    smsbank_check_template = "admin/mwbase/automatedmessage/sms_bank_check.html"
+    smsbank_import_template = "admin/mwbase/automatedmessage/sms_bank_import.html"
+    
+    def changelist_view(self, request, extra_context=None):
+        extra_context = extra_context or {}
+        extra_context['form'] = ImportXLSXForm
+        return super(AutomatedMessageAdmin, self).changelist_view(request, extra_context=extra_context)
+    
+    def get_urls(self):
+        urls = super().get_urls()
+        my_urls = [
+            path(r'smsbank_check_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_check_view'),
+            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_import_view), name='smsbank_import_view')
+        ]
+        urls = my_urls + urls
+        return urls
+    
+    def smsbank_import_view(self, request, extra_context=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+        form = ImportXLSXForm(request.POST or None, request.FILES or None)
+        counts, existing, diff, todo_messages = [], [], [], []
+        error = ""
+        
+        if request.method == 'POST':
+            if form.is_valid():
+                file = form.cleaned_data.get("file")
+                # try:
+                counts, existing, diff, todo_messages = sms_bank.import_messages(file)
+                # except Exception as e:
+                #     print(e)
+                #     error = "There was an error importing the given file.  Please try again."
+                
+                
+            context = {
+                **self.admin_site.each_context(request),
+                'module_name': str(opts.verbose_name_plural),
+                'opts': opts,
+                'counts': counts,
+                'existing': existing,
+                'diff': diff,
+                'todo_messages': todo_messages,
+                'error': error,
+                **(extra_context or {}),
+            }
+        
+            return TemplateResponse(request, self.smsbank_import_template or [
+                'admin/%s/%s/sms_bank_import.html' % (app_label, opts.model_name),
+                'admin/%s/sms_bank_import.html' % app_label,
+                'admin/sms_bank_import.html'
+            ], context)
+    
+    def smsbank_check_view(self, request, extra_context=None):
+        opts = self.model._meta
+        app_label = opts.app_label
+        items = duplicates = descriptions = total = todo = None
+        form = ImportXLSXForm(request.POST or None, request.FILES or None)
+
+        if request.method == 'POST':
+            if form.is_valid():
+                file = form.cleaned_data.get("file")
+                (items, duplicates, descriptions, total, todo ) = sms_bank.check_messages(file)
+                form.helper.form_action = reverse('admin:smsbank_import_view')
+                for input in form.helper.inputs:
+                    if input.name == 'submit':
+                        input.value = "Import File"
+        
+        context = {
+            **self.admin_site.each_context(request),
+            'module_name': str(opts.verbose_name_plural),
+            'opts': opts,
+            'form': form,
+            'items': items,
+            'duplicates': duplicates,
+            'descriptions': descriptions,
+            'total': total,
+            'todo': todo,
+            **(extra_context or {}),
+        }
+                
+        return TemplateResponse(request, self.smsbank_check_template or [
+            'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
+            'admin/%s/sms_bank_check.html' % app_label,
+            'admin/sms_bank_check.html'
+        ], context)

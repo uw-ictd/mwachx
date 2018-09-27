@@ -7,11 +7,11 @@ from argparse import Namespace
 import code
 import operator, collections, re, argparse
 import swapper
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 
 from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 import utils.sms_utils as sms
-import backend.models as back
 import mwbase.models as mwbase
 
 def recursive_dd():
@@ -64,10 +64,8 @@ def import_messages(file):
     diff , existing , todo_messages = [] , [] , []
     for msg in messages:
         counts['total'] += 1
-        
-        auto_mess_class = swapper.load_model("backend", "AutomatedMessage")
     
-        auto , status = auto_mess_class.objects.from_excel(msg)
+        auto , status = AutomatedMessage.objects.from_excel(msg)
         counts['add'] += 1
         counts[status] += 1
 
