@@ -14,8 +14,6 @@ from rest_framework.response import Response
 import mwbase.forms as forms
 # Local Imports
 import mwbase.models as mwbase
-import swapper
-Participant = swapper.load_model("mwbase", "Participant")
 import utils
 from .messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
 from .misc import PhoneCallSerializer, NoteSerializer
@@ -62,7 +60,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     note_count = serializers.SerializerMethodField()
 
     class Meta:
-        model = Participant
+        model = mwbase.Participant
         fields = '__all__'
 
     def get_hiv_disclosed_display(self, obj):
@@ -96,7 +94,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     lookup_field = 'study_id'
 
     def get_queryset(self):
-        qs = Participant.objects.all().order_by('study_id')
+        qs = mwbase.Participant.objects.all().order_by('study_id')
         # Only return the participants for this user's facility
         if self.action == 'list':
             return qs.for_user(self.request.user, superuser=True)
@@ -187,7 +185,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         instance.hiv_messaging = request.data['hiv_messaging']
 
         instance.save()
-        instance_serialized = ParticipantSerializer(Participant.objects.get(pk=instance.pk),
+        instance_serialized = ParticipantSerializer(mwbase.Participant.objects.get(pk=instance.pk),
                                                     context={'request': request}).data
         return Response(instance_serialized)
 
