@@ -107,25 +107,6 @@ class ParticipantManager(models.Manager):
                            )
 
 class BaseParticipant(TimeStampedModel):
-    # Set Custom Manager
-    objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
-    objects_no_link = ParticipantQuerySet.as_manager()
-
-    # Required Participant Personal Information
-    nickname = models.CharField(max_length=20)
-    birthdate = models.DateField(verbose_name='DOB')
-
-    class Meta:
-        abstract = True
-
-    def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Force capitalization of nickname
-        self.nickname = self.nickname.capitalize()
-
-        super().save(force_insert, force_update, *args, **kwargs)
-
-
-class Participant(BaseParticipant):
     STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
@@ -199,6 +180,14 @@ class Participant(BaseParticipant):
         ('other', 'Other'),
     )
 
+    # Set Custom Manager
+    objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
+    objects_no_link = ParticipantQuerySet.as_manager()
+
+    # Required Participant Personal Information
+    nickname = models.CharField(max_length=20)
+    birthdate = models.DateField(verbose_name='DOB')
+
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
     anc_num = models.CharField(max_length=15, verbose_name='ANC #')
@@ -226,13 +215,6 @@ class Participant(BaseParticipant):
     delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source",
                                        choices=DELIVERY_SOURCE_CHOICES, blank=True)
 
-    # Optional Medical Informaton
-    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
-                                      verbose_name='ART Initiation')
-    hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
-    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none',
-                                     verbose_name='HIV Messaging')
-    child_hiv_status = models.NullBooleanField(blank=True, verbose_name='Child HIV Status')
     family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES,
                                        verbose_name='Family Planning')
     loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
@@ -246,28 +228,13 @@ class Participant(BaseParticipant):
     validation_key = models.CharField(max_length=5, blank=True)
 
     class Meta:
-        app_label = 'mwbase'
-        swappable = swapper.swappable_setting('mwbase', 'Participant')
-
-    def __init__(self, *args, **kwargs):
-        """ Override __init__ to save old status"""
-        super().__init__(*args, **kwargs)
-        self._old_status = self.status
-        self._old_hiv_messaging = self.hiv_messaging
+        abstract = True
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Check that self.id exists so this is not the first save
-        if not self._old_status == self.status and self.id is not None:
-            self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
-
-        if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
-            print(self._old_hiv_messaging, self.hiv_messaging)
-            self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
-                                         comment='HIV messaging changed', type='hiv')
+        # Force capitalization of nickname
+        self.nickname = self.nickname.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
-        self._old_status = self.status
-        self._old_hiv_messaging = self.hiv_messaging
 
     def __str__(self):
         return self.nickname.title()
@@ -363,12 +330,8 @@ class Participant(BaseParticipant):
         send_base = kwargs.get("send_base", 'edd' if self.was_pregnant(today=today) else 'dd')
         send_offset = kwargs.get("send_offset", self.delta_days(today=today) / 7)
 
-        hiv_messaging = kwargs.get("hiv_messaging", self.hiv_messaging == "system")
-        hiv = "Y" if hiv_messaging else "N"
-
         # Special Case: Visit Messages
         if send_base == 'visit':
-            hiv = "N"
             send_offset = 0
 
         # Special Case: SAE opt in messaging
@@ -380,8 +343,8 @@ class Participant(BaseParticipant):
                 send_base = 'loss'
                 send_offset = loss_offset
 
-        return "{send_base}.{group}.{condition}.{hiv}.{send_offset:.0f}".format(
-            group=group, condition=condition, hiv=hiv,
+        return "{send_base}.{group}.{condition}.{send_offset:.0f}".format(
+            group=group, condition=condition,
             send_base=send_base, send_offset=send_offset
         )
 
@@ -634,6 +597,81 @@ class Participant(BaseParticipant):
             if status_change is not None:
                 return (status_change.created.date() - self.delivery_date).days
             return None
+
+
+
+class Participant(BaseParticipant):
+    # Optional Medical Informaton
+    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
+                                      verbose_name='ART Initiation')
+    hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
+    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none',
+                                     verbose_name='HIV Messaging')
+    child_hiv_status = models.NullBooleanField(blank=True, verbose_name='Child HIV Status')
+
+    class Meta:
+        app_label = 'mwbase'
+        swappable = swapper.swappable_setting('mwbase', 'Participant')
+
+    def __init__(self, *args, **kwargs):
+        """ Override __init__ to save old status"""
+        super().__init__(*args, **kwargs)
+        self._old_status = self.status
+        self._old_hiv_messaging = self.hiv_messaging
+
+    def save(self, force_insert=False, force_update=False, *args, **kwargs):
+        # Check that self.id exists so this is not the first save
+        if not self._old_status == self.status and self.id is not None:
+            self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
+
+        if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
+            print(self._old_hiv_messaging, self.hiv_messaging)
+            self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
+                                         comment='HIV messaging changed', type='hiv')
+
+        super().save(force_insert, force_update, *args, **kwargs)
+        self._old_status = self.status
+        self._old_hiv_messaging = self.hiv_messaging
+
+    def description(self, **kwargs):
+        """
+        Description is a special formatted string that represents the state of a participant.
+        It contains a series of dot-separated fields that map to the relevant attributes of the
+        participant in determining an SMS message to send.
+
+        See the equivalent section in the `AutomatedMessageQuerySet` class.
+        """
+        today = kwargs.get("today")
+
+        condition = kwargs.get("condition", self.condition)
+        group = kwargs.get("group", self.study_group)
+
+        send_base = kwargs.get("send_base", 'edd' if self.was_pregnant(today=today) else 'dd')
+        send_offset = kwargs.get("send_offset", self.delta_days(today=today) / 7)
+
+        hiv_messaging = kwargs.get("hiv_messaging", self.hiv_messaging == "system")
+        hiv = "Y" if hiv_messaging else "N"
+
+        # Special Case: Visit Messages
+        if send_base == 'visit':
+            hiv = "N"
+            send_offset = 0
+
+        # Special Case: SAE opt in messaging
+        elif self.status == 'loss':
+            today = utils.today(today)
+            loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
+            condition = 'nbaby'
+            if loss_offset <= 4:
+                send_base = 'loss'
+                send_offset = loss_offset
+
+        return "{send_base}.{group}.{condition}.{hiv}.{send_offset:.0f}".format(
+            group=group, condition=condition, hiv=hiv,
+            send_base=send_base, send_offset=send_offset
+        )
+
+
 
 
 class StatusChangeQuerySet(ForUserQuerySet):
