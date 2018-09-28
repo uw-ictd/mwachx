@@ -14,6 +14,10 @@ from django.core.management.base import BaseCommand, CommandError
 import utils.sms_utils as sms
 import mwbase.models as mwbase
 
+module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
+smsbank_module = importlib.import_module(module_name)
+FinalRow = getattr(smsbank_module, class_name)
+
 def recursive_dd():
     return collections.defaultdict(recursive_dd)
 
@@ -23,11 +27,7 @@ def check_messages(file):
             track_HIV (count) [offset]
     '''
     sms_wb = xl.load_workbook(file)
-    
-    module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
-    smsbank_module = importlib.import_module(module_name)
-    smsbank_class = getattr(smsbank_module, class_name)
-    messages = sms.parse_messages(sms_wb.active,smsbank_class)
+    messages = sms.parse_messages(sms_wb.active,FinalRow)
 
     stats = recursive_dd()
     descriptions = set()
@@ -52,12 +52,7 @@ def check_messages(file):
 
 def import_messages(file):
     sms_bank = xl.load_workbook(file)
-    
-    module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
-    smsbank_module = importlib.import_module(module_name)
-    smsbank_class = getattr(smsbank_module, class_name)
-    
-    messages = sms.parse_messages(sms_bank.active,smsbank_class)
+    messages = sms.parse_messages(sms_bank.active,FinalRow)
 
     total , add , todo, create = 0 , 0 , 0 , 0
     counts = collections.defaultdict(int)
@@ -79,3 +74,14 @@ def import_messages(file):
             counts['todo'] += 1
     
     return counts, existing, diff, todo_messages
+
+def create_xlsx():
+    header = FinalRow.header
+    wb = xl.Workbook()
+    ws = wb.active
+    row_num = 0
+    
+    for idx, header_item in enumerate(header):
+        c = ws.cell(row=row_num + 1, column=idx + 1, value=header_item)
+    
+    return wb

@@ -5,7 +5,7 @@
 {% block object-tools %}
 <div class="row">
     <div class="col-sm-6">
-        <input type="button" name="create_smsbank" value="Create SMS Bank XLSX" />
+        <a href='{% url 'admin:smsbank_create_xlsx' %}'><input type="button" name="create_smsbank" value="Create SMS Bank XLSX" /></a>
     </div>
 </div>
     <div class="row">

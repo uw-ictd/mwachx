@@ -1,10 +1,12 @@
 from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
+from django.http.response import HttpResponse
 from django.template.response import SimpleTemplateResponse, TemplateResponse
 from django.urls import path, reverse
 from django.utils import html
 
+from openpyxl.writer.excel import save_virtual_workbook
 
 import utils.admin as utils
 # Local Imports
@@ -205,10 +207,18 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
         urls = super().get_urls()
         my_urls = [
             path(r'smsbank_check_view/', self.admin_site.admin_view(self.smsbank_check_view), name='smsbank_check_view'),
-            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_import_view), name='smsbank_import_view')
+            path(r'smsbank_import_view/', self.admin_site.admin_view(self.smsbank_import_view), name='smsbank_import_view'),
+            path(r'smsbank_create_xlsx/', self.admin_site.admin_view(self.smsbank_create_xlsx), name='smsbank_create_xlsx')
         ]
         urls = my_urls + urls
         return urls
+    
+    def smsbank_create_xlsx(self, request, extra_context=None):
+        wb = sms_bank.create_xlsx()
+        response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
+        response['Content-Disposition'] = 'attachment; filename="translations.xlsx"'
+        
+        return response
     
     def smsbank_import_view(self, request, extra_context=None):
         opts = self.model._meta
