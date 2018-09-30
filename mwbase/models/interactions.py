@@ -159,7 +159,7 @@ class Message(TimeStampedModel):
                 return 'anonymous'
         else:
             if self.is_system is True:
-                return self.auto.split('.')[0] or 'empty_auto'
+                return self.auto.split('|')[0] or 'empty_auto'
             else:
                 return self.sent_by()
 

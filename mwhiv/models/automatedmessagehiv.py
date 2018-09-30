@@ -1,10 +1,10 @@
+from django.core.exceptions import ObjectDoesNotExist
 from django.db import models
 
-import utils.models as utils
+from mwbase.models import AutomatedMessageQuerySetBase, AutomatedMessageBase
 from utils import enums
 
-
-class AutomatedMessageQuerySet(utils.BaseQuerySet):
+class AutomatedMessageHIVQuerySet(AutomatedMessageQuerySetBase):
     """
     Used to map a single description to an AutomatedMessage.
     """
@@ -25,14 +25,14 @@ class AutomatedMessageQuerySet(utils.BaseQuerySet):
             send_offset = (send_offset + 1) % -2 - 1
 
         return self.from_parameters(send_base, group, condition, send_offset, hiv, exact=exact)
-
+        
     def from_parameters(self, send_base, group, condition='normal', send_offset=0, hiv=False, exact=False):
 
         # Look for exact match of parameters
         try:
             return self.get(send_base=send_base, send_offset=send_offset,
                             group=group, condition=condition, hiv_messaging=hiv)
-        except AutomatedMessage.DoesNotExist as e:
+        except ObjectDoesNotExist as e:
             if exact == True:
                 return None
             # No match for participant conditions continue to find best match
@@ -45,27 +45,27 @@ class AutomatedMessageQuerySet(utils.BaseQuerySet):
             # Try to find a non HIV message for this conditon
             try:
                 return message_offset.get(condition=condition, group=group, hiv_messaging=False)
-            except AutomatedMessage.DoesNotExist as e:
+            except ObjectDoesNotExist as e:
                 pass
 
             # Force condition to normal and try again with group and hiv=True
             try:
                 return message_offset.get(condition="normal", group=group, hiv_messaging=hiv)
-            except AutomatedMessage.DoesNotExist as e:
+            except ObjectDoesNotExist as e:
                 pass
 
         if condition != "normal":
             # Force condition to normal and try again
             try:
                 return message_offset.get(condition="normal", group=group, hiv_messaging=False)
-            except AutomatedMessage.DoesNotExist as e:
+            except ObjectDoesNotExist as e:
                 pass
 
         if group == "two-way":
             # Force group to one-way and try again
             try:
                 return message_offset.get(condition=condition, group="one-way", hiv_messaging=False)
-            except AutomatedMessage.DoesNotExist as e:
+            except ObjectDoesNotExist as e:
                 pass
 
         if condition != "normal" and group != "one-way":
@@ -92,7 +92,7 @@ class AutomatedMessageQuerySet(utils.BaseQuerySet):
             return auto, 'changed' if changed else 'same'
 
 
-class AutomatedMessage(models.Model):
+class AutomatedMessageHIV(AutomatedMessageBase):
     """
     Automated Messages for sending to participants. These represent message _templates_
     not message _instances_.
@@ -119,9 +119,9 @@ class AutomatedMessage(models.Model):
     )
 
     class Meta:
-        app_label = 'backend'
+        app_label = 'mwhiv'
 
-    objects = AutomatedMessageQuerySet.as_manager()
+    objects = AutomatedMessageHIVQuerySet.as_manager()
 
     priority = models.IntegerField(default=0)
 
@@ -132,11 +132,7 @@ class AutomatedMessage(models.Model):
     comment = models.TextField(blank=True)
 
     group = models.CharField(max_length=20, choices=enums.GROUP_CHOICES)  # 2 groups
-    condition = models.CharField(max_length=20, choices=CONDITION_CHOICES)  # 4 conditions
     hiv_messaging = models.BooleanField()  # True or False
-
-    send_base = models.CharField(max_length=20, help_text='Base to send messages from', choices=SEND_BASES_CHOICES)
-    send_offset = models.IntegerField(default=0, help_text='Offset from base in weeks')
 
     todo = models.BooleanField()
 
@@ -163,4 +159,4 @@ class AutomatedMessage(models.Model):
         return self.__repr__()
 
     def __repr__(self):
-        return "<AutomatedMessage: {}>".format(self.description())
+        return "<AutomatedMessageHIV: {}>".format(self.description())

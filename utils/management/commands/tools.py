@@ -4,12 +4,14 @@ from argparse import Namespace
 import code
 import operator, collections, re, csv
 import importlib
+import swapper
 
 #Django Imports
 from django.core.management.base import BaseCommand, CommandError
 from django.db import transaction, connection
 
 import mwbase.models as mwbase
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 import backend.models as back
 import transports
 from . import tasks
@@ -111,7 +113,7 @@ class Command(BaseCommand):
                 if msg.participant.language == 'english':
                     counts.english += 1
                     continue
-                auto_message = back.AutomatedMessage.objects.from_description(msg.auto,exact=True)
+                auto_message = AutomatedMessage.objects.from_description(msg.auto,exact=True)
                 if auto_message:
                     msg.translated_text = auto_message.english
                     counts.changed += 1
