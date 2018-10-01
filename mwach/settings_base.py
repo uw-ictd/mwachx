@@ -52,7 +52,6 @@ INSTALLED_APPS = (
     # mWaChx setup
     'mwbase',
     'utils',
-    # 'mwhiv',
 
     # tests
     'django_nose',
@@ -99,7 +98,6 @@ TEMPLATES = [
      }
 ]
 
-ROOT_URLCONF = 'mwach.urls'
 WSGI_APPLICATION = 'wsgi.application'
 
 # Database
@@ -187,7 +185,7 @@ MESSAGING_ADMIN = 'auth.User'
 
 TEST_PARTICIPANT_SWAPPING = False
 
+ROOT_URLCONF = 'mwach.urls.base'
+
 SMSBASE_IMPORT_FORMAT = {}
 SMSBANK_CLASS = 'utils.sms_utils.FinalRow'
-# SMSBANK_CLASS = 'utils.sms_utils.FinalRowHIV'
-# MWBASE_AUTOMATEDMESSAGE_MODEL = "mwhiv.AutomatedMessageHIV"
