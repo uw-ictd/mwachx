@@ -166,6 +166,12 @@ class Participant(TimeStampedModel):
         (20, 'Evening (8 PM)'),
     )
 
+    MESSAGING_CHOICES = (
+        ('none', 'No HIV Messaging'),
+        ('initiated', 'HIV Content If Initiated'),
+        ('system', 'HIV Content Allowed'),
+    )
+
     DELIVERY_SOURCE_CHOICES = (
         ('phone', 'Phone'),
         ('sms', 'SMS'),
@@ -212,6 +218,10 @@ class Participant(TimeStampedModel):
     # Optional Medical Informaton
     art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
                                       verbose_name='ART Initiation')
+    hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
+    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none',
+                                     verbose_name='HIV Messaging')
+    child_hiv_status = models.NullBooleanField(blank=True, verbose_name='Child HIV Status')
     family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES,
                                        verbose_name='Family Planning')
     loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
@@ -231,17 +241,24 @@ class Participant(TimeStampedModel):
         """ Override __init__ to save old status"""
         super().__init__(*args, **kwargs)
         self._old_status = self.status
+        self._old_hiv_messaging = self.hiv_messaging
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         # Check that self.id exists so this is not the first save
         if not self._old_status == self.status and self.id is not None:
             self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
 
+        if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
+            print(self._old_hiv_messaging, self.hiv_messaging)
+            self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
+                                         comment='HIV messaging changed', type='hiv')
+
         # Force capitalization of nickname
         self.nickname = self.nickname.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
         self._old_status = self.status
+        self._old_hiv_messaging = self.hiv_messaging
 
     def __str__(self):
         return self.nickname.title()
@@ -337,9 +354,12 @@ class Participant(TimeStampedModel):
         send_base = kwargs.get("send_base", 'edd' if self.was_pregnant(today=today) else 'dd')
         send_offset = kwargs.get("send_offset", self.delta_days(today=today) / 7)
 
+        hiv_messaging = kwargs.get("hiv_messaging", self.hiv_messaging == "system")
+        hiv = "Y" if hiv_messaging else "N"
 
         # Special Case: Visit Messages
         if send_base == 'visit':
+            hiv = "N"
             send_offset = 0
 
         # Special Case: SAE opt in messaging
@@ -351,8 +371,8 @@ class Participant(TimeStampedModel):
                 send_base = 'loss'
                 send_offset = loss_offset
 
-        return "{send_base}.{group}.{condition}.{send_offset:.0f}".format(
-            group=group, condition=condition,
+        return "{send_base}.{group}.{condition}.{hiv}.{send_offset:.0f}".format(
+            group=group, condition=condition, hiv=hiv,
             send_base=send_base, send_offset=send_offset
         )
 
@@ -559,8 +579,6 @@ class Participant(TimeStampedModel):
                 - condition - defaults to self.condition
         """
         description = self.description(**kwargs)
-        # print(kwargs)
-        # print(description)
         AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
         message = AutomatedMessage.objects.from_description(description, exact=exact)
         if message is None:
@@ -616,8 +634,23 @@ class Participant(TimeStampedModel):
             return None
 
 
+class StatusChangeQuerySet(ForUserQuerySet):
+
+    def get_hiv_changes(self, td_kwargs=None):
+
+        if td_kwargs is None:
+            td_kwargs = {'hours': 1}
+        elif isinstance(td_kwargs, numbers.Number):
+            td_kwargs = {'hours': td_kwargs}
+
+        td = datetime.timedelta(**td_kwargs)
+        hiv_status = self.filter(type='hiv').prefetch_related('participant')
+
+        return [s for s in hiv_status if s.created - s.participant.created > td]
+
+
 class StatusChange(TimeStampedModel):
-    objects = ForUserQuerySet.as_manager()
+    objects = StatusChangeQuerySet.as_manager()
 
     class Meta:
         app_label = 'mwbase'

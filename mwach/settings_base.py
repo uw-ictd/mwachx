@@ -26,7 +26,6 @@ SECRET_KEY = 'a638cezc!olqzorlxr_@kq#z5+3(v8c&31by99i$nh+o3x=jkt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
 DEBUG = True
-ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -41,6 +40,7 @@ INSTALLED_APPS = (
 
     'crispy_forms',
     'rest_framework',
+    'swapper',
 
     # constane setup
     'constance',
@@ -51,8 +51,8 @@ INSTALLED_APPS = (
 
     # mWaChx setup
     'mwbase',
-    'backend',
     'utils',
+    # 'mwhiv',
 
     # tests
     'django_nose',
@@ -186,3 +186,8 @@ MESSAGING_CONNECTION = 'mwbase.Connection'
 MESSAGING_ADMIN = 'auth.User'
 
 TEST_PARTICIPANT_SWAPPING = False
+
+SMSBASE_IMPORT_FORMAT = {}
+SMSBANK_CLASS = 'utils.sms_utils.FinalRow'
+# SMSBANK_CLASS = 'utils.sms_utils.FinalRowHIV'
+# MWBASE_AUTOMATEDMESSAGE_MODEL = "mwhiv.AutomatedMessageHIV"

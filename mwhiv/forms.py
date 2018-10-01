@@ -83,7 +83,9 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Disclosure and Consent',
                 Div(
+                    Div('hiv_disclosed', css_class="col-md-4"),
                     Div('phone_shared', css_class="col-md-4"),
+                    Div('hiv_messaging', css_class="col-md-4"),
                     css_class="row"
                 )
             ),
@@ -128,7 +130,9 @@ class ParticipantAdd(forms.ModelForm):
             'condition': forms.Select(attrs={'required': True}),
             'nickname': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
+            'hiv_disclosed': forms.NullBooleanSelect(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
+            'hiv_messaging': forms.Select(attrs={'required': True}),
         }
 
 
@@ -136,7 +140,7 @@ class ParticipantUpdate(forms.ModelForm):
     class Meta:
         # todo: can this be changed to a swappable version?
         model = mwbase.Participant
-        fields = ['send_day', 'send_time', 'due_date', 'art_initiation']
+        fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)

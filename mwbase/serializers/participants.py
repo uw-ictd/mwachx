@@ -41,10 +41,11 @@ class ParticipantSerializer(serializers.ModelSerializer):
     is_pregnant = serializers.BooleanField(read_only=True)
     active = serializers.BooleanField(read_only=True, source='is_active')
 
-    hiv_disclosed_display = serializers.SerializerMethodField()
-    hiv_disclosed = serializers.SerializerMethodField()
-    hiv_messaging_display = serializers.CharField(source='get_hiv_messaging_display')
-    hiv_messaging = serializers.CharField()
+    # Todo: Move to Serialized version of Swappable Participant
+    # hiv_disclosed_display = serializers.SerializerMethodField()
+    # hiv_disclosed = serializers.SerializerMethodField()
+    # hiv_messaging_display = serializers.CharField(source='get_hiv_messaging_display')
+    # hiv_messaging = serializers.CharField()
 
     href = serializers.HyperlinkedIdentityField(view_name='participant-detail', lookup_field='study_id')
     messages_url = serializers.HyperlinkedIdentityField(view_name='participant-messages', lookup_field='study_id')
