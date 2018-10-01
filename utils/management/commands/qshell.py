@@ -11,7 +11,6 @@ from django.core.management.base import BaseCommand, CommandError
 import mwbase.models as mwbase
 import swapper
 Participant = swapper.load_model("mwbase", "Participant")
-import backend.models as back
 import transports.africas_talking.api as at
 
 def count_field(qs,field):

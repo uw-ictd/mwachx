@@ -16,7 +16,6 @@ from django.conf import settings
 import mwbase.models as mwbase
 import swapper
 Participant = swapper.load_model("mwbase", "Participant")
-import backend.models as back
 import utils
 from utils import enums
 

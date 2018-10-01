@@ -2,10 +2,11 @@ import datetime
 
 from django.contrib.auth import models as auth
 
-import backend.models as auto
 import mwbase.models as mwbase
 import swapper
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 Participant = swapper.load_model("mwbase", "Participant")
+
 
 def setup_auth_user(cls):
     # Create dummy admin user
@@ -15,37 +16,33 @@ def setup_auth_user(cls):
 
 def setup_auto_messages(cls):
     # Create dummy auto messages
-    cls.signup_control_msg = auto.AutomatedMessage.objects.create(
+    cls.signup_control_msg = AutomatedMessage.objects.create(
         send_base="signup",
         english="Control English Signup Message",
-        hiv_messaging=False,
         todo=False,
         group='control',
         condition='normal',
     )
 
-    cls.signup_msg = auto.AutomatedMessage.objects.create(
+    cls.signup_msg = AutomatedMessage.objects.create(
         send_base="signup",
         english="English Signup Message",
-        hiv_messaging=False,
         todo=False,
         group='two-way',
         condition='normal',
     )
 
-    cls.auto_edd_message = auto.AutomatedMessage.objects.create(
+    cls.auto_edd_message = AutomatedMessage.objects.create(
         send_base="edd",
         send_offset=3,
         english="Hi {name} Hi",
-        hiv_messaging=False,
         todo=False
     )
 
-    cls.auto_dd_message = auto.AutomatedMessage.objects.create(
+    cls.auto_dd_message = AutomatedMessage.objects.create(
         send_base="fp",
         send_offset=2,
         english="DD {name} DD",
-        hiv_messaging=False,
         todo=False
     )
 
@@ -79,7 +76,6 @@ def setup_basic_participants(cls):
         due_date=datetime.date.today() - datetime.timedelta(weeks=3),
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
         status="post",
-        hiv_messaging="system"
     )
 
     cls.p2_connection = mwbase.Connection.objects.create(

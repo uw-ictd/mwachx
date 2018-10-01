@@ -53,19 +53,19 @@ class ParticipantBasicTests(test.TestCase):
 
     @override_settings(FAKE_DATE=False)
     def test_description(self):
-        self.assertEqual(self.p1.description(), "edd.two-way.normal.N.3")
-        self.assertEqual(self.p2.description(), "dd.two-way.normal.Y.3")
-        self.assertEqual(self.p3.description(send_base='signup', send_offset=0), "signup.control.art.N.0")
+        self.assertEqual(self.p1.description(), "edd.two-way.normal.3")
+        self.assertEqual(self.p2.description(), "dd.two-way.normal.3")
+        self.assertEqual(self.p3.description(send_base='signup', send_offset=0), "signup.control.art.0")
 
         # Test FP Methods
         def plus_td(weeks=0, days=0):
             return datetime.date.today() + datetime.timedelta(days=days, weeks=weeks)
 
-        self.assertEqual(self.p2.description(today=plus_td(days=2)), "dd.two-way.normal.Y.3")
-        self.assertEqual(self.p2.description(today=plus_td(days=8)), "dd.two-way.normal.Y.4")
-        self.assertEqual(self.p2.description(today=plus_td(2)), "dd.two-way.normal.Y.5")
-        self.assertEqual(self.p2.description(today=plus_td(3)), "dd.two-way.normal.Y.6")
-        self.assertEqual(self.p2.description(today=plus_td(7)), "dd.two-way.normal.Y.10")
+        self.assertEqual(self.p2.description(today=plus_td(days=2)), "dd.two-way.normal.3")
+        self.assertEqual(self.p2.description(today=plus_td(days=8)), "dd.two-way.normal.4")
+        self.assertEqual(self.p2.description(today=plus_td(2)), "dd.two-way.normal.5")
+        self.assertEqual(self.p2.description(today=plus_td(3)), "dd.two-way.normal.6")
+        self.assertEqual(self.p2.description(today=plus_td(7)), "dd.two-way.normal.10")
 
     def test_send_batch(self):
         participants = Participant.objects.annotate(msg_count=models.Count('message'))

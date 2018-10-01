@@ -3,7 +3,7 @@ from django.urls import reverse
 # Rest Framework Imports
 from rest_framework import serializers
 from rest_framework import viewsets
-from rest_framework.decorators import detail_route, list_route
+from rest_framework.decorators import action
 from rest_framework.response import Response
 
 # Local Imports
@@ -34,25 +34,25 @@ class PendingViewSet(viewsets.ViewSet):
         }
         return Response(pending)
 
-    @list_route()
+    @action(detail=False)
     def messages(self, request):
         messages = mwbase.Message.objects.for_user(request.user).pending()
         messages_seri = MessageSerializer(messages, many=True, context={'request': request})
         return Response(messages_seri.data)
 
-    @list_route()
+    @action(detail=False)
     def visits(self, request):
         visit_checks = mwbase.Visit.objects.for_user(request.user).get_visit_checks()
         serialized_visits = VisitSerializer(visit_checks, many=True, context={'request': request})
         return Response(serialized_visits.data)
 
-    @list_route()
+    @action(detail=False)
     def calls(self, request):
         calls_pending = mwbase.ScheduledPhoneCall.objects.for_user(request.user).pending_calls()
         serialized_calls = PendingCallSerializer(calls_pending, many=True, context={'request': request})
         return Response(serialized_calls.data)
 
-    @list_route()
+    @action(detail=False)
     def translations(self, request):
         messages = mwbase.Message.objects.for_user(request.user).to_translate()
         serialized_messages = MessageSerializer(messages, many=True, context={'request': request})
@@ -97,7 +97,7 @@ class PendingCallViewSet(viewsets.ModelViewSet):
     queryset = mwbase.ScheduledPhoneCall.objects.all()
     serializer_class = PendingCallSerializer
 
-    @detail_route(methods=['put'])
+    @action(methods=['put'], detail=True)
     def called(self, request, pk):
         instance = self.get_object()
         new_call = instance.called(admin_user=request.user, **request.data)

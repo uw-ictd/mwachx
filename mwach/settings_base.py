@@ -41,6 +41,7 @@ INSTALLED_APPS = (
 
     'crispy_forms',
     'rest_framework',
+    'swapper',
 
     # constane setup
     'constance',
@@ -51,11 +52,7 @@ INSTALLED_APPS = (
 
     # mWaChx setup
     'mwbase',
-    'backend',
     'utils',
-
-    # Custom model Modules
-    # 'mwcustom',
 
     # tests
     'django_nose',
@@ -102,7 +99,6 @@ TEMPLATES = [
      }
 ]
 
-ROOT_URLCONF = 'mwach.urls'
 WSGI_APPLICATION = 'wsgi.application'
 
 # Database
@@ -190,7 +186,7 @@ MESSAGING_ADMIN = 'auth.User'
 
 TEST_PARTICIPANT_SWAPPING = False
 
-try:
-    from .local_settings_2 import *
-except ImportError:
-    raise Exception("Import error")
+ROOT_URLCONF = 'mwach.urls.base'
+
+SMSBASE_IMPORT_FORMAT = {}
+SMSBANK_CLASS = 'utils.sms_utils.FinalRow'

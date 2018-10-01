@@ -4,11 +4,12 @@ from argparse import Namespace
 import code
 import operator, collections, re, argparse
 
+from django.conf import settings
 from django.core.management.base import BaseCommand, CommandError
 import utils.sms_utils as sms
-import backend.models as back
 import mwbase.models as mwbase
 import swapper
+AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
 Participant = swapper.load_model("mwbase", "Participant")
 
 class Command(BaseCommand):
@@ -22,31 +23,31 @@ class Command(BaseCommand):
         subparsers = parser.add_subparsers(help='sms bank commands')
 
         # The cmd argument is required for django.core.management.base.CommandParser
-        make_parser = subparsers.add_parser('make',cmd=parser.cmd,help='make final translations or todos')
+        make_parser = subparsers.add_parser('make',help='make final translations or todos')
         make_parser.add_argument('type',type=todo_or_final,help='type of make. one of (t)do or (f)inal')
         make_parser.add_argument('--copy',help='make copy of todo messages',action='store_true',default=False)
         make_parser.add_argument('-c','--check',help='check final messages',action='store_true',default=False)
         make_parser.set_defaults(action='make_messages')
 
-        check_parser = subparsers.add_parser('check',cmd=parser.cmd,help='check and print stats for final translations')
+        check_parser = subparsers.add_parser('check',help='check and print stats for final translations')
         check_parser.set_defaults(action='check_messages')
 
-        clean_parser = subparsers.add_parser('clean',cmd=parser.cmd,help='clean messages bank')
+        clean_parser = subparsers.add_parser('clean',help='clean messages bank')
         clean_parser.set_defaults(action='clean_messages')
 
-        import_parser = subparsers.add_parser('import',cmd=parser.cmd,help='import messages to backend')
+        import_parser = subparsers.add_parser('import',help='import messages to backend')
         import_parser.add_argument('-d','--done',default=False,action='store_true',help='only import messages marked as done')
         import_parser.add_argument('--clear',default=False,action='store_true',help='clear all existing backend messages')
         import_parser.add_argument('-f','--file',help='location of translation xlsx (default translations/translations.xlsx')
         import_parser.set_defaults(action='import_messages')
 
-        participant_parser = subparsers.add_parser('part',cmd=parser.cmd,help='try to find messages for all current participants')
+        participant_parser = subparsers.add_parser('part',help='try to find messages for all current participants')
         participant_parser.set_defaults(action='test_participants')
 
-        test_parser = subparsers.add_parser('test',cmd=parser.cmd,help='test message row creation')
+        test_parser = subparsers.add_parser('test',help='test message row creation')
         test_parser.set_defaults(action='test')
 
-        custom_parser = subparsers.add_parser('custom',cmd=parser.cmd,help='run custom command')
+        custom_parser = subparsers.add_parser('custom',help='run custom command')
         custom_parser.set_defaults(action='custom')
 
     def handle(self,*args,**options):
@@ -74,10 +75,13 @@ class Command(BaseCommand):
 
     def custom(self):
         sms_bank = xl.load_workbook(self.paths.final)
+        module_name, class_name = settings.SMSBANK_CLASS.rsplit(".", 1)
+        smsbank_module = importlib.import_module(module_name)
+        smsbank_class = getattr(smsbank_module, class_name)
 
         counts = collections.defaultdict(int)
         for row in sms_bank.active.rows[1:]:
-            msg = sms.FinalRow(row)
+            msg = smsbank_class(row)
             counts[msg.track] += 1
 
         for track , count in counts.items():
@@ -231,7 +235,7 @@ class Command(BaseCommand):
                 for condition_hiv, items in condition_hiv_groups.items():
                     self.stdout.write( '\t{}: {}'.format( condition_hiv, len(items) ) )
                     offsets = ["{0: 3}".format(i) for i in sorted([i.offset for i in items]) ]
-                    for i in range( len(offsets)/10 + 1 ):
+                    for i in range( int(len(offsets)/10) + 1 ):
                         self.stdout.write( "\t\t{}".format( "".join(offsets[15*i:15*(i+1)]) ) )
         self.stdout.write( 'Total: {} Todo: {}'.format( total,
             len([m for m in messages if m.is_todo()])
@@ -272,7 +276,7 @@ class Command(BaseCommand):
 
         if clear:
             self.stdout.write('Deleting All Backend Messages')
-            back.AutomatedMessage.objects.all().delete()
+            AutomatedMessage.objects.all().delete()
 
         self.stdout.write('Importing....')
         total , add , todo, create = 0 , 0 , 0 , 0
@@ -282,7 +286,7 @@ class Command(BaseCommand):
             counts['total'] += 1
 
             if do_all or msg.status == 'done':
-                auto , status = back.AutomatedMessage.objects.from_excel(msg)
+                auto , status = AutomatedMessage.objects.from_excel(msg)
                 counts['add'] += 1
                 counts[status] += 1
 
@@ -316,10 +320,9 @@ class Command(BaseCommand):
 
 
     def test_participants(self):
-
         found , missing = 0 , []
         for c in Participant.objects.all():
-            auto = back.AutomatedMessage.objects.from_description( c.description() )
+            auto = AutomatedMessage.objects.from_description( c.description() )
             if auto is None:
                 missing.append(c)
             else:
