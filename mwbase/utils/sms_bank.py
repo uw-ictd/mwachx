@@ -37,7 +37,7 @@ def check_messages(file):
         total += 1
         base_group = stats[ '{}_{}'.format(msg.send_base,msg.group) ]
         base_group.default_factory = list
-        
+
         if hasattr(msg, 'hiv'):
             condition_hiv = base_group[ '{}_HIV_{}'.format(msg.track,msg.get_hiv_messaging_str()) ]
             condition_hiv.append(msg)
@@ -47,19 +47,19 @@ def check_messages(file):
             descriptions.add(description)
         else:
             duplicates.append(description)
-            
-    return stats.items, duplicates, descriptions, total, len([m for m in messages if m.is_todo()])
+
+    return stats.items, duplicates, descriptions, total
 
 def import_messages(file):
     sms_bank = xl.load_workbook(file)
     messages = sms.parse_messages(sms_bank.active,FinalRow)
 
-    total , add , todo, create = 0 , 0 , 0 , 0
+    total , add , create = 0 , 0 , 0
     counts = collections.defaultdict(int)
-    diff , existing , todo_messages = [] , [] , []
+    diff , existing = [] , []
     for msg in messages:
         counts['total'] += 1
-    
+
         auto , status = AutomatedMessage.objects.from_excel(msg)
         counts['add'] += 1
         counts[status] += 1
@@ -69,19 +69,15 @@ def import_messages(file):
         if status == 'changed':
             diff.append( (msg,auto) )
 
-        if msg.is_todo():
-            todo_messages.append(msg.description())
-            counts['todo'] += 1
-    
-    return counts, existing, diff, todo_messages
+    return counts, existing, diff
 
 def create_xlsx():
     header = FinalRow.header
     wb = xl.Workbook()
     ws = wb.active
     row_num = 0
-    
+
     for idx, header_item in enumerate(header):
         c = ws.cell(row=row_num + 1, column=idx + 1, value=header_item)
-    
+
     return wb

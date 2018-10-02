@@ -134,8 +134,6 @@ class AutomatedMessageHIV(AutomatedMessageBase):
     group = models.CharField(max_length=20, choices=enums.GROUP_CHOICES)  # 2 groups
     hiv_messaging = models.BooleanField()  # True or False
 
-    todo = models.BooleanField()
-
     def category(self):
         return "{0.send_base}.{0.group}.{0.condition}.{1}".format(self,
                                                                   'Y' if self.hiv_messaging else 'N')
