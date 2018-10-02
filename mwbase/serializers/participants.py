@@ -87,7 +87,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-
+    forms = forms
     lookup_field = 'study_id'
 
     def get_queryset(self):
@@ -112,7 +112,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         ''' POST - create a new participant using the the participant ModelForm'''
-        cf = forms.ParticipantAdd(request.data)
+        cf = self.forms.ParticipantAdd(request.data)
 
         if cf.is_valid():
             with transaction.atomic():
