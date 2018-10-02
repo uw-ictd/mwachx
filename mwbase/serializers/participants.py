@@ -12,14 +12,17 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-import mwbase.forms as forms
 # Local Imports
+import mwbase.forms as forms
 import mwbase.models as mwbase
 import utils
 from .messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
 from .misc import PhoneCallSerializer, NoteSerializer
 from .visits import VisitSimpleSerializer, VisitSerializer
 
+#Swappable Imports
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 #############################################
 #  Serializer Definitions
@@ -40,13 +43,6 @@ class ParticipantSerializer(serializers.ModelSerializer):
     age = serializers.CharField(read_only=True)
     is_pregnant = serializers.BooleanField(read_only=True)
     active = serializers.BooleanField(read_only=True, source='is_active')
-
-    # Todo: Move to Serialized version of Swappable Participant
-    # hiv_disclosed_display = serializers.SerializerMethodField()
-    # hiv_disclosed = serializers.SerializerMethodField()
-    # hiv_messaging_display = serializers.CharField(source='get_hiv_messaging_display')
-    # hiv_messaging = serializers.CharField()
-
     href = serializers.HyperlinkedIdentityField(view_name='participant-detail', lookup_field='study_id')
     messages_url = serializers.HyperlinkedIdentityField(view_name='participant-messages', lookup_field='study_id')
     visits_url = serializers.HyperlinkedIdentityField(view_name='participant-visits', lookup_field='study_id')
@@ -63,12 +59,6 @@ class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = mwbase.Participant
         fields = '__all__'
-
-    def get_hiv_disclosed_display(self, obj):
-        return utils.null_boolean_display(obj.hiv_disclosed)
-
-    def get_hiv_disclosed(self, obj):
-        return utils.null_boolean_form_value(obj.hiv_disclosed)
 
     def get_note_count(self, obj):
         try:
@@ -101,7 +91,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     lookup_field = 'study_id'
 
     def get_queryset(self):
-        qs = mwbase.Participant.objects.all().order_by('study_id')
+        qs = Participant.objects.all().order_by('study_id')
         # Only return the participants for this user's facility
         if self.action == 'list':
             return qs.for_user(self.request.user, superuser=True)
@@ -186,10 +176,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         instance.status = request.data['status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
-        instance.art_initiation = utils.angular_datepicker(request.data['art_initiation'])
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
-        instance.hiv_disclosed = request.data['hiv_disclosed']
-        instance.hiv_messaging = request.data['hiv_messaging']
 
         instance.save()
         instance_serialized = ParticipantSerializer(mwbase.Participant.objects.get(pk=instance.pk),

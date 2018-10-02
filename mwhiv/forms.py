@@ -10,6 +10,10 @@ import mwbase.models as mwbase
 import utils.forms as util
 from mwbase.utils import sms_bank
 
+# Swapper Imports
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
+
 class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
                                    widget=forms.TextInput(attrs={'required': 'True', 'placeholder': '07xxxxxxx',
@@ -113,8 +117,7 @@ class ParticipantAdd(forms.ModelForm):
             })
 
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
+        model = Participant
         exclude = ['status', 'facility']
 
         widgets = {
@@ -138,8 +141,7 @@ class ParticipantAdd(forms.ModelForm):
 
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
+        model = Participant
         fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
 
     def __init__(self, *args, **kwargs):
@@ -169,6 +171,5 @@ class ImportXLSXForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.form_action = reverse('admin:smsbank_check_view')
         self.helper.add_input(Submit('submit', 'Check Import'))
-            
+
     file = forms.FileField(label='Import new SMS Bank', required=True)
-        

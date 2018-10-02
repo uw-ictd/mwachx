@@ -607,77 +607,10 @@ class BaseParticipant(TimeStampedModel):
 
 
 class Participant(BaseParticipant):
-    # Optional Medical Informaton
-    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
-                                      verbose_name='ART Initiation')
-    hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
-    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none',
-                                     verbose_name='HIV Messaging')
-    child_hiv_status = models.NullBooleanField(blank=True, verbose_name='Child HIV Status')
-
+    ## only includes base elements and spappable meta
     class Meta:
         app_label = 'mwbase'
         swappable = swapper.swappable_setting('mwbase', 'Participant')
-
-    def __init__(self, *args, **kwargs):
-        """ Override __init__ to save old status"""
-        super().__init__(*args, **kwargs)
-        self._old_status = self.status
-        self._old_hiv_messaging = self.hiv_messaging
-
-    def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Check that self.id exists so this is not the first save
-        if not self._old_status == self.status and self.id is not None:
-            self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
-
-        if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
-            print(self._old_hiv_messaging, self.hiv_messaging)
-            self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
-                                         comment='HIV messaging changed', type='hiv')
-
-        super().save(force_insert, force_update, *args, **kwargs)
-        self._old_status = self.status
-        self._old_hiv_messaging = self.hiv_messaging
-
-    def description(self, **kwargs):
-        """
-        Description is a special formatted string that represents the state of a participant.
-        It contains a series of dot-separated fields that map to the relevant attributes of the
-        participant in determining an SMS message to send.
-
-        See the equivalent section in the `AutomatedMessageQuerySet` class.
-        """
-        today = kwargs.get("today")
-
-        condition = kwargs.get("condition", self.condition)
-        group = kwargs.get("group", self.study_group)
-
-        send_base = kwargs.get("send_base", 'edd' if self.was_pregnant(today=today) else 'dd')
-        send_offset = kwargs.get("send_offset", self.delta_days(today=today) / 7)
-
-        hiv_messaging = kwargs.get("hiv_messaging", self.hiv_messaging == "system")
-        hiv = "Y" if hiv_messaging else "N"
-
-        # Special Case: Visit Messages
-        if send_base == 'visit':
-            hiv = "N"
-            send_offset = 0
-
-        # Special Case: SAE opt in messaging
-        elif self.status == 'loss':
-            today = utils.today(today)
-            loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
-            condition = 'nbaby'
-            if loss_offset <= 4:
-                send_base = 'loss'
-                send_offset = loss_offset
-
-        return "{send_base}.{group}.{condition}.{hiv}.{send_offset:.0f}".format(
-            group=group, condition=condition, hiv=hiv,
-            send_base=send_base, send_offset=send_offset
-        )
-
-
 
 
 class StatusChangeQuerySet(ForUserQuerySet):
