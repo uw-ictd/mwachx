@@ -51,6 +51,14 @@
     {% else %}
         No Duplicates
     {% endif %}
+    {% if errors|length > 0 %}
+      <p>Invalid Rows:  {{ errors|length }}</p>
+      <ul>
+        {% for row, error in errors.items %}
+          <li>Row {{ row }}:  {{ error }}</li>
+        {% endfor %}
+      </ul>
+    {% endif %}
 </div>
 {% endif %}
 {% endblock %}

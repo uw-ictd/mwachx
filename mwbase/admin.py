@@ -263,7 +263,7 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
         if request.method == 'POST':
             if form.is_valid():
                 file = form.cleaned_data.get("file")
-                (items, duplicates, descriptions, total ) = sms_bank.check_messages(file)
+                (items, duplicates, descriptions, total, errors ) = sms_bank.check_messages(file)
                 form.helper.form_action = reverse('admin:smsbank_import_view')
                 for input in form.helper.inputs:
                     if input.name == 'submit':
@@ -277,6 +277,7 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
             'items': items,
             'duplicates': duplicates,
             'descriptions': descriptions,
+            'errors': errors,
             'total': total,
             **(extra_context or {}),
         }

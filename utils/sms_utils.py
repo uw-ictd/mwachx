@@ -231,7 +231,9 @@ def parse_messages(ws, cls, **kwargs):
     for row in ws.rows:
         msg = cls(row, **kwargs)
         if msg.is_valid():
-            yield msg
+            yield (True, msg)
+        else:
+            yield (False, msg)
 
 
 def read_sms_bank(bank, old=None, *args):
@@ -245,8 +247,10 @@ def read_sms_bank(bank, old=None, *args):
 
 def message_dict(ws, cls, **kwargs):
     messages = collections.OrderedDict()
-    for msg in parse_messages(ws, cls, **kwargs):
-        messages[msg.description()] = msg
+    for message in parse_messages(ws, cls, **kwargs):
+        valid, msg = message
+        if valid:
+            messages[msg.description()] = msg
     return messages
 
 
