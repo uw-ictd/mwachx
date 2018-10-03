@@ -39,13 +39,16 @@
     </div>
 </div>
 <br />
+{% block back_button %}
 <a href="{% url 'admin:mwbase_automatedmessage_changelist' %}" class="button btn btn-primary" role="button">Back</a>
+{% endblock %}
 {% if request.POST %}
 <div>
     <br />
     Total: {{ total }}
     <br />
     {% if duplicates %}
+        Duplicates:  {{ duplicates|length }}
         {% for duplicate in duplicates %}
             Duplicate: {{ duplicate }}
         {% endfor %}

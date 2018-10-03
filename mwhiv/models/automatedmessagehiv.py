@@ -86,7 +86,6 @@ class AutomatedMessageHIVQuerySet(AutomatedMessageQuerySetBase):
             auto.english = msg_english
             auto.swahili = msg.swahili
             auto.luo = msg.luo
-            auto.todo = msg.status == 'todo'
             auto.save()
 
             return auto, 'changed' if changed else 'same'

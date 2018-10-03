@@ -111,6 +111,7 @@ class FinalRowHIV(MessageRowBase):
         super(FinalRowHIV, self).__init__(row, group, track, send_base, offset,
                                        english, swahili, luo, comment=comment)
         self.hiv = hiv
+        self.set_hiv_messaging()
 
     def description(self):
         ''' Return base_group_track_hiv_offset '''
