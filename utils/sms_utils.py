@@ -57,7 +57,7 @@ class MessageRowBase(object):
         return int(match.group(0))
 
     def is_valid(self):
-        group_valid = self.group in ['one-way', 'two-way', 'control']
+        group_valid = self.group in settings.VALID_GROUPS
         has_offset = self.offset is not None
         return group_valid and has_offset
 

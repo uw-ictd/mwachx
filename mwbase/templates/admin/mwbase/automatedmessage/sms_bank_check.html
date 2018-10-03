@@ -48,10 +48,12 @@
     Total: {{ total }}
     <br />
     {% if duplicates %}
-        Duplicates:  {{ duplicates|length }}
+        Duplicate Rows:  {{ duplicates|length }}
+        <ul>
         {% for duplicate in duplicates %}
-            Duplicate: {{ duplicate }}
+            <li>Duplicate: {{ duplicate }}</li>
         {% endfor %}
+      </ul>
     {% else %}
         No Duplicates
     {% endif %}

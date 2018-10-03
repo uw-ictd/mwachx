@@ -51,7 +51,7 @@ def check_messages(file):
             if description not in descriptions:
                 descriptions.add(description)
             else:
-                duplicates.append(description)
+                duplicates.append("Row {}:  {}".format(row, description))
         elif row != 1:
             errors[row] = msg.description
 
