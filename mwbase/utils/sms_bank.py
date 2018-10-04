@@ -33,7 +33,7 @@ def check_messages(file):
     descriptions = set()
     duplicates = []
     row = 0
-    errors = {}
+    errors = []
     total = -1
     for message in messages:
         valid, msg = message
@@ -53,7 +53,7 @@ def check_messages(file):
             else:
                 duplicates.append("Row {}:  {}".format(row, description))
         elif row != 1:
-            errors[row] = msg.description
+            errors.append("Row {}:  {}".format(row, msg.description()))
 
     return stats.items, duplicates, descriptions, total, errors
 

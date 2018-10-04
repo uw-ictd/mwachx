@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.http.response import HttpResponse
+from django.http import JsonResponse
 from django.template.response import SimpleTemplateResponse, TemplateResponse
 from django.urls import path, reverse
 from django.utils import html
@@ -219,7 +220,7 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
         response['Content-Disposition'] = 'attachment; filename="smsbank.xlsx"'
         
         return response
-    
+
     def smsbank_import_view(self, request, extra_context=None):
         opts = self.model._meta
         app_label = opts.app_label
@@ -264,26 +265,38 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
             if form.is_valid():
                 file = form.cleaned_data.get("file")
                 (items, duplicates, descriptions, total, errors ) = sms_bank.check_messages(file)
-                form.helper.form_action = reverse('admin:smsbank_import_view')
-                for input in form.helper.inputs:
-                    if input.name == 'submit':
-                        input.value = "Import File"
+                # form.helper.form_action = reverse('admin:smsbank_import_view')
+                # for input in form.helper.inputs:
+                #     if input.name == 'submit':
+                #         input.value = "Import File"
+                url = reverse('admin:smsbank_import_view')
+                response =  JsonResponse({
+                    'url': url,
+                    'duplicates': duplicates,
+                    'errors': errors,
+                    'total': total,
+                    'success': True,
+                    })
+                return response
+            else:
+                return JsonResponse({'success': False, 'message': 'Form Invalid',})
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid method',})
+        # context = {
+        #     **self.admin_site.each_context(request),
+        #     'module_name': str(opts.verbose_name_plural),
+        #     'opts': opts,
+        #     'form': form,
+        #     'items': items,
+        #     'duplicates': duplicates,
+        #     'descriptions': descriptions,
+        #     'errors': errors,
+        #     'total': total,
+        #     **(extra_context or {}),
+        # }
 
-        context = {
-            **self.admin_site.each_context(request),
-            'module_name': str(opts.verbose_name_plural),
-            'opts': opts,
-            'form': form,
-            'items': items,
-            'duplicates': duplicates,
-            'descriptions': descriptions,
-            'errors': errors,
-            'total': total,
-            **(extra_context or {}),
-        }
-
-        return TemplateResponse(request, self.smsbank_check_template or [
-            'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
-            'admin/%s/sms_bank_check.html' % app_label,
-            'admin/sms_bank_check.html'
-        ], context)
+        # return TemplateResponse(request, self.smsbank_check_template or [
+        #     'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
+        #     'admin/%s/sms_bank_check.html' % app_label,
+        #     'admin/sms_bank_check.html'
+        # ], context)

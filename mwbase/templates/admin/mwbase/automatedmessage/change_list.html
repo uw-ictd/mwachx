@@ -1,16 +1,38 @@
 {% extends 'admin/change_list.html' %}
 {% load crispy_forms_tags %}
 {% load mw_filters %}
+{% load static %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "app/custom_changelist.css" %}">
+{% endblock %}
+
+{% block extrahead %}
+	{{ block.super }}
+  	<script type="text/javascript" src="{% static 'app/smsbank_import.js' %}"></script>
+{% endblock  %}
 
 {% block object-tools %}
-<div class="row">
-    <div class="col-sm-6">
-        <a href='{% url 'admin:smsbank_create_xlsx' %}'><input type="button" name="create_smsbank" value="Create SMS Bank XLSX" /></a>
-    </div>
-</div>
+	<div class="row" id="create_xlsx">
+	    <div class="col-sm-6">
+	        <a href='{% url 'admin:smsbank_create_xlsx' %}'><input type="button" name="create_smsbank" value="Create SMS Bank XLSX" /></a>
+	    </div>
+	</div>
     <div class="row">
         {% crispy form form.helper %}
     </div>
-    <br />
+	<div id="checked_file" class="hidden">
+	    <p>Total: <span id="total_rows"></span></p>
+	    <div>
+		    <p>Duplicate Rows:  <span id="duplicate_count"></span></p>
+		    <ul id="duplicate_rows">
+		  	</ul>
+		</div>
+		<div>
+		  	<p>Invalid Rows:  <span id="invalid_count"></span></p>
+		  	<ul id="invalid_rows">
+		  	</ul>
+		</div>
+	</div>
     {{ block.super }}
 {% endblock %}
