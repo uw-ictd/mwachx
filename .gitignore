@@ -22,7 +22,7 @@ mwach/static/components.js
 
 ignore/
 translations/
-local_settings.py
+mwach/local_settings.py
 **/commands/tests.py
 
 #vagrant files
