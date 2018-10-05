@@ -265,10 +265,6 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
             if form.is_valid():
                 file = form.cleaned_data.get("file")
                 (items, duplicates, descriptions, total, errors ) = sms_bank.check_messages(file)
-                # form.helper.form_action = reverse('admin:smsbank_import_view')
-                # for input in form.helper.inputs:
-                #     if input.name == 'submit':
-                #         input.value = "Import File"
                 url = reverse('admin:smsbank_import_view')
                 response =  JsonResponse({
                     'url': url,
@@ -282,21 +278,3 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
                 return JsonResponse({'success': False, 'message': 'Form Invalid',})
         else:
             return JsonResponse({'success': False, 'message': 'Invalid method',})
-        # context = {
-        #     **self.admin_site.each_context(request),
-        #     'module_name': str(opts.verbose_name_plural),
-        #     'opts': opts,
-        #     'form': form,
-        #     'items': items,
-        #     'duplicates': duplicates,
-        #     'descriptions': descriptions,
-        #     'errors': errors,
-        #     'total': total,
-        #     **(extra_context or {}),
-        # }
-
-        # return TemplateResponse(request, self.smsbank_check_template or [
-        #     'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
-        #     'admin/%s/sms_bank_check.html' % app_label,
-        #     'admin/sms_bank_check.html'
-        # ], context)
