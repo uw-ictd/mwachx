@@ -11,17 +11,16 @@ for some high-level information about the future direction of the platform and d
 
 The following are the key apps in the codebase:
 
-* The `backend` app contains the models and logic for automated messages in the system.
-* The `participants` app contains the main data models and logic for the (SMS) participants in the system.
+* The `mwbase` app contains the main data models and logic for the base version of the system.
 * The `transports` app has the logic around gateways and SMS routing and validation
 * The `utils` app contains shared utility code as well as management commands that handle the scheduled tasks for the system
   (including automated messages)
 
 # Models
 
-## mwachx.backend
+## mwbase.models.automatedmessage
 
-The `backend` app contains the models and logic for automated messages in the system.
+The `automatedmessage` file contains the models and logic for automated messages in the system.
 
 The messages are stored as instances of the `AutomatedMessage` model.
 Each `AutomatedMessage` has fields that contain information about when it should be sent (e.g. `send_base`, `group`, `condition`, etc.
