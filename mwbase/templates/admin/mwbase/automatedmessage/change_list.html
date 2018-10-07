@@ -1,16 +1,56 @@
 {% extends 'admin/change_list.html' %}
 {% load crispy_forms_tags %}
 {% load mw_filters %}
+{% load static %}
+{% block extrastyle %}
+  {{ block.super }}
+  <link rel="stylesheet" type="text/css" href="{% static "app/custom_changelist.css" %}">
+{% endblock %}
+
+{% block extrahead %}
+	{{ block.super }}
+  	<script type="text/javascript" src="{% static 'app/smsbank_import.js' %}"></script>
+{% endblock  %}
 
 {% block object-tools %}
-<div class="row">
-    <div class="col-sm-6">
-        <a href='{% url 'admin:smsbank_create_xlsx' %}'><input type="button" name="create_smsbank" value="Create SMS Bank XLSX" /></a>
-    </div>
-</div>
+	<div class="row" id="create_xlsx">
+	    <div class="col-sm-6">
+	        <a href='{% url 'admin:smsbank_create_xlsx' %}'><input type="button" name="create_smsbank" value="Create SMS Bank XLSX" /></a>
+	    </div>
+	</div>
     <div class="row">
         {% crispy form form.helper %}
     </div>
-    <br />
+    <div id='back_btn' class="hidden row">
+	    <a href="#" class="button btn btn-primary" role="button">Back</a>
+	</div>
+	<div id="checked_file" class="hidden">
+	    <p>Total: <span id="total_rows"></span></p>
+	    <div>
+		    <p>Duplicate Rows:  <span id="duplicate_count"></span></p>
+		    <ul id="duplicate_rows">
+		  	</ul>
+		</div>
+		<div>
+		  	<p>Invalid Rows:  <span id="invalid_count"></span></p>
+		  	<ul id="invalid_rows">
+		  	</ul>
+		</div>
+	</div>
+	<div id="proccessing_modal" class="modal" tabindex="-1" role="dialog" data-backdrop="static" data-keyboard="false">
+		<div class="modal-dialog modal-dialog-centered" role="document">
+			<div class="modal-content">
+				<div class="modal-header centered">
+					<h4 class="modal-title">Checking SMS Bank Import File</h4>
+					<button type="button" class="close" data-dismiss="modal" aria-label="Close">
+				        <span aria-hidden="true">&times;</span>
+			        </button>
+				</div>
+				<div class="modal-body centered">
+					<h3>Processing File</h3>
+				</div>
+			</div>
+		</div>
+	</div>
     {{ block.super }}
 {% endblock %}

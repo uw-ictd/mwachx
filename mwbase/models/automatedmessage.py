@@ -91,7 +91,6 @@ class AutomatedMessageQuerySetBase(utils.BaseQuerySet):
             auto.english = msg_english
             auto.swahili = msg.swahili
             auto.luo = msg.luo
-            auto.todo = msg.status == 'todo'
             auto.save()
 
             return auto, 'changed' if changed else 'same'
@@ -144,8 +143,6 @@ class AutomatedMessage(AutomatedMessageBase):
     comment = models.TextField(blank=True)
 
     group = models.CharField(max_length=20, choices=enums.GROUP_CHOICES)  # 2 groups
-
-    todo = models.BooleanField()
 
     def category(self):
         return "{0.send_base}.{0.group}.{0.condition}".format(self)

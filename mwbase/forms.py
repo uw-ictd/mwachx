@@ -161,7 +161,7 @@ class ImportXLSXForm(forms.Form):
         super(ImportXLSXForm, self).__init__(*args, **kwargs)
         self.helper = FormHelper()
         self.helper.form_class = 'form-horizontal'
-        self.helper.form_id = 'import_form'
+        self.helper.form_id = 'check_form'
         self.helper.form_method = 'post'
         self.helper.form_action = reverse('admin:smsbank_check_view')
         self.helper.add_input(Submit('submit', 'Check Import'))

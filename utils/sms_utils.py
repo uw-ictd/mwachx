@@ -8,7 +8,7 @@ from django.conf import settings
 
 
 class MessageRowBase(object):
-    def __init__(self, row, status, group, track, send_base, offset, english, swahili, luo, **kwargs):
+    def __init__(self, row, group, track, send_base, offset, english, swahili, luo, **kwargs):
         self.group, self.track = group, track
         self.send_base, self.offset = send_base, offset
         self.english, self.swahili, self.luo, = map(clean_msg, (english, swahili, luo))
@@ -20,16 +20,8 @@ class MessageRowBase(object):
         self.new = kwargs.get('new', '')
         self.row = row[0].row
 
-        if any([s is None for s in (group, track, send_base, offset)]):
-            status = '#'
-        self.set_status(status)
-
-        if self.status != 'comment':
-            self.group = self.group.replace('_', '-')
-            self.configure_variables()
-
-            if self.offset is None:
-                self.offset = self.get_offset()
+        # if self.offset is None:
+        #     self.offset = self.get_offset()
 
     def description(self):
         ''' Return base_group_track_offset '''
@@ -39,8 +31,7 @@ class MessageRowBase(object):
         return {'send_base': self.send_base, 'send_offset': self.offset, 'group': self.group,
                 'condition': self.track, 'comment': self.comment,
                 'english': self.english if self.english != '' else self.new,
-                'swahili': self.swahili, 'luo': self.luo,
-                'todo': self.is_todo()}
+                'swahili': self.swahili, 'luo': self.luo}
 
     def get_offset(self):
         if self.send_base == 'signup':
@@ -66,24 +57,9 @@ class MessageRowBase(object):
         return int(match.group(0))
 
     def is_valid(self):
-        if self.status == 'comment':
-            return False
-        group_valid = self.group in ['one-way', 'two-way', 'control']
+        group_valid = self.group in settings.VALID_GROUPS
         has_offset = self.offset is not None
         return group_valid and has_offset
-
-    def set_status(self, status):
-        if status is None:
-            self.status = 'clean'
-        else:
-            self.status = {'': 'clean', 'x': 'done', 's': 'swahili', 'l': 'luo', '!': 'todo', '#': 'comment'}.get(
-                status.lower()[0], 'clean')
-
-    def get_status_str(self):
-        return {'clean': '', 'done': 'x', 'todo': '!', 'comment': '#', 'swahili': 's', 'luo': 'l'}.get(self.status, '')
-
-    def is_todo(self):
-        return self.status in ['todo', 'swahili', 'luo']
 
     def configure_variables(self):
         self.english = replace_vars(self.english)
@@ -99,7 +75,6 @@ class MessageRowBase(object):
 
     def get_translation_row(self, language):
         return (
-            '!' if self.is_todo() and self.status != language else '',
             self.group,
             self.track,
             self.send_base,
@@ -111,7 +86,6 @@ class MessageRowBase(object):
 
     def get_final_row(self):
         return (
-            self.get_status_str(),
             self.group,
             self.track,
             self.send_base,
@@ -124,30 +98,20 @@ class MessageRowBase(object):
 
     @classmethod
     def from_bank_row(cls, row):
-        status, group, track, send_base, offset, english, comment = \
+        group, track, send_base, offset, english, comment = \
             cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 8)(row))
 
 
 class FinalRowHIV(MessageRowBase):
-    header = ('Todo', 'Group', 'Track', 'HIV', 'Base', 'Offset', 'English', 'Swahili', 'Luo', 'Comment')
+    header = ('Group', 'Track', 'HIV', 'Base', 'Offset', 'English', 'Swahili', 'Luo', 'Comment')
 
     def __init__(self, row):
-        status, group, track, hiv, send_base, offset, english, swahili, luo, comment = \
-                cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)(row))
-        super(FinalRowHIV, self).__init__(row, status, group, track, send_base, offset,
+        group, track, hiv, send_base, offset, english, swahili, luo, comment = \
+                cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8)(row))
+        super(FinalRowHIV, self).__init__(row, group, track, send_base, offset,
                                        english, swahili, luo, comment=comment)
         self.hiv = hiv
-        
-        if any([s is None for s in (hiv)]):
-            status = '#'
-        self.set_status(status)
-        
-        if self.status != 'comment':
-            self.set_hiv_messaging()
-
-        # If message is translated make old equal new
-        if self.status == 'done':
-            self.status = 'clean'
+        self.set_hiv_messaging()
 
     def description(self):
         ''' Return base_group_track_hiv_offset '''
@@ -157,8 +121,7 @@ class FinalRowHIV(MessageRowBase):
         return {'send_base': self.send_base, 'send_offset': self.offset, 'group': self.group,
                 'condition': self.track, 'comment': self.comment, 'hiv_messaging': self.hiv,
                 'english': self.english if self.english != '' else self.new,
-                'swahili': self.swahili, 'luo': self.luo,
-                'todo': self.is_todo()}
+                'swahili': self.swahili, 'luo': self.luo}
     
     def set_hiv_messaging(self):
         if isinstance(self.hiv, str):
@@ -171,7 +134,6 @@ class FinalRowHIV(MessageRowBase):
         
     def get_translation_row(self, language):
         return (
-            '!' if self.is_todo() and self.status != language else '',
             self.group,
             self.track,
             self.get_hiv_messaging_str(),
@@ -184,7 +146,6 @@ class FinalRowHIV(MessageRowBase):
 
     def get_final_row(self):
         return (
-            self.get_status_str(),
             self.group,
             self.track,
             self.get_hiv_messaging_str(),
@@ -197,26 +158,23 @@ class FinalRowHIV(MessageRowBase):
         )
 
 class FinalRow(MessageRowBase):
-    header = ('Todo','Group','Track','Base','Offset','English','Swahili','Luo','Comment')
+    header = ('Group','Track','Base','Offset','English','Swahili','Luo','Comment')
 
     def __init__(self, row):
-        status, group, track, send_base, offset, english, swahili, luo, comment = \
-            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8)(row))
-            
-        super(FinalRow, self).__init__(row, status, group, track, send_base, offset,
+        group, track, send_base, offset, english, swahili, luo, comment = \
+            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7)(row))
+
+        super(FinalRow, self).__init__(row, group, track, send_base, offset,
                                        english, swahili, luo, comment=comment)
 
-        # If message is translated make old equal new
-        if self.status == 'done':
-            self.status = 'clean'
 
 class MessageBankRow(MessageRowBase):
 
     def __init__(self, row, old_translations=None):
-        status, group, track, hiv, send_base, offset, english, comment = \
-            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 8)(row))
+        group, track, hiv, send_base, offset, english, comment = \
+            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6)(row))
         swahili, luo = '', ''
-        super(MessageBankRow, self).__init__(row, status, group, track, hiv, send_base, offset,
+        super(MessageBankRow, self).__init__(row, group, track, hiv, send_base, offset,
                                              english, swahili, luo, comment=comment)
 
         self.set_old(old_translations)
@@ -230,7 +188,6 @@ class MessageBankRow(MessageRowBase):
         if self.to_translate(old):
             self.new = self.english
             self.english = old.english if old is not None else ''
-            self.status = old.status if old is not None and old.is_todo() else 'todo'
 
         if old is None:
             return
@@ -249,11 +206,11 @@ class TranslationRow(MessageRowBase):
 
     @classmethod
     def header(cls, language):
-        return ('Todo', 'Group', 'Track', 'HIV', 'Base', 'Offset', 'Old', 'New', language)
+        return ('Group', 'Track', 'HIV', 'Base', 'Offset', 'Old', 'New', language)
 
     def __init__(self, row, language_name):
-        status, group, track, hiv, send_base, offset, english, new, language = \
-            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8)(row))
+        group, track, hiv, send_base, offset, english, new, language = \
+            cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7)(row))
 
         language_name = language_name.lower()[0]
         if language_name == 's':
@@ -263,7 +220,7 @@ class TranslationRow(MessageRowBase):
             swahili = ''
             luo = language
 
-        super(TranslationRow, self).__init__(row, status, group, track, hiv, send_base, offset,
+        super(TranslationRow, self).__init__(row, group, track, hiv, send_base, offset,
                                              english, swahili, luo, new=new)
 
 
@@ -275,7 +232,9 @@ def parse_messages(ws, cls, **kwargs):
     for row in ws.rows:
         msg = cls(row, **kwargs)
         if msg.is_valid():
-            yield msg
+            yield (True, msg)
+        else:
+            yield (False, msg)
 
 
 def read_sms_bank(bank, old=None, *args):
@@ -289,8 +248,10 @@ def read_sms_bank(bank, old=None, *args):
 
 def message_dict(ws, cls, **kwargs):
     messages = collections.OrderedDict()
-    for msg in parse_messages(ws, cls, **kwargs):
-        messages[msg.description()] = msg
+    for message in parse_messages(ws, cls, **kwargs):
+        valid, msg = message
+        if valid:
+            messages[msg.description()] = msg
     return messages
 
 
