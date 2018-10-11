@@ -2,6 +2,7 @@ from django.contrib import admin
 from django.contrib.auth.admin import UserAdmin
 from django.contrib.auth.models import User
 from django.http.response import HttpResponse
+from django.http import JsonResponse
 from django.template.response import SimpleTemplateResponse, TemplateResponse
 from django.urls import path, reverse
 from django.utils import html
@@ -192,8 +193,8 @@ admin.site.register(User, UserAdmin)
 
 @admin.register(AutomatedMessage)
 class AutomatedMessageAdmin(admin.ModelAdmin):
-    list_display = ('description', 'english', 'todo')
-    list_filter = ('send_base', 'condition', 'group', 'todo')
+    list_display = ('description', 'english')
+    list_filter = ('send_base', 'condition', 'group')
     change_list_template = "admin/mwbase/automatedmessage/change_list.html"
     smsbank_check_template = "admin/mwbase/automatedmessage/sms_bank_check.html"
     smsbank_import_template = "admin/mwbase/automatedmessage/sms_bank_import.html"
@@ -216,27 +217,27 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
     def smsbank_create_xlsx(self, request, extra_context=None):
         wb = sms_bank.create_xlsx()
         response = HttpResponse(save_virtual_workbook(wb), content_type='application/vnd.openxmlformats-officedocument.spreadsheetml.sheet')
-        response['Content-Disposition'] = 'attachment; filename="translations.xlsx"'
+        response['Content-Disposition'] = 'attachment; filename="smsbank.xlsx"'
         
         return response
-    
+
     def smsbank_import_view(self, request, extra_context=None):
         opts = self.model._meta
         app_label = opts.app_label
         form = ImportXLSXForm(request.POST or None, request.FILES or None)
-        counts, existing, diff, todo_messages = [], [], [], []
+        counts, existing, diff= [], [], []
         error = ""
         
         if request.method == 'POST':
             if form.is_valid():
                 file = form.cleaned_data.get("file")
                 # try:
-                counts, existing, diff, todo_messages = sms_bank.import_messages(file)
+                counts, existing, diff= sms_bank.import_messages(file)
                 # except Exception as e:
                 #     print(e)
                 #     error = "There was an error importing the given file.  Please try again."
-                
-                
+
+
             context = {
                 **self.admin_site.each_context(request),
                 'module_name': str(opts.verbose_name_plural),
@@ -244,47 +245,36 @@ class AutomatedMessageAdmin(admin.ModelAdmin):
                 'counts': counts,
                 'existing': existing,
                 'diff': diff,
-                'todo_messages': todo_messages,
                 'error': error,
                 **(extra_context or {}),
             }
-        
+
             return TemplateResponse(request, self.smsbank_import_template or [
                 'admin/%s/%s/sms_bank_import.html' % (app_label, opts.model_name),
                 'admin/%s/sms_bank_import.html' % app_label,
                 'admin/sms_bank_import.html'
             ], context)
-    
+
     def smsbank_check_view(self, request, extra_context=None):
         opts = self.model._meta
         app_label = opts.app_label
-        items = duplicates = descriptions = total = todo = None
+        items = duplicates = descriptions = total = None
         form = ImportXLSXForm(request.POST or None, request.FILES or None)
 
         if request.method == 'POST':
             if form.is_valid():
                 file = form.cleaned_data.get("file")
-                (items, duplicates, descriptions, total, todo ) = sms_bank.check_messages(file)
-                form.helper.form_action = reverse('admin:smsbank_import_view')
-                for input in form.helper.inputs:
-                    if input.name == 'submit':
-                        input.value = "Import File"
-        
-        context = {
-            **self.admin_site.each_context(request),
-            'module_name': str(opts.verbose_name_plural),
-            'opts': opts,
-            'form': form,
-            'items': items,
-            'duplicates': duplicates,
-            'descriptions': descriptions,
-            'total': total,
-            'todo': todo,
-            **(extra_context or {}),
-        }
-                
-        return TemplateResponse(request, self.smsbank_check_template or [
-            'admin/%s/%s/sms_bank_check.html' % (app_label, opts.model_name),
-            'admin/%s/sms_bank_check.html' % app_label,
-            'admin/sms_bank_check.html'
-        ], context)
+                (items, duplicates, descriptions, total, errors ) = sms_bank.check_messages(file)
+                url = reverse('admin:smsbank_import_view')
+                response =  JsonResponse({
+                    'url': url,
+                    'duplicates': duplicates,
+                    'errors': errors,
+                    'total': total,
+                    'success': True,
+                    })
+                return response
+            else:
+                return JsonResponse({'success': False, 'message': 'Form Invalid',})
+        else:
+            return JsonResponse({'success': False, 'message': 'Invalid method',})

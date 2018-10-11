@@ -177,14 +177,14 @@ LOGGING = {
 }
 
 #############
-# Custom Settings
+# Customizable Settings
 #############
 
 MESSAGING_CONNECTION = 'mwbase.Connection'
 MESSAGING_ADMIN = 'auth.User'
 
-TEST_PARTICIPANT_SWAPPING = False
-
+TEST_PARTICIPANT_SWAPPING = False  ## TODO:  Remove if not in use.
+VALID_GROUPS = ['one-way', 'two-way', 'control']
 ROOT_URLCONF = 'mwach.urls.base'
 
 SMSBASE_IMPORT_FORMAT = {}
