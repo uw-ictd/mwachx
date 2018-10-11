@@ -215,7 +215,10 @@ class Command(BaseCommand):
         descriptions = set()
         duplicates = []
         total = 0
-        for msg in messages:
+        for message in messages:
+            valid, msg = message
+            if not valid:
+                pass
             total += 1
             base_group = stats[ '{}_{}'.format(msg.send_base,msg.group) ]
             base_group.default_factory = list
@@ -282,7 +285,10 @@ class Command(BaseCommand):
         total , add , todo, create = 0 , 0 , 0 , 0
         counts = collections.defaultdict(int)
         diff , existing = [] , []
-        for msg in messages:
+        for message in messages:
+            valid, msg = message
+            if not valid:
+                pass
             counts['total'] += 1
 
             if do_all or msg.status == 'done':
