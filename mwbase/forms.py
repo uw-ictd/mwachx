@@ -65,7 +65,7 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Client Information',
                 Div(
-                    Div('nickname', css_class="col-md-4"),
+                    Div('sms_name', css_class="col-md-4"),
                     Div('phone_number', css_class="col-md-4"),
                     Div('birthdate', css_class="col-md-4"),
                     css_class="row"
@@ -114,14 +114,12 @@ class ParticipantAdd(forms.ModelForm):
             })
 
     class Meta:
-        # todo: can this be changed to a swappable version?
         model = Participant
         exclude = ['status', 'facility']
 
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
-        # TODO: Update this to be dependent on facility of logged in user
             'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
             'ccc_num': forms.TextInput(attrs={'required': True}),
             'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
@@ -129,7 +127,7 @@ class ParticipantAdd(forms.ModelForm):
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
-            'nickname': forms.TextInput(attrs={'required': True}),
+            'sms_name': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
         }
@@ -139,7 +137,7 @@ class ParticipantUpdate(forms.ModelForm):
     class Meta:
         # todo: can this be changed to a swappable version?
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'art_initiation']
+        fields = ['send_day', 'send_time', 'due_date']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -149,7 +147,6 @@ class ParticipantUpdate(forms.ModelForm):
         self.helper.label_class = 'col-lg-4'
         self.helper.field_class = 'col-lg-7'
 
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default

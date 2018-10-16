@@ -177,49 +177,41 @@ class BaseParticipant(TimeStampedModel):
     objects = ParticipantManager.from_queryset(ParticipantQuerySet)()
     objects_no_link = ParticipantQuerySet.as_manager()
 
-    # Required Participant Personal Information
-    nickname = models.CharField(max_length=20)
-    birthdate = models.DateField(verbose_name='DOB')
-
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
-    anc_num = models.CharField(max_length=15, verbose_name='ANC #')
-    ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
-    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
-
+    sms_status = models.CharField(max_length=10,verbose_name='SMS Messaging Status')
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
 
-    # Optional Participant Personal Informaiton
+    # Required Participant Personal Information
+    sms_name = models.CharField(max_length=12,verbose_name="SMS Name")
+    display_name = models.CharField(max_length=30,blank=True)
+    birthdate = models.DateField(verbose_name='DOB')
     partner_name = models.CharField(max_length=40, blank=True, verbose_name='Partner Name')
-    relationship_status = models.CharField(max_length=15, choices=RELATIONSHIP_CHOICES,
-                                           verbose_name='Relationship Status', blank=True)
+    relationship_status = models.CharField(max_length=15, choices=RELATIONSHIP_CHOICES, verbose_name='Relationship Status', blank=True)
     previous_pregnancies = models.IntegerField(blank=True, null=True, help_text='* excluding current')
     phone_shared = models.NullBooleanField(verbose_name='Phone Shared')
+    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default='english')
+    quick_notes = models.TextField()
 
     # Required Medical Information
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pregnant')
-    language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default='english')
+    preg_status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
+    anc_num = models.CharField(max_length=15, verbose_name='ANC #')
     due_date = models.DateField(verbose_name='Estimated Delivery Date')
-
     delivery_date = models.DateField(verbose_name='Delivery Date', blank=True, null=True)
-    delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source",
-                                       choices=DELIVERY_SOURCE_CHOICES, blank=True)
+    delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source", choices=DELIVERY_SOURCE_CHOICES, blank=True)
+    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES, verbose_name='Family Planning')
 
-    # Optional Medical Informaton
-    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
-                                      verbose_name='ART Initiation')
-    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES,
-                                       verbose_name='Family Planning')
-    loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
+    # #  TODO: Fields not in use?
+    # loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
+    # ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
+    # facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
 
     # State attributes to be edited by the system
-    last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received',
-                                       editable=False)
-    last_msg_system = models.DateField(blank=True, null=True, help_text='Date of last system message sent',
-                                       editable=False)
+    last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received', editable=False)
+    last_msg_system = models.DateField(blank=True, null=True, help_text='Date of last system message sent', editable=False)
     is_validated = models.BooleanField(default=False, blank=True)
     validation_key = models.CharField(max_length=5, blank=True)
 
@@ -227,16 +219,16 @@ class BaseParticipant(TimeStampedModel):
         abstract = True
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Force capitalization of nickname
-        self.nickname = self.nickname.capitalize()
+        # Force capitalization of sms_name
+        self.sms_name = self.sms_name.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
 
     def __str__(self):
-        return self.nickname.title()
+        return self.sms_name.title()
 
     def __repr__(self):
-        return "(#%03s) %s (%s)" % (self.study_id, self.nickname.title(), self.facility.title())
+        return "(#%03s) %s (%s)" % (self.study_id, self.sms_name.title(), self.facility.title())
 
     def connection(self):
         # Use connection_set.all() instead of .filter to take advantage of prefetch_related
@@ -351,13 +343,13 @@ class BaseParticipant(TimeStampedModel):
     def get_validation_key(self):
         # todo: what is this used by/for?
         sha = sha256(
-            ('%s%s%s%s' % (self.study_id, self.nickname, self.anc_num, self.birthdate)).encode('utf-8')
+            ('%s%s%s%s' % (self.study_id, self.sms_name, self.anc_num, self.birthdate)).encode('utf-8')
         ).hexdigest()[:5]
         key = ''.join([str(int(i, 16)) for i in sha])
         return key[:5]
 
     def choice_label(self):
-        return '{} {}'.format(self.study_id, self.nickname)
+        return '{} {}'.format(self.study_id, self.sms_name)
 
     def add_call(self, outcome='answered', comment=None, length=None, is_outgoing=True,
                  created=None, admin_user=None, scheduled=None):
@@ -492,7 +484,7 @@ class BaseParticipant(TimeStampedModel):
     def message_kwargs(self):
         nurse_obj = Practitioner.objects.for_participant(self)
         return {
-            'name': self.nickname.title(),
+            'name': self.sms_name.title(),
             'nurse': nurse_obj.user.first_name.title() if nurse_obj is not None else 'Nurse',
             'clinic': self.facility.title()
         }

@@ -119,12 +119,11 @@ class Participant(BaseParticipant):
     objects_no_link = ParticipantQuerySet.as_manager()
 
     # Optional Medical Informaton
-    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
-                                      verbose_name='ART Initiation')
+    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation', verbose_name='ART Initiation')
     hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
-    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none',
-                                     verbose_name='HIV Messaging')
+    hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none', verbose_name='HIV Messaging')
     child_hiv_status = models.NullBooleanField(blank=True, verbose_name='Child HIV Status')
+    second_preg = models.BooleanField(blank=True, choices=enums.BOOL_CHOICES, verbose_name='Second Pregnancy',default=False)
 
 
     class Meta:
@@ -146,8 +145,8 @@ class Participant(BaseParticipant):
             self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
                                          comment='HIV messaging changed', type='hiv')
 
-        # Force capitalization of nickname
-        self.nickname = self.nickname.capitalize()
+        # Force capitalization of sms_name
+        self.sms_name = self.sms_name.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
         self._old_status = self.status

@@ -28,7 +28,7 @@
       var compare_participant = function(participant,cmp) {
         if(cmp == 'text') {
           var needle = $scope.query.text.toLowerCase();
-          return ['study_id','nickname','anc_num','phone_number','status'].some(
+          return ['study_id','sms_name','anc_num','phone_number'].some(
             function(value){
               return participant[value].toLowerCase().indexOf(needle) >= 0;
           }
@@ -50,7 +50,7 @@
       $scope.participantFilter = function(participant) {
 
           if ($scope.query.text == '') {
-            var filter_buttons = ['study_group','status'].every( function(query) {
+            var filter_buttons = ['study_group'].every( function(query) {
               return compare_participant(participant,query);
             })
             return filter_buttons;

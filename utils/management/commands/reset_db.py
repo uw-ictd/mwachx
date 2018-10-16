@@ -93,14 +93,14 @@ class Command(BaseCommand):
         new_client = {
             'study_id': f'{n:05d}',
             'anc_num': f'00-{n:05d}',
-            'ccc_num': f'00-{n:05d}',
-            'nickname': f'P-{n:05d}',
+            # 'ccc_num': f'00-{n:05d}',
+            'sms_name': f'P-{n:05d}',
+            'display_name': f'P-{n:05d}',
             'birthdate': random_date(self.BDAY_START,self.BDAY_END),
             'study_group':random.choice(enums.GROUP_CHOICES)[0],
             'due_date': random_date( self.DUE_DATE_START,self.DUE_DATE_END),
-            'facility':random.choice(enums.FACILITY_CHOICES)[0],
+            # 'facility':random.choice(enums.FACILITY_CHOICES)[0],
             'language':random.choice(Participant.LANGUAGE_CHOICES)[0],
-            'status':status,
             'previous_pregnancies':random.randint(0,3),
             'condition':random.choice(Participant.CONDITION_CHOICES)[0],
             'family_planning':random.choice(Participant.FAMILY_PLANNING_CHOICES)[0]
@@ -144,7 +144,7 @@ class Command(BaseCommand):
         message = random.choice(self.message_list)[participant.language]
 
         if outgoing is True:
-            message = message.format(name=participant.nickname,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
+            message = message.format(name=participant.sms_name,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
 
         new_message = {
             'text':message,

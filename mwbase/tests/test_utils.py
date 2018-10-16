@@ -54,7 +54,7 @@ def setup_basic_participants(cls):
         anc_num="0001",
         facility="bondo",
         study_group="two-way",
-        nickname="p1 one",
+        sms_name="p1 one",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() + datetime.timedelta(weeks=3),
     )
@@ -71,11 +71,10 @@ def setup_basic_participants(cls):
         facility="bondo",
         study_group="two-way",
         language='luo',
-        nickname="p2",
+        sms_name="p2",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=3),
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
-        status="post",
     )
 
     cls.p2_connection = mwbase.Connection.objects.create(
@@ -89,10 +88,9 @@ def setup_basic_participants(cls):
         anc_num="0003",
         facility="ahero",
         study_group="control",
-        nickname="p3",
+        sms_name="p3",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=6),
-        status="stopped",
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
         condition="art",
     )
