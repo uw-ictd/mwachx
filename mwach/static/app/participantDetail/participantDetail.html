@@ -2,7 +2,7 @@
 <h1>
   <span ng-class="participant.status == 'post' ? 'postpartum' : 'pregnant'">
     <i class="mw" ng-class="participant.status == 'post' ? 'mw-mwach-baby-phone' : 'mw-mwach-phone'" ></i>
-    {{participant.nickname}}
+    {{participant.sms_name}}
   </span>
   <small><strong ng-class="participant.status == 'post' || participant.status == 'pregnant' ? 'text-info' : 'text-danger'">
     {{participant.status_display}}
@@ -49,7 +49,7 @@
 
     <div class="panel panel-info">
       <div class="panel-heading">
-        <h3 class="panel-title">Participant Details: <strong>{{participant.nickname}}</strong>
+        <h3 class="panel-title">Participant Details: <strong>{{participant.sms_name}}</strong>
           <span class="pull-right pointer badge" tooltip="Edit Details" ng-click='openModifyModel()'>
              Edit <i class="mw mw-pencil"></i>
           </span>
@@ -72,15 +72,15 @@
       </div>
 
       <table class="table table-condensed text-center"><tr>
-      <td><a class="btn btn-info" tooltip="Schedule new visit for {{participant.nickname}}" ng-click="scheduleVisit()">
+      <td><a class="btn btn-info" tooltip="Schedule new visit for {{participant.sms_name}}" ng-click="scheduleVisit()">
         <i class="mw mw-2x mw-hospital-o"></i>
       </a></td>
 
-      <td><a class="btn btn-info" tooltip="{{participant.nickname}} visit history" ng-click="showVisitHistory()">
+      <td><a class="btn btn-info" tooltip="{{participant.sms_name}} visit history" ng-click="showVisitHistory()">
         <i class="mw mw-2x mw-clock"></i>&nbsp; Visit History
       </a></td>
 
-      <td ng-hide="participant.delivery_date"><a class="btn btn-info" tooltip="{{participant.nickname}} delivered" ng-click="recordDelivery()">
+      <td ng-hide="participant.delivery_date"><a class="btn btn-info" tooltip="{{participant.sms_name}} delivered" ng-click="recordDelivery()">
         <i class="mw mw-2x mw-baby-noun"></i>
       </a></td>
 
@@ -98,7 +98,7 @@
             <td>{{visit.visit_type_display}}</td>
             <td>{{visit.days_str}}</td>
             <td><button class='btn btn-info btn-sm' ng-click='visitAttended(visit)'
-                tooltip="{{participant.nickname}} came for this visit">Attended</button></td>
+                tooltip="{{participant.sms_name}} came for this visit">Attended</button></td>
             <td><button class='btn btn-danger btn-sm' ng-click='visitDelete(visit)' tooltip='Delete Visit'>Del <i class="mw mw-cancel-circled"></i></button></td>
             <td><button class='btn btn-danger btn-sm' ng-click='visitEdit(visit)' tooltip="Edit visit" >
               Edit <i class="mw mw-pencil"></i>
@@ -116,16 +116,16 @@
     </div>
 
     <div class='panel-body'>
-      <button class='btn btn-info' tooltips='Notes for {{participant.nickname}}' ng-click='viewNotes()'>
+      <button class='btn btn-info' tooltips='Notes for {{participant.sms_name}}' ng-click='viewNotes()'>
         Notes <span class='badge'>{{participant.note_count}}</span>
       </button>
 
       <button ng-show="participant.active" class="btn btn-danger"
-        tooltip="Stop messaging for {{participant.nickname}}" ng-click="stopMessaging()">
+        tooltip="Stop messaging for {{participant.sms_name}}" ng-click="stopMessaging()">
         Stop
       </button>
       <button ng-hide="participant.active" class="btn btn-danger"
-        tooltip="Start messaging for {{participant.nickname}}" ng-click="stopMessaging()">
+        tooltip="Start messaging for {{participant.sms_name}}" ng-click="stopMessaging()">
         Activate
       </button>
     </div>
