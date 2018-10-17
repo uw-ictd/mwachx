@@ -75,6 +75,7 @@ def setup_basic_participants(cls):
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=3),
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
+        status="post",
     )
 
     cls.p2_connection = mwbase.Connection.objects.create(
@@ -91,6 +92,7 @@ def setup_basic_participants(cls):
         sms_name="p3",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=6),
+        status="stopped",
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
         condition="art",
     )

@@ -12,7 +12,7 @@ from django.db import models
 
 import utils
 # Local Imports
-from mwbase.models import PhoneCall, Practitioner, Visit, Connection, BaseParticipant
+from mwbase.models import PhoneCall, Practitioner, Visit, Connection, BaseParticipant, BaseStatusChange
 from transports import router, TransportError
 from utils import enums
 from utils.models import TimeStampedModel, ForUserQuerySet
@@ -132,13 +132,13 @@ class Participant(BaseParticipant):
     def __init__(self, *args, **kwargs):
         """ Override __init__ to save old status"""
         super().__init__(*args, **kwargs)
-        self._old_status = self.status
+        self._old_status = self.preg_status
         self._old_hiv_messaging = self.hiv_messaging
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
         # Check that self.id exists so this is not the first save
-        if not self._old_status == self.status and self.id is not None:
-            self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
+        if not self._old_status == self.preg_status and self.id is not None:
+            self.statuschange_set.create(old=self._old_status, new=self.preg_status, comment='Status Admin Change')
 
         if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
             print(self._old_hiv_messaging, self.hiv_messaging)
@@ -149,7 +149,6 @@ class Participant(BaseParticipant):
         self.sms_name = self.sms_name.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
-        self._old_status = self.status
         self._old_hiv_messaging = self.hiv_messaging
 
     def description(self, **kwargs):
@@ -176,8 +175,8 @@ class Participant(BaseParticipant):
             hiv = "N"
             send_offset = 0
 
-        # Special Case: SAE opt in messaging
-        elif self.status == 'loss':
+        Special Case: SAE opt in messaging
+        elif self.preg_status == 'loss':
             today = utils.today(today)
             loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
             condition = 'nbaby'
@@ -192,34 +191,24 @@ class Participant(BaseParticipant):
 
 
 
-# class StatusChangeQuerySet(ForUserQuerySet):
+class StatusChangeQuerySet(ForUserQuerySet):
 
-#     def get_hiv_changes(self, td_kwargs=None):
+    def get_hiv_changes(self, td_kwargs=None):
 
-#         if td_kwargs is None:
-#             td_kwargs = {'hours': 1}
-#         elif isinstance(td_kwargs, numbers.Number):
-#             td_kwargs = {'hours': td_kwargs}
+        if td_kwargs is None:
+            td_kwargs = {'hours': 1}
+        elif isinstance(td_kwargs, numbers.Number):
+            td_kwargs = {'hours': td_kwargs}
 
-#         td = datetime.timedelta(**td_kwargs)
-#         hiv_status = self.filter(type='hiv').prefetch_related('participant')
+        td = datetime.timedelta(**td_kwargs)
+        hiv_status = self.filter(type='hiv').prefetch_related('participant')
 
-#         return [s for s in hiv_status if s.created - s.participant.created > td]
+        return [s for s in hiv_status if s.created - s.participant.created > td]
 
 
-# class StatusChange(TimeStampedModel):
-#     objects = StatusChangeQuerySet.as_manager()
+class StatusChange(BaseStatusChange):
+    objects = StatusChangeQuerySet.as_manager()
 
-#     class Meta:
-#         app_label = 'mwbase'
+    class Meta:
+        app_label = 'mwhiv'
 
-#     participant = models.ForeignKey(Participant, models.CASCADE)
-
-#     old = models.CharField(max_length=20)
-#     new = models.CharField(max_length=20)
-#     type = models.CharField(max_length=10, default='status')
-
-#     comment = models.TextField(blank=True)
-
-#     def __str__(self):
-#         return "{0.old} {0.new} ({0.type})".format(self)

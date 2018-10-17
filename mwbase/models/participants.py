@@ -183,6 +183,7 @@ class BaseParticipant(TimeStampedModel):
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
+    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
 
     # Required Participant Personal Information
     sms_name = models.CharField(max_length=12,verbose_name="SMS Name")
@@ -205,9 +206,8 @@ class BaseParticipant(TimeStampedModel):
     family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES, verbose_name='Family Planning')
 
     # #  TODO: Fields not in use?
-    # loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
-    # ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
-    # facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
+    loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
+    ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
 
     # State attributes to be edited by the system
     last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received', editable=False)
@@ -324,7 +324,7 @@ class BaseParticipant(TimeStampedModel):
             send_offset = 0
 
         # Special Case: SAE opt in messaging
-        elif self.status == 'loss':
+        elif self.preg_status == 'loss':
             today = utils.today(today)
             loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
             condition = 'nbaby'
@@ -384,8 +384,8 @@ class BaseParticipant(TimeStampedModel):
         self.visit_set.create(scheduled=six_wk_date, visit_type='study')
 
     def set_status(self, new_status, comment='', note=False, user=None):
-        old_status = self.status
-        self.status = new_status
+        old_status = self.preg_status
+        self.preg_status = new_status
         self._old_status = new_status  # Disable auto status change message
         self.save()
 
@@ -499,9 +499,9 @@ class BaseParticipant(TimeStampedModel):
             external_data = {}
 
         # Status check - don't send messages to participants with NO_SMS_STATUS
-        elif self.status in enums.NO_SMS_STATUS and control is False:
-            text = 'STATUS {} NOT SENT: '.format(self.status.upper()) + text
-            msg_id = self.status
+        elif self.preg_status in enums.NO_SMS_STATUS and control is False:
+            text = 'STATUS {} NOT SENT: '.format(self.preg_status.upper()) + text
+            msg_id = self.preg_status
             msg_success = False
             external_data = {}
 
@@ -605,26 +605,10 @@ class Participant(BaseParticipant):
         swappable = swapper.swappable_setting('mwbase', 'Participant')
 
 
-class StatusChangeQuerySet(ForUserQuerySet):
-
-    def get_hiv_changes(self, td_kwargs=None):
-
-        if td_kwargs is None:
-            td_kwargs = {'hours': 1}
-        elif isinstance(td_kwargs, numbers.Number):
-            td_kwargs = {'hours': td_kwargs}
-
-        td = datetime.timedelta(**td_kwargs)
-        hiv_status = self.filter(type='hiv').prefetch_related('participant')
-
-        return [s for s in hiv_status if s.created - s.participant.created > td]
-
-
-class StatusChange(TimeStampedModel):
-    objects = ForUserQuerySet.as_manager()
+class BaseStatusChange(TimeStampedModel):
 
     class Meta:
-        app_label = 'mwbase'
+        abstract = True
 
     participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
 
@@ -636,3 +620,11 @@ class StatusChange(TimeStampedModel):
 
     def __str__(self):
         return "{0.old} {0.new} ({0.type})".format(self)
+
+
+class StatusChange(BaseStatusChange):
+    objects = ForUserQuerySet.as_manager()
+
+    class Meta:
+        app_label = 'mwbase'
+        swappable = swapper.swappable_setting('mwbase', 'StatusChangeBase')

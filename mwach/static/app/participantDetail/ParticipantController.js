@@ -19,7 +19,7 @@
       $scope.messages = $scope.participant.recent_messages;
 
       $scope.detailsList      = [
-      //  {'label': 'SMS Name',               'value': 'sms_name',},
+      //  {'label': 'Nickname',               'value': 'nickname',},
       //  {'label': 'ANC Number',             'value': 'anc_num',},
        {'label': 'Phone number',           'value': 'phone_number',},
       //  {'label': 'Status',                 'value': 'status_display',},

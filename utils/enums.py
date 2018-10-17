@@ -13,6 +13,11 @@ FACILITY_CHOICES = (
     ('riruta', 'Riruta'),
 )
 
+BOOL_CHOICES = (
+	(True, 'Yes'),
+	(False, 'No'),
+)
+
 
 NO_SMS_STATUS = ('stopped', 'other', 'sae', 'quit')
 NOT_ACTIVE_STATUS = NO_SMS_STATUS + ('completed',)

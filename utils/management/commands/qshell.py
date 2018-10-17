@@ -11,6 +11,7 @@ from django.core.management.base import BaseCommand, CommandError
 import mwbase.models as mwbase
 import swapper
 Participant = swapper.load_model("mwbase", "Participant")
+StatusChange = swapper.load_model("mwbase", "StatusChange")
 import transports.africas_talking.api as at
 
 def count_field(qs,field):
@@ -63,7 +64,7 @@ class Command(BaseCommand):
         p_all = Participant.objects_no_link.all()
         m_all = mwbase.Message.objects.all()
         v_all = mwbase.Visit.objects.all()
-        s_all = mwbase.StatusChange.objects.all()
+        s_all = StatusChange.objects.all()
 
         namespace = globals()
         namespace.update(locals())

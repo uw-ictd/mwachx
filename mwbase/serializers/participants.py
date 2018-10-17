@@ -173,7 +173,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
         instance = self.get_object()
 
-        instance.status = request.data['status']
+        instance.preg_status = request.data['status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
@@ -306,7 +306,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             loss_date = utils.angular_datepicker(request.data.get('loss_date'))
             note = False
 
-            status = 'loss' if receive_sms else 'sae'
+            preg_status = 'loss' if receive_sms else 'sae'
             comment = "Changed loss opt-in status: {}".format(receive_sms)
             if instance.loss_date is None:
                 # Set loss date if not set
@@ -319,12 +319,12 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 note = True
 
             print("SAE {} continue {}".format(loss_date, receive_sms))
-            instance.set_status(status, comment=comment, note=note, user=request.user)
+            instance.set_status(preg_status, comment=comment, note=note, user=request.user)
 
-        elif instance.status == 'other':
+        elif instance.preg_status == 'other':
             comment = "{}\nMessaging changed in web interface by {}".format(reason, request.user.practitioner)
-            status = 'pregnant' if instance.delivery_date is None else 'post'
-            instance.set_status(status, comment=comment)
+            preg_status = 'pregnant' if instance.delivery_date is None else 'post'
+            instance.set_status(preg_status, comment=comment)
         else:
             comment = "{}\nStopped in web interface by {}".format(reason, request.user.practitioner)
             instance.set_status('other', comment=comment)

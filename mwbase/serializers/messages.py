@@ -27,7 +27,7 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Participant
-        fields = ('sms_name', 'study_id', 'study_group', 'anc_num', 'phone_number',
+        fields = ('sms_name', 'study_id', 'study_group', 'anc_num', 'phone_number', 'preg_status'
                   'study_base_date', 'last_msg_client', 'href', 'next_visit_date', 'next_visit_type')
 
     def get_study_base_date(self, obj):

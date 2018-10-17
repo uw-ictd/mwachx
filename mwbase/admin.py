@@ -17,8 +17,8 @@ from mwbase.utils import sms_bank
 
 import swapper
 AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
-
 Participant = swapper.load_model("mwbase", "Participant")
+StatusChange = swapper.load_model("mwbase", "StatusChange")
 
 class ConnectionInline(admin.TabularInline):
     model = mwbase.Connection
@@ -51,9 +51,9 @@ revert_status.short_description = 'Revert to last status'
 
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('study_id', 'sms_name', 'description', 'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
+    list_display = ('study_id', 'sms_name', 'preg_status', 'description', 'facility', 'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
     list_display_links = ('study_id', 'sms_name')
-    list_filter = ('study_group', ('created', admin.DateFieldListFilter), 'is_validated', 'language', 'send_day')
+    list_filter = ('facility', 'study_group', ('created', admin.DateFieldListFilter), 'preg_status', 'is_validated', 'language', 'send_day')
 
     ordering = ('study_id',)
 
@@ -102,7 +102,7 @@ class ParticipantAdminMixin(object):
 @admin.register(mwbase.Message)
 class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('text', 'participant_name', 'identity', 'is_system', 'is_outgoing', 'is_reply', 'external_status', 'translation_status', 'created')
-    list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter), ('created', admin.DateFieldListFilter), 'translation_status', 'is_related', 'external_success')
+    list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter), ('created', admin.DateFieldListFilter), 'connection__participant__facility', 'translation_status', 'is_related', 'external_success')
 
     date_hierarchy = 'created'
 
@@ -160,7 +160,7 @@ class PractitionerAdmin(admin.ModelAdmin):
     list_display = ('facility', 'username', 'password_changed')
 
 
-@admin.register(mwbase.StatusChange)
+@admin.register(StatusChange)
 class StatusChangeAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('comment', 'participant_name', 'old', 'new', 'type', 'created')
     search_fields = ('participant__study_id', 'participant__sms_name')

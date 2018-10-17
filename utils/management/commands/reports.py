@@ -14,6 +14,7 @@ from django.utils import timezone
 import mwbase.models as mwbase
 import swapper
 Participant = swapper.load_model("mwbase", "Participant")
+StatusChange = swapper.load_model("mwbase", "StatusChange")
 import utils
 
 
@@ -669,7 +670,7 @@ class Command(BaseCommand):
             ('date','created'),
             ('since_enrollment', lambda obj: obj.created - obj.participant.created ),
         ])
-        status_changes = mwbase.StatusChange.objects.filter(type='hiv')
+        status_changes = StatusChange.objects.filter(type='hiv')
 
         file_path = os.path.join(self.options['dir'],'hiv_status_changes.csv')
 
