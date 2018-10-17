@@ -872,7 +872,7 @@ detail_columns = collections.OrderedDict([
     ('Study ID','study_id'),
     ('Enrolled',lambda c: c.created.date()),
     ('Group','study_group'),
-    ('Status','get_status_display'),
+    ('Status','get_preg_status_display'),
     ('HIV','hiv_messaging') ,
     ('Disclosed','hiv_disclosed') ,
     ('Shared','phone_shared') ,

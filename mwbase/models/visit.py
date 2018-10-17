@@ -23,7 +23,7 @@ class ScheduleQuerySet(ForUserQuerySet):
 
     def is_active(self):
         ''' exclude those participants who's visits we should ignore '''
-        return self.exclude(participant__status__in=('completed', 'quit'))
+        return self.exclude(participant__preg_status__in=('completed', 'quit'))
 
     def visit_range(self, start={'days': 0}, end=None, notification_start={'days': 0}, notification_end=None):
         today = utils.today()

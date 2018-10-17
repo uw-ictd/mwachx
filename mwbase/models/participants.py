@@ -244,11 +244,11 @@ class BaseParticipant(TimeStampedModel):
     @property
     def is_active(self):
         # True if participant is receiving SMS messages
-        return self.status not in enums.NOT_ACTIVE_STATUS
+        return self.preg_status not in enums.NOT_ACTIVE_STATUS
 
     @property
     def no_sms(self):
-        return self.status in enums.NO_SMS_STATUS
+        return self.preg_status in enums.NO_SMS_STATUS
 
     def age(self):
         today = utils.today()
@@ -277,7 +277,7 @@ class BaseParticipant(TimeStampedModel):
         return pending.visit_type.capitalize() if pending is not None else None
 
     def is_pregnant(self):
-        return self.status == 'pregnant' or self.status == 'over'
+        return self.preg_status == 'pregnant' or self.preg_status == 'over'
 
     def was_pregnant(self, today=None):
         """

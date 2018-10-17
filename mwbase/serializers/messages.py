@@ -17,7 +17,7 @@ Participant = swapper.load_model("mwbase", "Participant")
 #############################################
 
 class ParticipantSimpleSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source='get_preg_status_display')
     study_group = serializers.CharField(source='get_study_group_display')
     phone_number = serializers.CharField()
     study_base_date = serializers.SerializerMethodField()
@@ -27,7 +27,7 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = Participant
-        fields = ('sms_name', 'study_id', 'study_group', 'anc_num', 'phone_number', 'preg_status'
+        fields = ('sms_name', 'study_id', 'study_group', 'anc_num', 'phone_number', 'status',
                   'study_base_date', 'last_msg_client', 'href', 'next_visit_date', 'next_visit_type')
 
     def get_study_base_date(self, obj):

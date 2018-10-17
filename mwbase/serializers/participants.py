@@ -29,7 +29,7 @@ Participant = swapper.load_model("mwbase", "Participant")
 #############################################
 
 class ParticipantSerializer(serializers.ModelSerializer):
-    status_display = serializers.CharField(source='get_status_display')
+    status_display = serializers.CharField(source='get_preg_status_display')
 
     send_time_display = serializers.CharField(source='get_send_time_display')
     send_time = serializers.CharField()

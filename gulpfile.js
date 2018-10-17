@@ -26,7 +26,7 @@ gulp.task('less', function () {
 
 // From: https://medium.com/@dickeyxxx/best-practices-for-building-angular-js-apps-266c1a4a6917
 gulp.task('js', function () {
-    return gulp.src(['./mwach/static/app/mwachx.module.js', 'mwach/static/app/**/*.js'])
+    return gulp.src(['./mwach/static/app/mwachx.module.js', 'mwach/static/app/**/*.js', '!mwach/static/app/smsbank_import.js'])
         .pipe(sourcemaps.init())
         .pipe(concat('mwachx.js'))
         // .pipe(uglify())
