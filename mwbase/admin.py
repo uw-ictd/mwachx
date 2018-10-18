@@ -51,13 +51,13 @@ revert_status.short_description = 'Revert to last status'
 
 @admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('study_id', 'sms_name', 'preg_status', 'description', 'facility', 'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
-    list_display_links = ('study_id', 'sms_name')
+    list_display = ('study_id', 'display_name', 'preg_status', 'sms_status', 'description', 'facility', 'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
+    list_display_links = ('study_id', 'display_name')
     list_filter = ('facility', 'study_group', ('created', admin.DateFieldListFilter), 'preg_status', 'is_validated', 'language', 'send_day')
 
     ordering = ('study_id',)
 
-    search_fields = ('study_id', 'sms_name', 'connection__identity', 'anc_num')
+    search_fields = ('study_id', 'display_name', 'connection__identity', 'anc_num')
     readonly_fields = ('last_msg_client', 'last_msg_system', 'created', 'modified')
 
     inlines = (ConnectionInline, NoteInline)
@@ -72,7 +72,7 @@ class ParticipantAdminMixin(object):
         participant = getattr(obj, self.participant_field)
         if participant is not None:
             return html.format_html(
-                "<a href='../participant/{0.pk}'>({0.study_id}) {0.sms_name}</a>".format(participant))
+                "<a href='../participant/{0.pk}'>({0.study_id}) {0.display_name}</a>".format(participant))
 
     participant_name.short_description = 'SMS Name'
     participant_name.admin_order_field = '{}__study_id'.format(participant_field)
@@ -106,7 +106,7 @@ class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
 
     date_hierarchy = 'created'
 
-    search_fields = ('participant__study_id', 'participant__sms_name', 'connection__identity')
+    search_fields = ('participant__study_id', 'participant__display_name', 'connection__identity')
     readonly_fields = ('created', 'modified')
 
     def identity(self, obj):
@@ -122,7 +122,7 @@ class PhoneCallAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     date_hierarchy = 'created'
     list_filter = ('outcome', 'is_outgoing')
     readonly_fields = ('created', 'modified')
-    search_fields = ('participant__study_id', 'participant__sms_name')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.Note)
@@ -134,7 +134,7 @@ class NoteAdmin(admin.ModelAdmin, ParticipantAdminMixin):
 @admin.register(mwbase.Connection)
 class ConnectionAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('identity', 'participant_name', 'facility', 'is_primary')
-    search_fields = ('participant__study_id', 'participant__sms_name', 'identity')
+    search_fields = ('participant__study_id', 'participant__display_name', 'identity')
 
 
 @admin.register(mwbase.Visit)
@@ -143,7 +143,7 @@ class VisitAdmin(admin.ModelAdmin, ParticipantAdminMixin):
                     'notification_last_seen', 'notify_count', 'arrived', 'status')
     date_hierarchy = 'scheduled'
     list_filter = ('status', 'visit_type', 'arrived', 'scheduled')
-    search_fields = ('participant__study_id', 'participant__sms_name')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.ScheduledPhoneCall)
@@ -152,7 +152,7 @@ class ScheduledPhoneCall(admin.ModelAdmin, ParticipantAdminMixin):
                     'notification_last_seen', 'notify_count', 'arrived', 'status')
     date_hierarchy = 'scheduled'
     list_filter = ('status', 'call_type', 'arrived', 'scheduled')
-    search_fields = ('participant__study_id', 'participant__sms_name')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.Practitioner)
@@ -163,7 +163,7 @@ class PractitionerAdmin(admin.ModelAdmin):
 @admin.register(StatusChange)
 class StatusChangeAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('comment', 'participant_name', 'old', 'new', 'type', 'created')
-    search_fields = ('participant__study_id', 'participant__sms_name')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.EventLog)

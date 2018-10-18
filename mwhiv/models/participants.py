@@ -146,9 +146,6 @@ class Participant(BaseParticipant):
             self.statuschange_set.create(old=self._old_hiv_messaging, new=self.hiv_messaging,
                                          comment='HIV messaging changed', type='hiv')
 
-        # Force capitalization of sms_name
-        self.sms_name = self.sms_name.capitalize()
-
         super().save(force_insert, force_update, *args, **kwargs)
         self._old_hiv_messaging = self.hiv_messaging
 

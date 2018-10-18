@@ -106,17 +106,21 @@ class ParticipantManager(models.Manager):
                        )
 
 class BaseParticipant(TimeStampedModel):
-    STATUS_CHOICES = (
+    PREG_STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
         ('post', 'Post-Partum'),
         ('ccc', 'CCC'),
-        ('completed', 'Completed'),
-        ('stopped', 'Withdrew'),
         ('loss', 'SAE opt-in'),
         ('sae', 'SAE opt-out'),
-        ('other', 'Admin Stop'),
+    )
+
+    SMS_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('stopped', 'Withdrew'),
         ('quit', 'Left Study'),
+        ('other', 'Admin Stop'),
     )
 
     LANGUAGE_CHOICES = (
@@ -179,7 +183,7 @@ class BaseParticipant(TimeStampedModel):
 
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
-    sms_status = models.CharField(max_length=10,verbose_name='SMS Messaging Status')
+    sms_status = models.CharField(max_length=10, choices=SMS_STATUS_CHOICES, default='active', verbose_name='SMS Messaging Status')
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
@@ -197,7 +201,7 @@ class BaseParticipant(TimeStampedModel):
     quick_notes = models.TextField(blank=True)
 
     # Medical Information
-    preg_status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pregnant')
+    preg_status = models.CharField(max_length=15, choices=PREG_STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
     anc_num = models.CharField(max_length=15, verbose_name='ANC #')
     due_date = models.DateField(verbose_name='Estimated Delivery Date')
@@ -216,16 +220,16 @@ class BaseParticipant(TimeStampedModel):
         abstract = True
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Force capitalization of sms_name
-        self.sms_name = self.sms_name.capitalize()
+        # Force capitalization of display_name
+        self.display_name = self.display_name.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
 
     def __str__(self):
-        return self.sms_name.title()
+        return self.display_name.title()
 
     def __repr__(self):
-        return "(#%03s) %s (%s)" % (self.study_id, self.sms_name.title(), self.facility.title())
+        return "(#%03s) %s (%s)" % (self.study_id, self.display_name.title(), self.facility.title())
 
     def connection(self):
         # Use connection_set.all() instead of .filter to take advantage of prefetch_related
@@ -340,13 +344,13 @@ class BaseParticipant(TimeStampedModel):
     def get_validation_key(self):
         # todo: what is this used by/for?
         sha = sha256(
-            ('%s%s%s%s' % (self.study_id, self.sms_name, self.anc_num, self.birthdate)).encode('utf-8')
+            ('%s%s%s%s' % (self.study_id, self.display_name, self.anc_num, self.birthdate)).encode('utf-8')
         ).hexdigest()[:5]
         key = ''.join([str(int(i, 16)) for i in sha])
         return key[:5]
 
     def choice_label(self):
-        return '{} {}'.format(self.study_id, self.sms_name)
+        return '{} {}'.format(self.study_id, self.display_name)
 
     def add_call(self, outcome='answered', comment=None, length=None, is_outgoing=True,
                  created=None, admin_user=None, scheduled=None):
@@ -611,7 +615,7 @@ class BaseStatusChange(TimeStampedModel):
 
     old = models.CharField(max_length=20)
     new = models.CharField(max_length=20)
-    type = models.CharField(max_length=10, default='status')
+    type = models.CharField(max_length=10, default='preg_status')
 
     comment = models.TextField(blank=True)
 

@@ -94,7 +94,7 @@ class Command(BaseCommand):
             'study_id': f'{n:05d}',
             'anc_num': f'00-{n:05d}',
             # 'ccc_num': f'00-{n:05d}', # only if mwachX(HIV)
-            'sms_name': f'P-{n:05d}',
+            'sms_name': f'SMS-{n:05d}',
             'display_name': f'P-{n:05d}',
             'birthdate': random_date(self.BDAY_START,self.BDAY_END),
             'study_group':random.choice(enums.GROUP_CHOICES)[0],

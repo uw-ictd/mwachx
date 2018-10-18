@@ -20,6 +20,7 @@
 
       $scope.detailsList      = [
       //  {'label': 'SMS Name',               'value': 'sms_name',},
+      //  {'label': 'Display Name',               'value': 'display_name',},
       //  {'label': 'ANC Number',             'value': 'anc_num',},
        {'label': 'Phone number',           'value': 'phone_number',},
       //  {'label': 'Status',                 'value': 'status_display',},
@@ -111,7 +112,8 @@
 
         modalInstance.result.then(function(result){
           var patch = {
-            status:result.preg_status,
+            preg_status:result.preg_status,
+            sms_status:result.sms_status,
             send_day:result.send_day,
             send_time:result.send_time,
             art_initiation:mwachxUtils.convert_form_date(result.art_initiation),

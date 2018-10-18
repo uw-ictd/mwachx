@@ -63,9 +63,10 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Client Information',
                 Div(
-                    Div('sms_name', css_class="col-md-4"),
-                    Div('phone_number', css_class="col-md-4"),
-                    Div('birthdate', css_class="col-md-4"),
+                    Div('display_name', css_class="col-md-3"),
+                    Div('sms_name', css_class="col-md-3"),
+                    Div('phone_number', css_class="col-md-3"),
+                    Div('birthdate', css_class="col-md-3"),
                     css_class="row"
                 ),
                 Div(
@@ -123,6 +124,7 @@ class ParticipantAdd(forms.ModelForm):
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
+            'display_name': forms.TextInput(attrs={'required': True}),
             'sms_name': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
@@ -132,7 +134,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'preg_status']
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -143,6 +145,8 @@ class ParticipantUpdate(forms.ModelForm):
         self.helper.field_class = 'col-lg-7'
 
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
+        self.fields['preg_status'].label = 'Pregnancy Status'
+        self.fields['sms_status'].label = 'SMS Status'
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default
         for field in self:

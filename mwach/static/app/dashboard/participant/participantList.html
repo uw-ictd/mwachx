@@ -43,8 +43,8 @@
       <th><a href ng-click="setSort('anc_num')">ANC number</a>
         <span ng-if="query.sortName=='anc_num'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
-      <th><a href ng-click="setSort('sms_name')">Name</a>
-        <span ng-if="query.sortName=='sms_name'"><i class='mw' ng-class='getSortClass()'></i></span>
+      <th><a href ng-click="setSort('display_name')">Name</a>
+        <span ng-if="query.sortName=='display_name'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
       <th><a href ng-click="setSort('study_group')">Study Group</a>
         <span ng-if="query.sortName=='study_group'"><i class='mw' ng-class='getSortClass()'></i></span>
@@ -69,7 +69,7 @@
     >
       <td>{{participant.study_id}}</td>
       <td>{{participant.anc_num}}</td>
-      <td>{{participant.sms_name}}</td>
+      <td>{{participant.display_name}}</td>
       <td>{{participant.study_group}}</td>
       <td>{{participant.status}}</td>
       <td>{{participant.study_base_date}}</td>

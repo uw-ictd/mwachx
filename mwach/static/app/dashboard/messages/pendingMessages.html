@@ -14,13 +14,13 @@
       <td>
         <a ui-sref="participant-details({study_id:message.participant.study_id})"
            ng-class="{'btn-primary':message.participant.status == 'post','btn-info':message.participant.status != 'post','btn': true}"
-           tooltip="View details for {{message.participant.sms_name}}"
+           tooltip="View details for {{message.participant.display_name}}"
         >
           <i ng-class="{'mw-mwach-baby-phone':message.participant.status == 'post','mw-mwach-phone':message.participant.status != 'post','mw mw-2x':true}"></i>
         </a>
       </td>
       <td>{{message.created | date : 'EEE'}}</td>
-      <td><strong>{{message.participant.sms_name}}</strong> <!-- TODO: Add weeks -->
+      <td><strong>{{message.participant.display_name}}</strong> <!-- TODO: Add weeks -->
       <td>{{message.text}}
     </tr>
   </tbody>

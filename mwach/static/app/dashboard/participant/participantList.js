@@ -28,7 +28,7 @@
       var compare_participant = function(participant,cmp) {
         if(cmp == 'text') {
           var needle = $scope.query.text.toLowerCase();
-          return ['study_id','sms_name','anc_num','phone_number','status'].some(
+          return ['study_id','display_name','anc_num','phone_number','status'].some(
             function(value){
               return participant[value].toLowerCase().indexOf(needle) >= 0;
           }
