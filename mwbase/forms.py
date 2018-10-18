@@ -35,7 +35,6 @@ class ParticipantAdd(forms.ModelForm):
         self.fields['birthdate'].widget = util.AngularPopupDatePicker(
             {'required': True, 'datepicker-position-right': True}, max=-5110  # 14 years or older
         )
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['clinic_visit'].widget = util.AngularPopupDatePicker({'required': True}, min=7)
 
         self.helper = FormHelper()
@@ -55,7 +54,6 @@ class ParticipantAdd(forms.ModelForm):
                     css_class="row"
                 ),
                 Div(
-                    Div('ccc_num', css_class="col-md-4"),
                     Div('send_day', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
                     Div('send_time', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
                     css_class="row",
@@ -94,7 +92,6 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Important Dates',
                 Div(
-                    Div('art_initiation', css_class="col-md-4"),
                     Div('due_date', css_class="col-md-4"),
                     Div('clinic_visit', css_class="col-md-4"),
                     css_class="row"
@@ -115,13 +112,12 @@ class ParticipantAdd(forms.ModelForm):
 
     class Meta:
         model = Participant
-        exclude = ['status', 'facility']
+        exclude = ['preg_status', 'facility', 'sms_status']
 
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
             'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
-            'ccc_num': forms.TextInput(attrs={'required': True}),
             'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
             'study_group': forms.Select(attrs={'required': True}),
             'send_day': forms.Select(attrs={'required': True}),
@@ -135,7 +131,6 @@ class ParticipantAdd(forms.ModelForm):
 
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
-        # todo: can this be changed to a swappable version?
         model = Participant
         fields = ['send_day', 'send_time', 'due_date']
 

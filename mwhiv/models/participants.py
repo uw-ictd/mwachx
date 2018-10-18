@@ -119,6 +119,7 @@ class Participant(BaseParticipant):
     objects_no_link = ParticipantQuerySet.as_manager()
 
     # Optional Medical Informaton
+    ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
     art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation', verbose_name='ART Initiation')
     hiv_disclosed = models.NullBooleanField(blank=True, verbose_name='HIV Disclosed')
     hiv_messaging = models.CharField(max_length=15, choices=MESSAGING_CHOICES, default='none', verbose_name='HIV Messaging')

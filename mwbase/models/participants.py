@@ -185,7 +185,7 @@ class BaseParticipant(TimeStampedModel):
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
     facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
 
-    # Required Participant Personal Information
+    # Participant Personal Information
     sms_name = models.CharField(max_length=12,verbose_name="SMS Name")
     display_name = models.CharField(max_length=30,blank=True)
     birthdate = models.DateField(verbose_name='DOB')
@@ -194,20 +194,17 @@ class BaseParticipant(TimeStampedModel):
     previous_pregnancies = models.IntegerField(blank=True, null=True, help_text='* excluding current')
     phone_shared = models.NullBooleanField(verbose_name='Phone Shared')
     language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default='english')
-    quick_notes = models.TextField()
+    quick_notes = models.TextField(blank=True)
 
-    # Required Medical Information
+    # Medical Information
     preg_status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
     anc_num = models.CharField(max_length=15, verbose_name='ANC #')
     due_date = models.DateField(verbose_name='Estimated Delivery Date')
     delivery_date = models.DateField(verbose_name='Delivery Date', blank=True, null=True)
     delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source", choices=DELIVERY_SOURCE_CHOICES, blank=True)
-    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES, verbose_name='Family Planning')
-
-    # #  TODO: Fields not in use?
     loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
-    ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
+    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES, verbose_name='Family Planning')
 
     # State attributes to be edited by the system
     last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received', editable=False)

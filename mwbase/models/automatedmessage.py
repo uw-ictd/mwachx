@@ -46,19 +46,6 @@ class AutomatedMessageQuerySetBase(utils.BaseQuerySet):
         # Create the base query set with send_base and offset
         message_offset = self.filter(send_base=send_base, send_offset=send_offset)
 
-        if hiv:
-            # Try to find a non HIV message for this conditon
-            try:
-                return message_offset.get(condition=condition, group=group)
-            except ObjectDoesNotExist as e:
-                pass
-
-            # Force condition to normal and try again with group and hiv=True
-            try:
-                return message_offset.get(condition="normal", group=group)
-            except ObjectDoesNotExist as e:
-                pass
-
         if condition != "normal":
             # Force condition to normal and try again
             try:

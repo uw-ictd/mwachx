@@ -93,7 +93,7 @@ class Command(BaseCommand):
         new_client = {
             'study_id': f'{n:05d}',
             'anc_num': f'00-{n:05d}',
-            'ccc_num': f'00-{n:05d}',
+            # 'ccc_num': f'00-{n:05d}', # only if mwachX(HIV)
             'sms_name': f'P-{n:05d}',
             'display_name': f'P-{n:05d}',
             'birthdate': random_date(self.BDAY_START,self.BDAY_END),
