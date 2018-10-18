@@ -385,14 +385,25 @@ class BaseParticipant(TimeStampedModel):
         self.visit_set.create(scheduled=six_wk_date, visit_type='study')
 
     def set_status(self, new_status, comment='', note=False, user=None):
-        old_status = self.preg_status
-        self.preg_status = new_status
-        self._old_status = new_status  # Disable auto status change message
-        self.save()
-
-        self.statuschange_set.create(
-            old=old_status, new=new_status, comment=comment
-        )
+        ### get swapped StatusChange model
+        StatusChange = swapper.load_model("mwbase", "StatusChange")
+        ### validate new status against sms and preg choices and change
+        if any(new_status in choice for choice in self.PREG_STATUS_CHOICES):
+            old_status = self.preg_status
+            self.preg_status = new_status
+            self._old_status = new_status  # Disable auto status change message
+            self.save()
+            StatusChange(
+                participant=self, old=old_status, new=new_status, comment=comment
+            )
+        elif any(new_status in choice for choice in self.SMS_STATUS_CHOICES):
+            old_status = self.sms_status
+            self.sms_status = new_status
+            self._old_status = new_status  # Disable auto status change message
+            self.save()
+            StatusChange(
+                participant=self, old=old_status, new=new_status, comment=comment, type='sms_status'
+            )
 
         if note is True:
             self.note_set.create(comment=comment, admin=user)
