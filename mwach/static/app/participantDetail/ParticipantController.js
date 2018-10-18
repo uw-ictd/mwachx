@@ -111,7 +111,7 @@
 
         modalInstance.result.then(function(result){
           var patch = {
-            status:result.status,
+            status:result.preg_status,
             send_day:result.send_day,
             send_time:result.send_time,
             art_initiation:mwachxUtils.convert_form_date(result.art_initiation),

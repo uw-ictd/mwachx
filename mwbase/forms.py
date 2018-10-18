@@ -132,7 +132,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date']
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)

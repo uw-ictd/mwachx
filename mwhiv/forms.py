@@ -118,7 +118,7 @@ class ParticipantAdd(forms.ModelForm):
 
     class Meta:
         model = Participant
-        exclude = ['status', 'facility']
+        exclude = ['preg_status', 'facility', 'sms_status']
 
         widgets = {
             # validation
@@ -141,7 +141,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -153,6 +153,7 @@ class ParticipantUpdate(forms.ModelForm):
 
         self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
+        self.fields['preg_status'].label = 'Pregnancy Status'
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default
         for field in self:

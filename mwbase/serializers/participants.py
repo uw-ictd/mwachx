@@ -172,8 +172,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         ''' PATCH - partial update a participant '''
         print(request.data)
         instance = self.get_object()
-        ### TODO:  Find correct format to implement status if it is to be changed here.
-        # instance.preg_status = request.data['preg_status']
+        instance.preg_status = request.data['status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
         instance.due_date = utils.angular_datepicker(request.data['due_date'])

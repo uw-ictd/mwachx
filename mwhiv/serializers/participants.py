@@ -70,15 +70,20 @@ class ParticipantViewSet(participants.ParticipantViewSet):
 
     def partial_update(self, request, study_id=None, *args, **kwargs):
         ''' PATCH - partial update a participant '''
+        ### convert returned value to nullabel boolean
+        hiv_disclosed = None
+        if request.data['hiv_disclosed'] == '2':
+            hiv_disclosed = True
+        elif request.data['hiv_disclosed'] == '3':
+            hiv_disclosed = False
 
         instance = self.get_object()
-        ### TODO:  Find correct format to implement status if it is to be changed here.
-        # instance.preg_status = request.data['preg_status']
+        instance.preg_status = request.data['status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
         instance.art_initiation = utils.angular_datepicker(request.data['art_initiation'])
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
-        instance.hiv_disclosed = request.data['hiv_disclosed']
+        instance.hiv_disclosed = hiv_disclosed
         instance.hiv_messaging = request.data['hiv_messaging']
 
         instance.save()
