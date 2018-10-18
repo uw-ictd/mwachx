@@ -176,7 +176,7 @@ class Participant(BaseParticipant):
             hiv = "N"
             send_offset = 0
 
-        Special Case: SAE opt in messaging
+        # ## Special Case: SAE opt in messaging
         elif self.preg_status == 'loss':
             today = utils.today(today)
             loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
