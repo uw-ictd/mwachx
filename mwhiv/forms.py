@@ -143,7 +143,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'art_initiation', 'hiv_messaging', 'hiv_disclosed', 'quick_notes']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)

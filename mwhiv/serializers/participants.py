@@ -78,13 +78,15 @@ class ParticipantViewSet(participants.ParticipantViewSet):
             hiv_disclosed = False
 
         instance = self.get_object()
-        instance.preg_status = request.data['status']
+        instance.preg_status = request.data['preg_status']
+        instance.sms_status = request.data['sms_status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
         instance.art_initiation = utils.angular_datepicker(request.data['art_initiation'])
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
         instance.hiv_disclosed = hiv_disclosed
         instance.hiv_messaging = request.data['hiv_messaging']
+        instance.quick_notes = request.data['quick_notes']
 
         instance.save()
         instance_serialized = ParticipantSerializer(mwhiv.Participant.objects.get(pk=instance.pk),

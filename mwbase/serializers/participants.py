@@ -176,6 +176,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
+        instance.quick_notes = request.data['quick_notes']
 
         instance.save()
         instance_serialized = ParticipantSerializer(mwbase.Participant.objects.get(pk=instance.pk),
@@ -320,10 +321,9 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             print("SAE {} continue {}".format(loss_date, receive_sms))
             instance.set_status(preg_status, comment=comment, note=note, user=request.user)
 
-        elif instance.preg_status == 'other':
+        elif instance.sms_status == 'other':
             comment = "{}\nMessaging changed in web interface by {}".format(reason, request.user.practitioner)
-            preg_status = 'pregnant' if instance.delivery_date is None else 'post'
-            instance.set_status(preg_status, comment=comment)
+            instance.set_status('active', comment=comment)
         else:
             comment = "{}\nStopped in web interface by {}".format(reason, request.user.practitioner)
             instance.set_status('other', comment=comment)

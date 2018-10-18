@@ -245,11 +245,11 @@ class BaseParticipant(TimeStampedModel):
     @property
     def is_active(self):
         # True if participant is receiving SMS messages
-        return self.preg_status not in enums.NOT_ACTIVE_STATUS
+        return self.preg_status not in enums.NOT_ACTIVE_STATUS and self.sms_status not in enums.NOT_ACTIVE_STATUS
 
     @property
     def no_sms(self):
-        return self.preg_status in enums.NO_SMS_STATUS
+        return self.preg_status in enums.NO_SMS_STATUS or self.sms_status in enums.NO_SMS_STATUS
 
     def age(self):
         today = utils.today()
@@ -393,17 +393,19 @@ class BaseParticipant(TimeStampedModel):
             self.preg_status = new_status
             self._old_status = new_status  # Disable auto status change message
             self.save()
-            StatusChange(
+            status = StatusChange(
                 participant=self, old=old_status, new=new_status, comment=comment
             )
+            status.save()
         elif any(new_status in choice for choice in self.SMS_STATUS_CHOICES):
             old_status = self.sms_status
             self.sms_status = new_status
             self._old_status = new_status  # Disable auto status change message
             self.save()
-            StatusChange(
+            status = StatusChange(
                 participant=self, old=old_status, new=new_status, comment=comment, type='sms_status'
             )
+            status.save()
 
         if note is True:
             self.note_set.create(comment=comment, admin=user)

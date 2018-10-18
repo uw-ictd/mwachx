@@ -409,7 +409,7 @@ class Command(BaseCommand):
         ) )
 
     def status_breakdown(self):
-
+        ## TODO: Update for separate preg_status and sms_status
         self.print_header('Participant Status (control,one-way,two-way)')
 
         status_groups = Participant.objects.order_by().values('facility', 'status', 'study_group')\
@@ -872,7 +872,7 @@ detail_columns = collections.OrderedDict([
     ('Study ID','study_id'),
     ('Enrolled',lambda c: c.created.date()),
     ('Group','study_group'),
-    ('Status','get_preg_status_display'),
+    ('Pregnancy Status','get_preg_status_display'), ## TODO: Update for separate preg_status and sms_status?
     ('HIV','hiv_messaging') ,
     ('Disclosed','hiv_disclosed') ,
     ('Shared','phone_shared') ,
@@ -1252,6 +1252,7 @@ class LanguageMessageRow(CountRowBase):
     columns = ['english','swahili','luo']
     child_class = LanguageMessageRowItem
 
+## TODO: Update for separate preg_status and sms_status
 class StatusRow(CountRowBase):
     columns = ['pregnant','post','loss','sae','other','stopped']
     child_class = GroupRowCount

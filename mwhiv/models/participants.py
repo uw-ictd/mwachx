@@ -137,15 +137,18 @@ class Participant(BaseParticipant):
         self._old_hiv_messaging = self.hiv_messaging
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
+        ### get swapped StatusChange model
         StatusChange = swapper.load_model("mwbase", "StatusChange")
         # Check that self.id exists so this is not the first save
         if not self._old_status == self.preg_status and self.id is not None:
-            StatusChange(participant=self, old=self._old_status, new=self.preg_status, comment='Status Admin Change')
+            status = StatusChange(participant=self, old=self._old_status, new=self.preg_status, comment='Status Admin Change')
+            status.save()
 
         if not self._old_hiv_messaging == self.hiv_messaging and self.id is not None:
             print(self._old_hiv_messaging, self.hiv_messaging)
-            StatusChange(participant=self, old=self._old_hiv_messaging, new=self.hiv_messaging,
+            status = StatusChange(participant=self, old=self._old_hiv_messaging, new=self.hiv_messaging,
                                          comment='HIV messaging changed', type='hiv')
+            status.save()
 
         super().save(force_insert, force_update, *args, **kwargs)
         self._old_hiv_messaging = self.hiv_messaging

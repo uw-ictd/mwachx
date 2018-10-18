@@ -120,6 +120,7 @@
             due_date:mwachxUtils.convert_form_date(result.due_date),
             hiv_disclosed:result.hiv_disclosed,
             hiv_messaging:result.hiv_messaging,
+            quick_notes:result.quick_notes,
           }
           console.log('Update',result,patch);
           $scope.participant.patch(patch).then(function(result){
@@ -291,8 +292,8 @@
     angular.extend($modalScope,{
       participant:$scope.participant,
       form:{
-        receive_sms:$scope.participant.status == 'loss',
-        sae:$scope.participant.status == 'loss' || $scope.participant.status == 'sae',
+        receive_sms:$scope.participant.preg_status == 'loss',
+        sae:$scope.participant.preg_status == 'loss' || $scope.participant.preg_status == 'sae',
         loss_date:$scope.participant.loss_date,
       },
       today:new Date(),
@@ -304,7 +305,7 @@
       console.log('Stop',response_form);
       $scope.participant.doPUT(response_form,'stop_messaging/').then(function(result) {
         if ( !result.hasOwnProperty('error') ) {
-          ['status','status_display'].forEach(function(ele) {
+          ['sms_status', 'preg_status','status_display'].forEach(function(ele) {
             $scope.participant[ele] = result[ele];
           });
         }
