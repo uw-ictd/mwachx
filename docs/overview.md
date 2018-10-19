@@ -83,7 +83,7 @@ This is the main entry point to the front-end code and is where Restangular is c
 
 ## mwachxAPI
 
-The `mwachxAPI` class provides an interface to data in the system (see `/mwach/static/app/shared/mwDataService.js`).
+The `mwachxAPI` class provides an interface to data in the system (see `/mwbase/static/app/shared/mwDataService.js`).
 These correspond to Django REST Framework endpoints.
 
 Each endpoint is prepended with a URL (`/api/v0.1/`) that is configured in `mawchx.module.js`.

@@ -30,7 +30,7 @@ Behind the scenes this will also call `bower install`.  You should find that you
 folders in your project.
 
 * `node_modules` - contains the npm packages for the tools we need
-* `mwach/static/app/bower_components` - contains the libraries (e.g., Angular) that we are relying on
+* `mwbase/static/app/bower_components` - contains the libraries (e.g., Angular) that we are relying on
 
 > **Note:** the `bower_components` folder would normally be installed in the root folder but
 we change this location through the `.bowerrc` file.  Putting it in the `static/app` folder makes
