@@ -4,12 +4,12 @@
 {% load static %}
 {% block extrastyle %}
   {{ block.super }}
-  <link rel="stylesheet" type="text/css" href="{% static "app/custom_changelist.css" %}">
+  <link rel="stylesheet" type="text/css" href="{% static "admin/css/custom_changelist.css" %}">
 {% endblock %}
 
 {% block extrahead %}
 	{{ block.super }}
-  	<script type="text/javascript" src="{% static 'app/smsbank_import.js' %}"></script>
+  	<script type="text/javascript" src="{% static 'admin/js/smsbank_import.js' %}"></script>
 {% endblock  %}
 
 {% block object-tools %}
