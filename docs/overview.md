@@ -46,6 +46,13 @@ The `Note` model is a very simple freetext note linked to a person.
 
 The `EventLog` model logs web-based events (which are not used for anything currently)
 
+## Custom Participant Model
+Using the swappable module (https://github.com/wq/django-swappable-models) custom participant models can be implemented off of mwbase.  
+Create a new module with a models.py that includes your custom participant model.  The custom model should implement mwbase.models.BaseParticipant.  
+Add the module to settings.INSTALLED_APPS and include MWBASE_PARTICIPANT_MODEL = "<module.model>" in local_settings_2.py IE: MWBASE_PARTICIPANT_MODEL = "mwcustom.Participant".  
+Run sync_db to ensure tables are created and the custom model will be used in place of mwbase.Participant.  
+Refer to swapper documentation if this is a change to an ongoing project to implement any db migrations that may be needed.
+
 ### Possible (Unvetted) Todos
 
 * Split out `Participant` into a generic base class and add project-specific implementations that live outside the core models.
@@ -76,7 +83,7 @@ This is the main entry point to the front-end code and is where Restangular is c
 
 ## mwachxAPI
 
-The `mwachxAPI` class provides an interface to data in the system (see `/mwach/static/app/shared/mwDataService.js`).
+The `mwachxAPI` class provides an interface to data in the system (see `/mwbase/static/app/shared/mwDataService.js`).
 These correspond to Django REST Framework endpoints.
 
 Each endpoint is prepended with a URL (`/api/v0.1/`) that is configured in `mawchx.module.js`.

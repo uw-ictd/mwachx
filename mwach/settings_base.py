@@ -25,7 +25,8 @@ PROJECT_PATH = os.path.join(PROJECT_ROOT, 'mwach')
 SECRET_KEY = 'a638cezc!olqzorlxr_@kq#z5+3(v8c&31by99i$nh+o3x=jkt'
 
 # SECURITY WARNING: don't run with debug turned on in production!
-DEBUG = True
+DEBUG = False
+ALLOWED_HOSTS = []
 
 # Application definition
 
@@ -131,10 +132,6 @@ STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
     'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
-)
-
-STATICFILES_DIRS = (
-    os.path.join(PROJECT_PATH, 'static'),
 )
 
 # CONSTANCE SETUP

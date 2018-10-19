@@ -73,6 +73,7 @@ class NoteSerializer(serializers.ModelSerializer):
 
     class Meta:
         model = mwbase.Note
+        fields = '__all__'
 
 
 ########################################

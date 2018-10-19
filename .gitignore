@@ -15,15 +15,17 @@ bower_components/
 !bower.json
 
 # Ignore compiled code
-mwach/static/css/
-mwach/static/mwachx.js
-mwach/static/components.js
+mwbase/static/css/
+mwbase/static/mwachx.js
+mwbase/static/components.js
 *.map
 
 ignore/
 translations/
 mwach/local_settings.py
 **/commands/tests.py
-.vagrant/
+
+#vagrant files
 Vagrantfile
-deployment/
+/deployment
+.vagrant/

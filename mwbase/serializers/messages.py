@@ -8,13 +8,16 @@ from rest_framework.response import Response
 # Local Imports
 import mwbase.models as mwbase
 
+#Swappable Imports
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 #############################################
 #  Serializers Definitions
 #############################################
 
 class ParticipantSimpleSerializer(serializers.ModelSerializer):
-    status = serializers.CharField(source='get_status_display')
+    status = serializers.CharField(source='get_preg_status_display')
     study_group = serializers.CharField(source='get_study_group_display')
     phone_number = serializers.CharField()
     study_base_date = serializers.SerializerMethodField()
@@ -23,9 +26,8 @@ class ParticipantSimpleSerializer(serializers.ModelSerializer):
     next_visit_type = serializers.SerializerMethodField()
 
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
-        fields = ('nickname', 'study_id', 'study_group', 'anc_num', 'phone_number', 'status',
+        model = Participant
+        fields = ('display_name', 'study_id', 'study_group', 'anc_num', 'phone_number', 'status',
                   'study_base_date', 'last_msg_client', 'href', 'next_visit_date', 'next_visit_type')
 
     def get_study_base_date(self, obj):

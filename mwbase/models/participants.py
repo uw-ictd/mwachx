@@ -105,19 +105,22 @@ class ParticipantManager(models.Manager):
                            )
                        )
 
-
-class Participant(TimeStampedModel):
-    STATUS_CHOICES = (
+class BaseParticipant(TimeStampedModel):
+    PREG_STATUS_CHOICES = (
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
         ('post', 'Post-Partum'),
         ('ccc', 'CCC'),
-        ('completed', 'Completed'),
-        ('stopped', 'Withdrew'),
         ('loss', 'SAE opt-in'),
         ('sae', 'SAE opt-out'),
-        ('other', 'Admin Stop'),
+    )
+
+    SMS_STATUS_CHOICES = (
+        ('active', 'Active'),
+        ('completed', 'Completed'),
+        ('stopped', 'Withdrew'),
         ('quit', 'Left Study'),
+        ('other', 'Admin Stop'),
     )
 
     LANGUAGE_CHOICES = (
@@ -180,74 +183,53 @@ class Participant(TimeStampedModel):
 
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='Study ID', help_text="* Use Barcode Scanner")
-    anc_num = models.CharField(max_length=15, verbose_name='ANC #')
-    ccc_num = models.CharField(max_length=15, verbose_name='CCC #', blank=True, null=True)
-    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
-
+    sms_status = models.CharField(max_length=10, choices=SMS_STATUS_CHOICES, default='active', verbose_name='SMS Messaging Status')
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group')
     send_day = models.IntegerField(choices=DAY_CHOICES, default=0, verbose_name='Send Day')
     send_time = models.IntegerField(choices=TIME_CHOICES, default=8, verbose_name='Send Time')
+    facility = models.CharField(max_length=15, choices=enums.FACILITY_CHOICES)
 
-    # Required Participant Personal Information
-    nickname = models.CharField(max_length=20)
+    # Participant Personal Information
+    sms_name = models.CharField(max_length=12,verbose_name="SMS Name")
+    display_name = models.CharField(max_length=30,blank=True)
     birthdate = models.DateField(verbose_name='DOB')
-
-    # Optional Participant Personal Informaiton
     partner_name = models.CharField(max_length=40, blank=True, verbose_name='Partner Name')
-    relationship_status = models.CharField(max_length=15, choices=RELATIONSHIP_CHOICES,
-                                           verbose_name='Relationship Status', blank=True)
+    relationship_status = models.CharField(max_length=15, choices=RELATIONSHIP_CHOICES, verbose_name='Relationship Status', blank=True)
     previous_pregnancies = models.IntegerField(blank=True, null=True, help_text='* excluding current')
     phone_shared = models.NullBooleanField(verbose_name='Phone Shared')
-
-    # Required Medical Information
-    status = models.CharField(max_length=15, choices=STATUS_CHOICES, default='pregnant')
     language = models.CharField(max_length=10, choices=LANGUAGE_CHOICES, default='english')
+    quick_notes = models.TextField(blank=True)
+
+    # Medical Information
+    preg_status = models.CharField(max_length=15, choices=PREG_STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
+    anc_num = models.CharField(max_length=15, verbose_name='ANC #')
     due_date = models.DateField(verbose_name='Estimated Delivery Date')
-
     delivery_date = models.DateField(verbose_name='Delivery Date', blank=True, null=True)
-    delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source",
-                                       choices=DELIVERY_SOURCE_CHOICES, blank=True)
-
-    # Optional Medical Informaton
-    art_initiation = models.DateField(blank=True, null=True, help_text='Date of ART Initiation',
-                                      verbose_name='ART Initiation')
-    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES,
-                                       verbose_name='Family Planning')
+    delivery_source = models.CharField(max_length=10, verbose_name="Delivery Notification Source", choices=DELIVERY_SOURCE_CHOICES, blank=True)
     loss_date = models.DateField(blank=True, null=True, help_text='SAE date if applicable')
+    family_planning = models.CharField(max_length=10, blank=True, choices=FAMILY_PLANNING_CHOICES, verbose_name='Family Planning')
 
     # State attributes to be edited by the system
-    last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received',
-                                       editable=False)
-    last_msg_system = models.DateField(blank=True, null=True, help_text='Date of last system message sent',
-                                       editable=False)
+    last_msg_client = models.DateField(blank=True, null=True, help_text='Date of last client message received', editable=False)
+    last_msg_system = models.DateField(blank=True, null=True, help_text='Date of last system message sent', editable=False)
     is_validated = models.BooleanField(default=False, blank=True)
     validation_key = models.CharField(max_length=5, blank=True)
 
     class Meta:
-        app_label = 'mwbase'
-
-    def __init__(self, *args, **kwargs):
-        """ Override __init__ to save old status"""
-        super().__init__(*args, **kwargs)
-        self._old_status = self.status
+        abstract = True
 
     def save(self, force_insert=False, force_update=False, *args, **kwargs):
-        # Check that self.id exists so this is not the first save
-        if not self._old_status == self.status and self.id is not None:
-            self.statuschange_set.create(old=self._old_status, new=self.status, comment='Status Admin Change')
-
-        # Force capitalization of nickname
-        self.nickname = self.nickname.capitalize()
+        # Force capitalization of display_name
+        self.display_name = self.display_name.capitalize()
 
         super().save(force_insert, force_update, *args, **kwargs)
-        self._old_status = self.status
 
     def __str__(self):
-        return self.nickname.title()
+        return self.display_name.title()
 
     def __repr__(self):
-        return "(#%03s) %s (%s)" % (self.study_id, self.nickname.title(), self.facility.title())
+        return "(#%03s) %s (%s)" % (self.study_id, self.display_name.title(), self.facility.title())
 
     def connection(self):
         # Use connection_set.all() instead of .filter to take advantage of prefetch_related
@@ -263,11 +245,11 @@ class Participant(TimeStampedModel):
     @property
     def is_active(self):
         # True if participant is receiving SMS messages
-        return self.status not in enums.NOT_ACTIVE_STATUS
+        return self.preg_status not in enums.NOT_ACTIVE_STATUS and self.sms_status not in enums.NOT_ACTIVE_STATUS
 
     @property
     def no_sms(self):
-        return self.status in enums.NO_SMS_STATUS
+        return self.preg_status in enums.NO_SMS_STATUS or self.sms_status in enums.NO_SMS_STATUS
 
     def age(self):
         today = utils.today()
@@ -296,7 +278,7 @@ class Participant(TimeStampedModel):
         return pending.visit_type.capitalize() if pending is not None else None
 
     def is_pregnant(self):
-        return self.status == 'pregnant' or self.status == 'over'
+        return self.preg_status == 'pregnant' or self.preg_status == 'over'
 
     def was_pregnant(self, today=None):
         """
@@ -343,7 +325,7 @@ class Participant(TimeStampedModel):
             send_offset = 0
 
         # Special Case: SAE opt in messaging
-        elif self.status == 'loss':
+        elif self.preg_status == 'loss':
             today = utils.today(today)
             loss_offset = ((today - self.loss_date).days - 1) / 7 + 1
             condition = 'nbaby'
@@ -362,13 +344,13 @@ class Participant(TimeStampedModel):
     def get_validation_key(self):
         # todo: what is this used by/for?
         sha = sha256(
-            ('%s%s%s%s' % (self.study_id, self.nickname, self.anc_num, self.birthdate)).encode('utf-8')
+            ('%s%s%s%s' % (self.study_id, self.display_name, self.anc_num, self.birthdate)).encode('utf-8')
         ).hexdigest()[:5]
         key = ''.join([str(int(i, 16)) for i in sha])
         return key[:5]
 
     def choice_label(self):
-        return '{} {}'.format(self.study_id, self.nickname)
+        return '{} {}'.format(self.study_id, self.display_name)
 
     def add_call(self, outcome='answered', comment=None, length=None, is_outgoing=True,
                  created=None, admin_user=None, scheduled=None):
@@ -403,14 +385,27 @@ class Participant(TimeStampedModel):
         self.visit_set.create(scheduled=six_wk_date, visit_type='study')
 
     def set_status(self, new_status, comment='', note=False, user=None):
-        old_status = self.status
-        self.status = new_status
-        self._old_status = new_status  # Disable auto status change message
-        self.save()
-
-        self.statuschange_set.create(
-            old=old_status, new=new_status, comment=comment
-        )
+        ### get swapped StatusChange model
+        StatusChange = swapper.load_model("mwbase", "StatusChange")
+        ### validate new status against sms and preg choices and change
+        if any(new_status in choice for choice in self.PREG_STATUS_CHOICES):
+            old_status = self.preg_status
+            self.preg_status = new_status
+            self._old_status = new_status  # Disable auto status change message
+            self.save()
+            status = StatusChange(
+                participant=self, old=old_status, new=new_status, comment=comment
+            )
+            status.save()
+        elif any(new_status in choice for choice in self.SMS_STATUS_CHOICES):
+            old_status = self.sms_status
+            self.sms_status = new_status
+            self._old_status = new_status  # Disable auto status change message
+            self.save()
+            status = StatusChange(
+                participant=self, old=old_status, new=new_status, comment=comment, type='sms_status'
+            )
+            status.save()
 
         if note is True:
             self.note_set.create(comment=comment, admin=user)
@@ -503,7 +498,7 @@ class Participant(TimeStampedModel):
     def message_kwargs(self):
         nurse_obj = Practitioner.objects.for_participant(self)
         return {
-            'name': self.nickname.title(),
+            'name': self.sms_name.title(),
             'nurse': nurse_obj.user.first_name.title() if nurse_obj is not None else 'Nurse',
             'clinic': self.facility.title()
         }
@@ -518,9 +513,9 @@ class Participant(TimeStampedModel):
             external_data = {}
 
         # Status check - don't send messages to participants with NO_SMS_STATUS
-        elif self.status in enums.NO_SMS_STATUS and control is False:
-            text = 'STATUS {} NOT SENT: '.format(self.status.upper()) + text
-            msg_id = self.status
+        elif self.preg_status in enums.NO_SMS_STATUS and control is False:
+            text = 'STATUS {} NOT SENT: '.format(self.preg_status.upper()) + text
+            msg_id = self.preg_status
             msg_success = False
             external_data = {}
 
@@ -616,19 +611,34 @@ class Participant(TimeStampedModel):
             return None
 
 
-class StatusChange(TimeStampedModel):
-    objects = ForUserQuerySet.as_manager()
 
+class Participant(BaseParticipant):
+    ## only includes base elements and spappable meta
     class Meta:
         app_label = 'mwbase'
+        swappable = swapper.swappable_setting('mwbase', 'Participant')
 
-    participant = models.ForeignKey(Participant, models.CASCADE)
+
+class BaseStatusChange(TimeStampedModel):
+
+    class Meta:
+        abstract = True
+
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
 
     old = models.CharField(max_length=20)
     new = models.CharField(max_length=20)
-    type = models.CharField(max_length=10, default='status')
+    type = models.CharField(max_length=10, default='preg_status')
 
     comment = models.TextField(blank=True)
 
     def __str__(self):
         return "{0.old} {0.new} ({0.type})".format(self)
+
+
+class StatusChange(BaseStatusChange):
+    objects = ForUserQuerySet.as_manager()
+
+    class Meta:
+        app_label = 'mwbase'
+        swappable = swapper.swappable_setting('mwbase', 'StatusChangeBase')

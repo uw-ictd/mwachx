@@ -4,6 +4,8 @@ from django.shortcuts import render
 
 # Local Imports
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 
 # Python Imports
@@ -11,7 +13,7 @@ import mwbase.models as mwbase
 
 # === Old Views ===
 def dashboard(request):
-    participants = mwbase.Participant.objects.all()
+    participants = Participant.objects.all()
     statuses = get_status_by_group()
     new_messages = mwbase.Message.objects.filter(is_viewed=False)
     return render(request, 'dashboard.html', {'mwbase': participants, 'statuses': statuses, 'new_messages': new_messages})
@@ -22,10 +24,10 @@ def dashboard(request):
 #############
 
 def get_status_by_group():
-    by_status = mwbase.Participant.objects.values('study_group', 'status').annotate(count=Count('study_id'))
-    statuses = [[s[1], 0, 0, 0] for s in mwbase.Participant.STATUS_CHOICES]
+    by_status = Participant.objects.values('study_group', 'status').annotate(count=Count('study_id'))
+    statuses = [[s[1], 0, 0, 0] for s in Participant.STATUS_CHOICES]
 
-    status_map = {s[0]: i for i, s in enumerate(mwbase.Participant.STATUS_CHOICES)}
+    status_map = {s[0]: i for i, s in enumerate(Participant.STATUS_CHOICES)}
     group_map = {'control': 1, 'one-way': 2, 'two-way': 3}
     for status in by_status:
         s_idx = status_map[status['status']]

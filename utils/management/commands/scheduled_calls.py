@@ -6,6 +6,8 @@ import operator, collections, re, argparse
 
 from django.core.management.base import BaseCommand, CommandError
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 class Command(BaseCommand):
     ''' Manage 1mo and 1yr calls
@@ -34,7 +36,7 @@ class Command(BaseCommand):
         """ Find all postpartum participants and schedule 1mo and 1yr call """
         self.stdout.write( "{0} Initializing Phonecalls {0}\n".format('*'*5) )
 
-        post = mwbase.Participant.objects.filter(status='post').order_by('delivery_date')
+        post = Participant.objects.filter(status='post').order_by('delivery_date')
         total_post , total_created = 0 , 0
         for c in post:
             total_post += 1
@@ -53,7 +55,7 @@ class Command(BaseCommand):
 
         # Schedule calls for postdate participants
         today = datetime.date.today()
-        over = mwbase.Participant.objects.filter(status='pregnant', due_date__lte=today).order_by('due_date')
+        over = Participant.objects.filter(status='pregnant', due_date__lte=today).order_by('due_date')
         total_over , total_created = 0 , 0
         for c in over:
             total_over += 1

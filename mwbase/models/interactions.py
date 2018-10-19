@@ -9,6 +9,7 @@ import utils
 from utils.models import TimeStampedModel, BaseQuerySet, ForUserQuerySet
 # Local Imports
 from .visit import ScheduledPhoneCall
+import swapper
 
 
 class MessageQuerySet(ForUserQuerySet):
@@ -85,7 +86,7 @@ class Message(TimeStampedModel):
 
     admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
     connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
-    participant = models.ForeignKey('mwbase.Participant', models.CASCADE, blank=True, null=True)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE, blank=True, null=True)
 
     # Africa's Talking Data Only for outgoing messages
     external_id = models.CharField(max_length=50, blank=True)
@@ -191,7 +192,7 @@ class PhoneCall(TimeStampedModel):
     objects = ForUserQuerySet.as_manager()
 
     connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
-    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
     admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
 
     is_outgoing = models.BooleanField(default=False)
@@ -210,7 +211,7 @@ class Note(TimeStampedModel):
 
     objects = BaseQuerySet.as_manager()
 
-    participant = models.ForeignKey('mwbase.Participant', models.CASCADE)
+    participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
     admin = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)
     comment = models.TextField(blank=True)
 

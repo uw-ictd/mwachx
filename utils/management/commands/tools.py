@@ -12,6 +12,7 @@ from django.db import transaction, connection
 
 import mwbase.models as mwbase
 AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
+Participant = swapper.load_model("mwbase", "Participant")
 import backend.models as back
 import transports
 from . import tasks
@@ -151,8 +152,8 @@ class Command(BaseCommand):
 
             if action.strip() == "":
                 try:
-                    participant = mwbase.Participant.objects.get_from_phone_number(phone_number)
-                except mwbase.Participant.DoesNotExist as e:
+                    participant = Participant.objects.get_from_phone_number(phone_number)
+                except Participant.DoesNotExist as e:
                     print( "Missing:" , phone_number , " -> " , text )
                     if self.options['send']:
                         transports.send( phone_number , text )

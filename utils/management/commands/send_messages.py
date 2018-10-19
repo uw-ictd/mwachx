@@ -9,6 +9,8 @@ from django.db import models
 
 
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 from transports.email import email
 
 
@@ -97,7 +99,7 @@ def weekly_messages(day,hour,date,email_body,options,send=False):
 
     email_body.append("***** Weekly Messages ******\n")
 
-    participants = mwbase.Participant.objects.active_users().filter(send_day=day)
+    participants = Participant.objects.active_users().filter(send_day=day)
 
     vals = ns(times={8:0,13:0,20:0}, control=0,
         no_messages=[],sent_to=[],errors=[],exclude=[])

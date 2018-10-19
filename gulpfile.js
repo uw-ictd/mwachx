@@ -15,33 +15,33 @@ gulp.task('test', function () {
 });
 
 gulp.task('less', function () {
-    return gulp.src('./mwach/static/less/main.less')
+    return gulp.src('./mwbase/static/less/main.less')
         .pipe(plumber())
         .pipe(sourcemaps.init())
         .pipe(less())
         .pipe(sourcemaps.write('./maps'))
-        .pipe(gulp.dest('./mwach/static/css'))
+        .pipe(gulp.dest('./mwbase/static/css'))
 });
 
 
 // From: https://medium.com/@dickeyxxx/best-practices-for-building-angular-js-apps-266c1a4a6917
 gulp.task('js', function () {
-    return gulp.src(['./mwach/static/app/mwachx.module.js', 'mwach/static/app/**/*.js'])
+    return gulp.src(['./mwbase/static/app/mwachx.module.js', 'mwbase/static/app/**/*.js', '!mwbase/static/app/smsbank_import.js'])
         .pipe(sourcemaps.init())
         .pipe(concat('mwachx.js'))
         // .pipe(uglify())
         .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest('./mwach/static'))
+        .pipe(gulp.dest('./mwbase/static'))
 });
 
 var LIBS = [
-    'mwach/static/bower_components/angular/angular.js',
-    'mwach/static/bower_components/angular-ui-router/release/angular-ui-router.js',
-    'mwach/static/bower_components/angular-resource/angular-resource.js',
-    'mwach/static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
-    'mwach/static/bower_components/angular-bootstrap-show-errors/src/showErrors.js',
-    'mwach/static/bower_components/lodash/lodash.js',
-    'mwach/static/bower_components/restangular/src/restangular.js'
+    'mwbase/static/bower_components/angular/angular.js',
+    'mwbase/static/bower_components/angular-ui-router/release/angular-ui-router.js',
+    'mwbase/static/bower_components/angular-resource/angular-resource.js',
+    'mwbase/static/bower_components/angular-bootstrap/ui-bootstrap-tpls.js',
+    'mwbase/static/bower_components/angular-bootstrap-show-errors/src/showErrors.js',
+    'mwbase/static/bower_components/lodash/lodash.js',
+    'mwbase/static/bower_components/restangular/src/restangular.js'
 ];
 
 gulp.task('libs', function () {
@@ -49,7 +49,7 @@ gulp.task('libs', function () {
         .pipe(sourcemaps.init())
         .pipe(concat('components.js'))
         .pipe(sourcemaps.write('./'))
-        .pipe(gulp.dest('./mwach/static'))
+        .pipe(gulp.dest('./mwbase/static'))
 });
 
 gulp.task('watch', function () {
@@ -57,12 +57,12 @@ gulp.task('watch', function () {
     // Recompile less -> css
     gulp.watch('**/*.less', ['less']);
     // Recompile js
-    gulp.watch('mwach/static/app/**/*.js', ['js']);
+    gulp.watch('mwbase/static/app/**/*.js', ['js']);
     /* Trigger a live reload on any Django template changes */
     gulp.watch(['**/templates/**/*.html', '**views.py', '**admin.py', '**/*.js', '**/*.html'])
         .on('change', livereload.changed);
     /* Recompile libs */
-    gulp.watch('mwach/static/app/mwachx.*.js', ['libs']);
+    gulp.watch('mwbase/static/app/mwachx.*.js', ['libs']);
 });
 
 gulp.task('default', ['watch', 'less', 'js', 'libs'], function () {

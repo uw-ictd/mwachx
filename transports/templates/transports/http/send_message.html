@@ -7,7 +7,7 @@
         <div class='col-md-1'></div>
         <div class='col-md-5'>
             {% if participant and not system %}
-                <div>Message sent as <a href='/participant/{{participant.study_id}}'>{{participant.nickname}}</a></div>
+                <div>Message sent as <a href='/participant/{{participant.study_id}}'>{{participant.sms_name}}</a></div>
             {% endif %}
             <h1> Send Message As Participant </h1>
             <form id='participant-send-form' action='' method='post' class='form'>
@@ -18,7 +18,7 @@
             </div>
             <div class='col-md-5'>
                 {% if system %}
-                    <div>System message sent to <a href='/participant/{{participant.study_id}}'>{{participant.nickname}}</a></div>
+                    <div>System message sent to <a href='/participant/{{participant.study_id}}'>{{participant.sms_name}}</a></div>
                 {% endif %}
                 <h1>Send System Message</h1>
                 <form id='system-send-form' action='' method='post' class='from'>

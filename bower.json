@@ -12,7 +12,7 @@
     "**/.*",
     "node_modules",
     "bower_components",
-    "mwach/static/app/assets/bower_components",
+    "mwbase/static/app/assets/bower_components",
     "test",
     "tests"
   ],

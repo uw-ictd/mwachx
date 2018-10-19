@@ -16,22 +16,23 @@ class AutomatedMessageHIVQuerySet(AutomatedMessageQuerySetBase):
         :param description (str): base.group.condition.hiv.offset string to look for
         :returns: AutomatedMessage matching description or closes match if not found
         """
-        send_base, group, condition, hiv_messaging, send_offset = description.split('.')
+        send_base, group, condition, hiv_messaging, second, send_offset = description.split('.')
         hiv = hiv_messaging == "Y"
+        second_preg = second == "Y"
         send_offset = int(send_offset)
 
         # Special case for post date messages go back and forth between week 41 and 42 messages
         if send_base == 'edd' and send_offset < -2:
             send_offset = (send_offset + 1) % -2 - 1
 
-        return self.from_parameters(send_base, group, condition, send_offset, hiv, exact=exact)
+        return self.from_parameters(send_base, group, condition, send_offset, hiv, second_preg, exact=exact)
         
-    def from_parameters(self, send_base, group, condition='normal', send_offset=0, hiv=False, exact=False):
-
+    def from_parameters(self, send_base, group, condition='normal', send_offset=0, hiv=False, second_preg=False, exact=False):
+        # TODO: Need Logic for second_preg lookup ordering
         # Look for exact match of parameters
         try:
             return self.get(send_base=send_base, send_offset=send_offset,
-                            group=group, condition=condition, hiv_messaging=hiv)
+                            group=group, condition=condition, hiv_messaging=hiv, second_preg=second_preg)
         except ObjectDoesNotExist as e:
             if exact == True:
                 return None
@@ -131,11 +132,11 @@ class AutomatedMessageHIV(AutomatedMessageBase):
     comment = models.TextField(blank=True)
 
     group = models.CharField(max_length=20, choices=enums.GROUP_CHOICES)  # 2 groups
-    hiv_messaging = models.BooleanField()  # True or False
+    hiv_messaging = models.BooleanField() # True or False
+    second_preg = models.BooleanField()  # True or False
 
     def category(self):
-        return "{0.send_base}.{0.group}.{0.condition}.{1}".format(self,
-                                                                  'Y' if self.hiv_messaging else 'N')
+        return "{0.send_base}.{0.group}.{0.condition}.{1}.{2}".format(self, 'Y' if self.hiv_messaging else 'N', 'Y' if self.second_preg else 'N')
 
     def description(self):
         return "{0}.{1}".format(self.category(), self.send_offset)

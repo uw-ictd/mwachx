@@ -5,6 +5,7 @@ from django.contrib.auth import models as auth
 import mwbase.models as mwbase
 import swapper
 AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
+Participant = swapper.load_model("mwbase", "Participant")
 
 
 def setup_auth_user(cls):
@@ -48,12 +49,12 @@ def setup_auto_messages(cls):
 
 def setup_basic_participants(cls):
     # Create basic participants objects
-    cls.p1 = mwbase.Participant.objects.create(
+    cls.p1 = Participant.objects.create(
         study_id="0001",
         anc_num="0001",
         facility="bondo",
         study_group="two-way",
-        nickname="p1 one",
+        sms_name="p1 one",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() + datetime.timedelta(weeks=3),
     )
@@ -64,13 +65,13 @@ def setup_basic_participants(cls):
         is_primary=True
     )
 
-    cls.p2 = mwbase.Participant.objects.create(
+    cls.p2 = Participant.objects.create(
         study_id="0002",
         anc_num="0002",
         facility="bondo",
         study_group="two-way",
         language='luo',
-        nickname="p2",
+        sms_name="p2",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=3),
         delivery_date=datetime.date.today() - datetime.timedelta(weeks=3),
@@ -83,12 +84,12 @@ def setup_basic_participants(cls):
         is_primary=True
     )
 
-    cls.p3 = mwbase.Participant.objects.create(
+    cls.p3 = Participant.objects.create(
         study_id="0003",
         anc_num="0003",
         facility="ahero",
         study_group="control",
-        nickname="p3",
+        sms_name="p3",
         birthdate=datetime.date(1986, 8, 5),
         due_date=datetime.date.today() - datetime.timedelta(weeks=6),
         status="stopped",

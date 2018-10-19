@@ -103,24 +103,26 @@ class MessageRowBase(object):
 
 
 class FinalRowHIV(MessageRowBase):
-    header = ('Group', 'Track', 'HIV', 'Base', 'Offset', 'English', 'Swahili', 'Luo', 'Comment')
+    header = ('Group', 'Track', 'HIV', 'Second', 'Base', 'Offset', 'English', 'Swahili', 'Luo', 'Comment')
 
     def __init__(self, row):
-        group, track, hiv, send_base, offset, english, swahili, luo, comment = \
-                cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8)(row))
+        group, track, hiv, second_preg, send_base, offset, english, swahili, luo, comment = \
+                cell_values(*operator.itemgetter(0, 1, 2, 3, 4, 5, 6, 7, 8, 9)(row))
         super(FinalRowHIV, self).__init__(row, group, track, send_base, offset,
                                        english, swahili, luo, comment=comment)
         self.hiv = hiv
         self.set_hiv_messaging()
+        self.second_preg = second_preg
+        self.set_second()
 
     def description(self):
         ''' Return base_group_track_hiv_offset '''
-        return "{0.send_base}.{0.group}.{0.track}.{1}.{0.offset}".format(self, self.get_hiv_messaging_str())
+        return "{0.send_base}.{0.group}.{0.track}.{1}.{2}.{0.offset}".format(self, self.get_hiv_messaging_str(), self.get_second_str())
     
     def kwargs(self):
         return {'send_base': self.send_base, 'send_offset': self.offset, 'group': self.group,
                 'condition': self.track, 'comment': self.comment, 'hiv_messaging': self.hiv,
-                'english': self.english if self.english != '' else self.new,
+                'second_preg': self.second_preg, 'english': self.english if self.english != '' else self.new,
                 'swahili': self.swahili, 'luo': self.luo}
     
     def set_hiv_messaging(self):
@@ -129,14 +131,24 @@ class FinalRowHIV(MessageRowBase):
         else:
             self.hiv = bool(self.hiv)
 
+    def set_second(self):
+        if isinstance(self.second_preg, str):
+            self.second_preg = self.second_preg.strip().lower().startswith('y')
+        else:
+            self.second_preg = bool(self.second_preg)
+
     def get_hiv_messaging_str(self):
         return 'Y' if self.hiv else 'N'
-        
+
+    def get_second_str(self):
+        return 'Y' if self.second_preg else 'N'
+
     def get_translation_row(self, language):
         return (
             self.group,
             self.track,
             self.get_hiv_messaging_str(),
+            self.get_second_str(),
             self.send_base,
             self.offset,
             self.english,
@@ -149,6 +161,7 @@ class FinalRowHIV(MessageRowBase):
             self.group,
             self.track,
             self.get_hiv_messaging_str(),
+            self.get_second_str(),
             self.send_base,
             self.offset,
             self.english,
