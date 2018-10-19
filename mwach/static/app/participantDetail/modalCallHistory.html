@@ -2,7 +2,7 @@
   <button type="button" class="close" ng-click="$dismiss()" aria-label="Close">
     <span aria-hidden="true">×</span>
   </button>
-  <h3 class="modal-title">Call History For {{participant.nickname}}: {{participant.phone_number}}</h3>
+  <h3 class="modal-title">Call History For {{participant.display_name}}: {{participant.phone_number}}</h3>
 </div>
 
 <div class='modal-body'>
@@ -57,7 +57,7 @@
 </form>
 </accordion-group>
 
-<accordion-group heading="Call history for {{participant.nickname}}" is-open="status.call_history_open">
+<accordion-group heading="Call history for {{participant.display_name}}" is-open="status.call_history_open">
   <div ng-repeat='call in calls' class='clearfix'>
       <div class='avatar mw-4x' ng-class="{'pull-left call':!call.is_outgoing, 'pull-right nurse':call.is_outgoing}">
         <i class='mw' ng-class="{'mw-mobile-1':!call.is_outgoing, 'mw-user-md':call.is_outgoing}"></i>
@@ -66,7 +66,7 @@
     <div class='message' ng-class="{'pull-left call':!call.is_outgoing, 'pull-right nurse':call.is_outgoing}">
       <div class="msg-header clearfix">
         <strong class='pull-left'>
-          Phone Call {{(call.is_outgoing)?'To':'From'}} {{participant.nickname}}
+          Phone Call {{(call.is_outgoing)?'To':'From'}} {{participant.display_name}}
         </strong>
         <span>Length: {{ (call.length)?call.length:'0' }} min</span>
         <div class="pull-right">{{call.created | date:'d MMM yy H:mm'}}</div>

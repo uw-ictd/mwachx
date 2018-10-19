@@ -9,6 +9,9 @@ from django.urls import reverse
 import mwbase.models as mwbase
 import utils.forms as util
 from mwbase.utils import sms_bank
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
+
 
 class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
@@ -32,7 +35,6 @@ class ParticipantAdd(forms.ModelForm):
         self.fields['birthdate'].widget = util.AngularPopupDatePicker(
             {'required': True, 'datepicker-position-right': True}, max=-5110  # 14 years or older
         )
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['clinic_visit'].widget = util.AngularPopupDatePicker({'required': True}, min=7)
 
         self.helper = FormHelper()
@@ -52,7 +54,6 @@ class ParticipantAdd(forms.ModelForm):
                     css_class="row"
                 ),
                 Div(
-                    Div('ccc_num', css_class="col-md-4"),
                     Div('send_day', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
                     Div('send_time', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
                     css_class="row",
@@ -62,9 +63,10 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Client Information',
                 Div(
-                    Div('nickname', css_class="col-md-4"),
-                    Div('phone_number', css_class="col-md-4"),
-                    Div('birthdate', css_class="col-md-4"),
+                    Div('display_name', css_class="col-md-3"),
+                    Div('sms_name', css_class="col-md-3"),
+                    Div('phone_number', css_class="col-md-3"),
+                    Div('birthdate', css_class="col-md-3"),
                     css_class="row"
                 ),
                 Div(
@@ -91,7 +93,6 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Important Dates',
                 Div(
-                    Div('art_initiation', css_class="col-md-4"),
                     Div('due_date', css_class="col-md-4"),
                     Div('clinic_visit', css_class="col-md-4"),
                     css_class="row"
@@ -111,22 +112,20 @@ class ParticipantAdd(forms.ModelForm):
             })
 
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
-        exclude = ['status', 'facility']
+        model = Participant
+        exclude = ['preg_status', 'facility', 'sms_status']
 
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
-        # TODO: Update this to be dependent on facility of logged in user
             'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
-            'ccc_num': forms.TextInput(attrs={'required': True}),
             'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
             'study_group': forms.Select(attrs={'required': True}),
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
-            'nickname': forms.TextInput(attrs={'required': True}),
+            'display_name': forms.TextInput(attrs={'required': True}),
+            'sms_name': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
         }
@@ -134,9 +133,8 @@ class ParticipantAdd(forms.ModelForm):
 
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
-        fields = ['send_day', 'send_time', 'due_date', 'art_initiation']
+        model = Participant
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'quick_notes']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -146,8 +144,9 @@ class ParticipantUpdate(forms.ModelForm):
         self.helper.label_class = 'col-lg-4'
         self.helper.field_class = 'col-lg-7'
 
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
+        self.fields['preg_status'].label = 'Pregnancy Status'
+        self.fields['sms_status'].label = 'SMS Status'
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default
         for field in self:

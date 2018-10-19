@@ -17,7 +17,8 @@ from mwbase.utils import sms_bank
 
 import swapper
 AutomatedMessage = swapper.load_model("mwbase", "AutomatedMessage")
-
+Participant = swapper.load_model("mwbase", "Participant")
+StatusChange = swapper.load_model("mwbase", "StatusChange")
 
 class ConnectionInline(admin.TabularInline):
     model = mwbase.Connection
@@ -48,18 +49,15 @@ def revert_status(modeladmin, request, queryset):
 revert_status.short_description = 'Revert to last status'
 
 
-@admin.register(mwbase.Participant)
+@admin.register(Participant)
 class ParticipantAdmin(admin.ModelAdmin):
-    list_display = ('study_id', 'nickname', 'status', 'description', 'facility',
-                    'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
-    list_display_links = ('study_id', 'nickname')
-    list_filter = (
-    'facility', 'study_group', ('created', admin.DateFieldListFilter), 'status', 'is_validated',
-    'language', 'send_day')
+    list_display = ('study_id', 'display_name', 'preg_status', 'sms_status', 'description', 'facility', 'phone_number', 'due_date', 'language', 'send_day', 'is_validated', 'created')
+    list_display_links = ('study_id', 'display_name')
+    list_filter = ('facility', 'study_group', ('created', admin.DateFieldListFilter), 'preg_status', 'is_validated', 'language', 'send_day')
 
     ordering = ('study_id',)
 
-    search_fields = ('study_id', 'nickname', 'connection__identity', 'anc_num')
+    search_fields = ('study_id', 'display_name', 'connection__identity', 'anc_num')
     readonly_fields = ('last_msg_client', 'last_msg_system', 'created', 'modified')
 
     inlines = (ConnectionInline, NoteInline)
@@ -74,9 +72,9 @@ class ParticipantAdminMixin(object):
         participant = getattr(obj, self.participant_field)
         if participant is not None:
             return html.format_html(
-                "<a href='../participant/{0.pk}'>({0.study_id}) {0.nickname}</a>".format(participant))
+                "<a href='../participant/{0.pk}'>({0.study_id}) {0.display_name}</a>".format(participant))
 
-    participant_name.short_description = 'Nickname'
+    participant_name.short_description = 'SMS Name'
     participant_name.admin_order_field = '{}__study_id'.format(participant_field)
 
     def facility(self, obj):
@@ -103,22 +101,17 @@ class ParticipantAdminMixin(object):
 
 @admin.register(mwbase.Message)
 class MessageAdmin(admin.ModelAdmin, ParticipantAdminMixin):
-    list_display = ('text', 'participant_name', 'identity', 'is_system',
-                    'is_outgoing', 'is_reply', 'external_status', 'translation_status', 'created')
-    list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter),
-                   ('created', admin.DateFieldListFilter), 'connection__participant__facility',
-                   'translation_status', 'is_related', 'external_success')
+    list_display = ('text', 'participant_name', 'identity', 'is_system', 'is_outgoing', 'is_reply', 'external_status', 'translation_status', 'created')
+    list_filter = ('is_system', 'is_outgoing', 'external_status', ('participant', utils.NullFieldListFilter), ('created', admin.DateFieldListFilter), 'connection__participant__facility', 'translation_status', 'is_related', 'external_success')
 
     date_hierarchy = 'created'
 
-    search_fields = ('participant__study_id', 'participant__nickname', 'connection__identity')
+    search_fields = ('participant__study_id', 'participant__display_name', 'connection__identity')
     readonly_fields = ('created', 'modified')
 
     def identity(self, obj):
-        return html.format_html("<a href='./?q={0.identity}'>{0.identity}</a>".format(
-            obj.connection
-        ))
-        
+        return html.format_html("<a href='./?q={0.identity}'>{0.identity}</a>".format(obj.connection))
+
     identity.short_description = 'Number'
     identity.admin_order_field = 'connection__identity'
 
@@ -129,7 +122,7 @@ class PhoneCallAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     date_hierarchy = 'created'
     list_filter = ('outcome', 'is_outgoing')
     readonly_fields = ('created', 'modified')
-    search_fields = ('participant__study_id', 'participant__nickname')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.Note)
@@ -141,7 +134,7 @@ class NoteAdmin(admin.ModelAdmin, ParticipantAdminMixin):
 @admin.register(mwbase.Connection)
 class ConnectionAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('identity', 'participant_name', 'facility', 'is_primary')
-    search_fields = ('participant__study_id', 'participant__nickname', 'identity')
+    search_fields = ('participant__study_id', 'participant__display_name', 'identity')
 
 
 @admin.register(mwbase.Visit)
@@ -150,7 +143,7 @@ class VisitAdmin(admin.ModelAdmin, ParticipantAdminMixin):
                     'notification_last_seen', 'notify_count', 'arrived', 'status')
     date_hierarchy = 'scheduled'
     list_filter = ('status', 'visit_type', 'arrived', 'scheduled')
-    search_fields = ('participant__study_id', 'participant__nickname')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.ScheduledPhoneCall)
@@ -159,7 +152,7 @@ class ScheduledPhoneCall(admin.ModelAdmin, ParticipantAdminMixin):
                     'notification_last_seen', 'notify_count', 'arrived', 'status')
     date_hierarchy = 'scheduled'
     list_filter = ('status', 'call_type', 'arrived', 'scheduled')
-    search_fields = ('participant__study_id', 'participant__nickname')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.Practitioner)
@@ -167,10 +160,10 @@ class PractitionerAdmin(admin.ModelAdmin):
     list_display = ('facility', 'username', 'password_changed')
 
 
-@admin.register(mwbase.StatusChange)
+@admin.register(StatusChange)
 class StatusChangeAdmin(admin.ModelAdmin, ParticipantAdminMixin):
     list_display = ('comment', 'participant_name', 'old', 'new', 'type', 'created')
-    search_fields = ('participant__study_id', 'participant__nickname')
+    search_fields = ('participant__study_id', 'participant__display_name')
 
 
 @admin.register(mwbase.EventLog)

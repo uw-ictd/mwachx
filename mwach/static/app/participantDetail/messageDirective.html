@@ -15,7 +15,7 @@
 
   <div class="msg-header clearfix">
     <strong class="pull-left capitalize">
-      {{message.is_outgoing ? message.sent_by : participant.nickname}}
+      {{message.is_outgoing ? message.sent_by : participant.display_name}}
     </strong>
     <div class="pull-right">{{message.created | date:'d MMM yy H:mm':'+0300'}}</div>
 

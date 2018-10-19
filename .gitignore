@@ -24,6 +24,8 @@ ignore/
 translations/
 mwach/local_settings.py
 **/commands/tests.py
-.vagrant/
+
+#vagrant files
 Vagrantfile
-deployment/
+/deployment
+.vagrant/

@@ -12,6 +12,9 @@ from django.db import models
 from django.utils import timezone
 
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
+StatusChange = swapper.load_model("mwbase", "StatusChange")
 import utils
 
 
@@ -157,7 +160,7 @@ class Command(BaseCommand):
 
         self.print_header("Participant Send Times")
 
-        c_all = mwbase.Participant.objects_no_link.all().order_by('send_day', 'send_time')
+        c_all = Participant.objects_no_link.all().order_by('send_day', 'send_time')
         time_counts = c_all.exclude(study_group='control').values('send_day','send_time') \
             .annotate(count=models.Count('send_day'))
 
@@ -185,7 +188,7 @@ class Command(BaseCommand):
 
         self.print_header("Participant By Facility")
 
-        group_counts = mwbase.Participant.objects.values('facility', 'study_group') \
+        group_counts = Participant.objects.values('facility', 'study_group') \
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -211,7 +214,7 @@ class Command(BaseCommand):
 
         self.print_header('Validation Stats')
 
-        c_all = mwbase.Participant.objects_no_link.all()
+        c_all = Participant.objects_no_link.all()
 
         stats = collections.OrderedDict( ( ('< 1h',0) , ('< 1d',0) ,('> 1d',0) , ('None',0) ) )
         for c in c_all:
@@ -332,7 +335,7 @@ class Command(BaseCommand):
 
         self.print_header('HIV Messaging Preference (none-initiated-system)')
 
-        hiv_messaging_groups = mwbase.Participant.objects.order_by().values('facility', 'study_group', 'hiv_messaging') \
+        hiv_messaging_groups = Participant.objects.order_by().values('facility', 'study_group', 'hiv_messaging') \
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -358,7 +361,7 @@ class Command(BaseCommand):
 
         self.print_header('Language Statistics (english,swahili,luo)')
 
-        language_groups = mwbase.Participant.objects.order_by().values('facility', 'study_group', 'language') \
+        language_groups = Participant.objects.order_by().values('facility', 'study_group', 'language') \
             .annotate(count=models.Count('study_id',distinct=True))
 
 
@@ -406,10 +409,10 @@ class Command(BaseCommand):
         ) )
 
     def status_breakdown(self):
-
+        ## TODO: Update for separate preg_status and sms_status
         self.print_header('Participant Status (control,one-way,two-way)')
 
-        status_groups = mwbase.Participant.objects.order_by().values('facility', 'status', 'study_group')\
+        status_groups = Participant.objects.order_by().values('facility', 'status', 'study_group')\
             .annotate(count=models.Count('study_id',distinct=True))
 
         # Piviot Group Counts
@@ -431,7 +434,7 @@ class Command(BaseCommand):
         self.print_header('Participant Delivery Stats')
 
         today = datetime.date.today()
-        c_all = mwbase.Participant.objects.all()
+        c_all = Participant.objects.all()
         edd = c_all.filter(status='pregnant').order_by('due_date')
         post = edd.filter(due_date__lt=today)
         self.stdout.write( 'Found {:d} pregnant participants with {:d} post edd'.format(
@@ -499,7 +502,7 @@ class Command(BaseCommand):
 
         self.print_header('Participant Delivery Source (control,one-way,two-way)')
 
-        source_groups = mwbase.Participant.objects_no_link.filter(delivery_date__isnull=False).order_by().values('facility',\
+        source_groups = Participant.objects_no_link.filter(delivery_date__isnull=False).order_by().values('facility',\
             'study_group','delivery_source').annotate(count=models.Count('delivery_source'))
 
         # for g in source_groups:
@@ -524,7 +527,7 @@ class Command(BaseCommand):
 
         self.print_header('Participant Enrollment By Week')
 
-        c_all = mwbase.Participant.objects.all()
+        c_all = Participant.objects.all()
 
         enrollment_counts = collections.OrderedDict()
 
@@ -561,7 +564,7 @@ class Command(BaseCommand):
 
         self.print_header('Success Times')
 
-        participant_message_counts = mwbase.Participant.objects_no_link.annotate_messages().order_by('-msg_missed')[:13]
+        participant_message_counts = Participant.objects_no_link.annotate_messages().order_by('-msg_missed')[:13]
         def display_phone_number(num):
             participant = participant_message_counts[num-1]
             return " |\t{!r:<40} O: {:<3} D: {:<3} M: {:<3} I: {:<3}".format(
@@ -652,7 +655,7 @@ class Command(BaseCommand):
             ('phone_shared', null_boolean_factory('phone_shared')),
         ])
 
-        participants = mwbase.Participant.objects.all().order_by('study_id')
+        participants = Participant.objects.all().order_by('study_id')
         file_path = os.path.join(self.options['dir'],'hiv_messaging.csv')
 
         make_csv(columns,participants,file_path)
@@ -667,7 +670,7 @@ class Command(BaseCommand):
             ('date','created'),
             ('since_enrollment', lambda obj: obj.created - obj.participant.created ),
         ])
-        status_changes = mwbase.StatusChange.objects.filter(type='hiv')
+        status_changes = StatusChange.objects.filter(type='hiv')
 
         file_path = os.path.join(self.options['dir'],'hiv_status_changes.csv')
 
@@ -701,13 +704,13 @@ class Command(BaseCommand):
             ('rate',lambda p: round(p.msg_received / float(p.msg_out),4) if p.msg_out != 0 else 0 ),
             ('msg_in','msg_in')
         ])
-        p_all = mwbase.Participant.objects_no_link.annotate_messages().order_by('-study_group', '-msg_missed', '-msg_out')
+        p_all = Participant.objects_no_link.annotate_messages().order_by('-study_group', '-msg_missed', '-msg_out')
         file_path = os.path.join(self.options['dir'],'message_success.csv')
         make_csv(columns,p_all,file_path)
         return file_path
 
     def make_enrollment_csv(self):
-        c_all = mwbase.Participant.objects.all()
+        c_all = Participant.objects.all()
 
         enrollment_counts = collections.OrderedDict()
 
@@ -783,7 +786,7 @@ class Command(BaseCommand):
     def make_edd_csv(self):
         """ Make report of delivery_date to edd time delta in weeks """
 
-        c_all = mwbase.Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
+        c_all = Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
 
         edd_deltas = collections.Counter( (c.delivery_date - c.due_date).days / 7 for c in c_all )
         weeks = sorted(edd_deltas.keys())
@@ -802,7 +805,7 @@ class Command(BaseCommand):
 
     def make_delivery_csv(self):
         """ Create csv of time delta in weeks between delivery and delivery notification """
-        c_all = mwbase.Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
+        c_all = Participant.objects.filter(delivery_date__isnull=False).exclude(status__in=('loss', 'sae'))
 
         delivery_deltas = collections.defaultdict( GroupRowCount )
         max_week = 0
@@ -832,7 +835,7 @@ class Command(BaseCommand):
 
     def make_sae_csv(self):
 
-        loss = mwbase.Participant.objects.filter(loss_date__isnull=False)
+        loss = Participant.objects.filter(loss_date__isnull=False)
 
         loss_deltas = collections.defaultdict( GroupRowCount )
         max_week = 0
@@ -869,7 +872,7 @@ detail_columns = collections.OrderedDict([
     ('Study ID','study_id'),
     ('Enrolled',lambda c: c.created.date()),
     ('Group','study_group'),
-    ('Status','get_status_display'),
+    ('Pregnancy Status','get_preg_status_display'), ## TODO: Update for separate preg_status and sms_status?
     ('HIV','hiv_messaging') ,
     ('Disclosed','hiv_disclosed') ,
     ('Shared','phone_shared') ,
@@ -937,8 +940,8 @@ interaction_columns = collections.OrderedDict([
 def make_interaction_columns():
 
     participants = {c.id:c for c in
-                mwbase.Participant.objects_no_link.annotate_messages().filter(msg_outgoing__gt=9)
-                # mwbase.Participant.objects_no_link.annotate_messages().order_by('-msg_failed')[:20]
+                Participant.objects_no_link.annotate_messages().filter(msg_outgoing__gt=9)
+                # Participant.objects_no_link.annotate_messages().order_by('-msg_failed')[:20]
                 }
 
     # Add all messages to mwbase.messages
@@ -1049,7 +1052,7 @@ def make_interaction_columns():
     return participants.values()
 
 def make_facility_worksheet(columns,ws,facility):
-    participants = mwbase.Participant.objects.filter(facility=facility)
+    participants = Participant.objects.filter(facility=facility)
     ws.title = facility.capitalize()
     make_worksheet(columns,ws,participants)
 
@@ -1082,7 +1085,7 @@ def make_weekly_wb():
         week_end = week_start + datetime.timedelta(days=7)
         messages = mwbase.Message.objects.filter(created__gte=week_start, created__lt=week_end)
 
-        count = mwbase.Participant.objects.filter(created__lt=week_end).count()
+        count = Participant.objects.filter(created__lt=week_end).count()
         system = messages.filter(is_outgoing=True,is_system=True).count()
         success = messages.filter(is_outgoing=True,is_system=True,external_status='Success').count()
         nurse = messages.filter(is_outgoing=True,is_system=False).count()
@@ -1249,6 +1252,7 @@ class LanguageMessageRow(CountRowBase):
     columns = ['english','swahili','luo']
     child_class = LanguageMessageRowItem
 
+## TODO: Update for separate preg_status and sms_status
 class StatusRow(CountRowBase):
     columns = ['pregnant','post','loss','sae','other','stopped']
     child_class = GroupRowCount

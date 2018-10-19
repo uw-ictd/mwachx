@@ -12,21 +12,24 @@ from rest_framework import viewsets
 from rest_framework.decorators import action
 from rest_framework.response import Response
 
-import mwbase.forms as forms
 # Local Imports
+import mwbase.forms as forms
 import mwbase.models as mwbase
 import utils
 from .messages import MessageSerializer, ParticipantSimpleSerializer, MessageSimpleSerializer
 from .misc import PhoneCallSerializer, NoteSerializer
 from .visits import VisitSimpleSerializer, VisitSerializer
 
+#Swappable Imports
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 
 #############################################
 #  Serializer Definitions
 #############################################
 
 class ParticipantSerializer(serializers.ModelSerializer):
-    status_display = serializers.CharField(source='get_status_display')
+    status_display = serializers.CharField(source='get_preg_status_display')
 
     send_time_display = serializers.CharField(source='get_send_time_display')
     send_time = serializers.CharField()
@@ -40,13 +43,6 @@ class ParticipantSerializer(serializers.ModelSerializer):
     age = serializers.CharField(read_only=True)
     is_pregnant = serializers.BooleanField(read_only=True)
     active = serializers.BooleanField(read_only=True, source='is_active')
-
-    # Todo: Move to Serialized version of Swappable Participant
-    # hiv_disclosed_display = serializers.SerializerMethodField()
-    # hiv_disclosed = serializers.SerializerMethodField()
-    # hiv_messaging_display = serializers.CharField(source='get_hiv_messaging_display')
-    # hiv_messaging = serializers.CharField()
-
     href = serializers.HyperlinkedIdentityField(view_name='participant-detail', lookup_field='study_id')
     messages_url = serializers.HyperlinkedIdentityField(view_name='participant-messages', lookup_field='study_id')
     visits_url = serializers.HyperlinkedIdentityField(view_name='participant-visits', lookup_field='study_id')
@@ -63,12 +59,6 @@ class ParticipantSerializer(serializers.ModelSerializer):
     class Meta:
         model = mwbase.Participant
         fields = '__all__'
-
-    def get_hiv_disclosed_display(self, obj):
-        return utils.null_boolean_display(obj.hiv_disclosed)
-
-    def get_hiv_disclosed(self, obj):
-        return utils.null_boolean_form_value(obj.hiv_disclosed)
 
     def get_note_count(self, obj):
         try:
@@ -97,11 +87,11 @@ class ParticipantViewSet(viewsets.ModelViewSet):
     """
     API endpoint that allows users to be viewed or edited.
     """
-
+    forms = forms
     lookup_field = 'study_id'
 
     def get_queryset(self):
-        qs = mwbase.Participant.objects.all().order_by('study_id')
+        qs = Participant.objects.all().order_by('study_id')
         # Only return the participants for this user's facility
         if self.action == 'list':
             return qs.for_user(self.request.user, superuser=True)
@@ -122,7 +112,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     def create(self, request, *args, **kwargs):
         ''' POST - create a new participant using the the participant ModelForm'''
-        cf = forms.ParticipantAdd(request.data)
+        cf = self.forms.ParticipantAdd(request.data)
 
         if cf.is_valid():
             with transaction.atomic():
@@ -180,16 +170,13 @@ class ParticipantViewSet(viewsets.ModelViewSet):
 
     def partial_update(self, request, study_id=None, *args, **kwargs):
         ''' PATCH - partial update a participant '''
-
         instance = self.get_object()
-
-        instance.status = request.data['status']
+        instance.preg_status = request.data['preg_status']
+        instance.sms_status = request.data['sms_status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
-        instance.art_initiation = utils.angular_datepicker(request.data['art_initiation'])
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
-        instance.hiv_disclosed = request.data['hiv_disclosed']
-        instance.hiv_messaging = request.data['hiv_messaging']
+        instance.quick_notes = request.data['quick_notes']
 
         instance.save()
         instance_serialized = ParticipantSerializer(mwbase.Participant.objects.get(pk=instance.pk),
@@ -319,7 +306,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             loss_date = utils.angular_datepicker(request.data.get('loss_date'))
             note = False
 
-            status = 'loss' if receive_sms else 'sae'
+            preg_status = 'loss' if receive_sms else 'sae'
             comment = "Changed loss opt-in status: {}".format(receive_sms)
             if instance.loss_date is None:
                 # Set loss date if not set
@@ -332,12 +319,11 @@ class ParticipantViewSet(viewsets.ModelViewSet):
                 note = True
 
             print("SAE {} continue {}".format(loss_date, receive_sms))
-            instance.set_status(status, comment=comment, note=note, user=request.user)
+            instance.set_status(preg_status, comment=comment, note=note, user=request.user)
 
-        elif instance.status == 'other':
+        elif instance.sms_status == 'other':
             comment = "{}\nMessaging changed in web interface by {}".format(reason, request.user.practitioner)
-            status = 'pregnant' if instance.delivery_date is None else 'post'
-            instance.set_status(status, comment=comment)
+            instance.set_status('active', comment=comment)
         else:
             comment = "{}\nStopped in web interface by {}".format(reason, request.user.practitioner)
             instance.set_status('other', comment=comment)

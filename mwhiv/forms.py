@@ -10,6 +10,10 @@ import mwbase.models as mwbase
 import utils.forms as util
 from mwbase.utils import sms_bank
 
+# Swapper Imports
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
+
 class ParticipantAdd(forms.ModelForm):
     phone_number = forms.CharField(label='Phone Number',
                                    widget=forms.TextInput(attrs={'required': 'True', 'placeholder': '07xxxxxxx',
@@ -62,9 +66,10 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Client Information',
                 Div(
-                    Div('nickname', css_class="col-md-4"),
-                    Div('phone_number', css_class="col-md-4"),
-                    Div('birthdate', css_class="col-md-4"),
+                    Div('display_name', css_class="col-md-3"),
+                    Div('sms_name', css_class="col-md-3"),
+                    Div('phone_number', css_class="col-md-3"),
+                    Div('birthdate', css_class="col-md-3"),
                     css_class="row"
                 ),
                 Div(
@@ -113,14 +118,12 @@ class ParticipantAdd(forms.ModelForm):
             })
 
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
-        exclude = ['status', 'facility']
+        model = Participant
+        exclude = ['preg_status', 'facility', 'sms_status']
 
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
-        # TODO: Update this to be dependent on facility of logged in user
             'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
             'ccc_num': forms.TextInput(attrs={'required': True}),
             'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
@@ -128,7 +131,8 @@ class ParticipantAdd(forms.ModelForm):
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
-            'nickname': forms.TextInput(attrs={'required': True}),
+            'sms_name': forms.TextInput(attrs={'required': True}),
+            'display_name': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
             'hiv_disclosed': forms.NullBooleanSelect(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
@@ -138,9 +142,8 @@ class ParticipantAdd(forms.ModelForm):
 
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
-        # todo: can this be changed to a swappable version?
-        model = mwbase.Participant
-        fields = ['send_day', 'send_time', 'due_date', 'art_initiation', 'hiv_messaging', 'hiv_disclosed']
+        model = Participant
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'art_initiation', 'hiv_messaging', 'hiv_disclosed', 'quick_notes']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -152,6 +155,8 @@ class ParticipantUpdate(forms.ModelForm):
 
         self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
+        self.fields['preg_status'].label = 'Pregnancy Status'
+        self.fields['sms_status'].label = 'SMS Status'
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default
         for field in self:
@@ -169,6 +174,5 @@ class ImportXLSXForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.form_action = reverse('admin:smsbank_check_view')
         self.helper.add_input(Submit('submit', 'Check Import'))
-            
+
     file = forms.FileField(label='Import new SMS Bank', required=True)
-        

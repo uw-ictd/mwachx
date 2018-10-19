@@ -120,7 +120,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
     def test_participant_detail(self):
         response = self.client.get(urls.reverse('participant-detail', args=['0001']))
-        self.assertEqual(response.data['nickname'], 'P1 one')
+        self.assertEqual(response.data['display_name'], 'P1 one')
         self.assertEqual(response.data['study_id'], '0001')
 
     def test_pending(self):
@@ -143,7 +143,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
         start_count = Participant.objects.count()
         data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "two-way",
-                "language": "english", "phone_number": "0700000004", "nickname": "Test", "birthdate": "1990-02-05",
+                "language": "english", "phone_number": "0700000004", "display_name": "Test", "birthdate": "1990-02-05",
                 "relationship_status": "single", "due_date": "2016-07-29", "hiv_messaging": "none",
                 "condition": "normal",
                 "clinic_visit": "2016-07-22", "send_day": 0, "send_time": 8}
@@ -157,7 +157,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
         # Check that the participant was created
         self.assertEqual(Participant.objects.count(), start_count + 1)
-        self.assertEqual(new_participant.nickname, 'Test')
+        self.assertEqual(new_participant.display_name, 'Test')
         self.assertEqual(new_participant.facility, self.user.practitioner.facility)
         self.assertEqual(new_participant.phone_number(), "+254700000004")
 
@@ -170,7 +170,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
         start_count = Participant.objects.count()
         data = {"previous_pregnancies": 0, "study_id": "0004", "anc_num": "0004", "study_group": "control",
-                "language": "english", "nickname": "Test", "phone_number": "0700000004", "birthdate": "1990-02-05",
+                "language": "english", "display_name": "Test", "phone_number": "0700000004", "birthdate": "1990-02-05",
                 "relationship_status": "single", "partner_invited": "invited", "due_date": "2016-07-29",
                 "clinic_visit": "2016-07-22", "send_day": 0, "send_time": 8, "hiv_messaging": "none",
                 "condition": "normal"
@@ -185,7 +185,7 @@ class ParticipantSerializerTests(rf_test.APITestCase):
 
         # Check that the participant was created
         self.assertEqual(Participant.objects.count(), start_count + 1)
-        self.assertEqual(new_participant.nickname, 'Test')
+        self.assertEqual(new_participant.display_name, 'Test')
         self.assertEqual(new_participant.facility, self.user.practitioner.facility)
         self.assertEqual(new_participant.phone_number(), "+254700000004")
 

@@ -14,6 +14,8 @@ from django.db import transaction
 from django.conf import settings
 
 import mwbase.models as mwbase
+import swapper
+Participant = swapper.load_model("mwbase", "Participant")
 import utils
 from utils import enums
 
@@ -87,29 +89,30 @@ class Command(BaseCommand):
         # mwbase.Visit.objects.filter(id__in=[d['id__max'] for d in last_visits]).update(arrived=None, skipped=None)
 
     def add_client(self,n,facility=None):
-        status = 'post' if random.random() < .5 else 'pregnant'
+        preg_status = 'post' if random.random() < .5 else 'pregnant'
         new_client = {
             'study_id': f'{n:05d}',
             'anc_num': f'00-{n:05d}',
-            'ccc_num': f'00-{n:05d}',
-            'nickname': f'P-{n:05d}',
+            # 'ccc_num': f'00-{n:05d}', # only if mwachX(HIV)
+            'sms_name': f'SMS-{n:05d}',
+            'display_name': f'P-{n:05d}',
             'birthdate': random_date(self.BDAY_START,self.BDAY_END),
             'study_group':random.choice(enums.GROUP_CHOICES)[0],
             'due_date': random_date( self.DUE_DATE_START,self.DUE_DATE_END),
             'facility':random.choice(enums.FACILITY_CHOICES)[0],
-            'language':random.choice(mwbase.Participant.LANGUAGE_CHOICES)[0],
-            'status':status,
+            'language':random.choice(Participant.LANGUAGE_CHOICES)[0],
+            'preg_status':preg_status,
             'previous_pregnancies':random.randint(0,3),
-            'condition':random.choice(mwbase.Participant.CONDITION_CHOICES)[0],
-            'family_planning':random.choice(mwbase.Participant.FAMILY_PLANNING_CHOICES)[0]
+            'condition':random.choice(Participant.CONDITION_CHOICES)[0],
+            'family_planning':random.choice(Participant.FAMILY_PLANNING_CHOICES)[0]
             }
 
-        participant = mwbase.Participant(**new_client)
+        participant = Participant(**new_client)
         participant.validation_key = participant.get_validation_key()
 
-        if status == 'post':
+        if preg_status == 'post':
             participant.delivery_date = utils.today() - datetime.timedelta(days=random.randint(14,70))
-            participant.delivery_source = random.choice(mwbase.Participant.DELIVERY_SOURCE_CHOICES)[0]
+            participant.delivery_source = random.choice(Participant.DELIVERY_SOURCE_CHOICES)[0]
 
         participant.save()
         connection = mwbase.Connection.objects.create(identity='+2500' + f'{n:08d}', participant=participant, is_primary=True)
@@ -142,7 +145,7 @@ class Command(BaseCommand):
         message = random.choice(self.message_list)[participant.language]
 
         if outgoing is True:
-            message = message.format(name=participant.nickname,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
+            message = message.format(name=participant.sms_name,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
 
         new_message = {
             'text':message,
