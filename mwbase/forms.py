@@ -63,21 +63,15 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Client Information',
                 Div(
-                    Div('display_name', css_class="col-md-3"),
-                    Div('sms_name', css_class="col-md-3"),
-                    Div('phone_number', css_class="col-md-3"),
-                    Div('birthdate', css_class="col-md-3"),
-                    css_class="row"
-                ),
-                Div(
-                    Div('relationship_status', css_class="col-md-4"),
-                    Div('partner_name', css_class="col-md-4"),
-                    Div('previous_pregnancies', css_class="col-md-4"),
+                    Div('display_name', css_class="col-md-4"),
+                    Div('sms_name', css_class="col-md-4"),
+                    Div('phone_number', css_class="col-md-4"),
                     css_class="row"
                 ),
                 Div(
                     Div('language', css_class="col-md-4"),
                     Div('condition', css_class="col-md-4"),
+                    Div('previous_pregnancies', css_class="col-md-4"),
                     css_class="row"
                 ),
             ),
@@ -86,6 +80,8 @@ class ParticipantAdd(forms.ModelForm):
                 'Disclosure and Consent',
                 Div(
                     Div('phone_shared', css_class="col-md-4"),
+                    Div('relationship_status', css_class="col-md-4"),
+                    Div('partner_name', css_class="col-md-4"),
                     css_class="row"
                 )
             ),
@@ -95,6 +91,7 @@ class ParticipantAdd(forms.ModelForm):
                 Div(
                     Div('due_date', css_class="col-md-4"),
                     Div('clinic_visit', css_class="col-md-4"),
+                    Div('birthdate', css_class="col-md-3"),
                     css_class="row"
                 )
             ),
@@ -164,6 +161,5 @@ class ImportXLSXForm(forms.Form):
         self.helper.form_method = 'post'
         self.helper.form_action = reverse('admin:smsbank_check_view')
         self.helper.add_input(Submit('submit', 'Check Import'))
-            
+
     file = forms.FileField(label='Import new SMS Bank', required=True)
-        
