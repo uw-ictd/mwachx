@@ -186,8 +186,8 @@ class Participant(BaseParticipant):
                 send_base = 'loss'
                 send_offset = loss_offset
 
-        return "{send_base}.{group}.{condition}.{hiv}.{send_offset:.0f}".format(
-            group=group, condition=condition, hiv=hiv,
+        return "{send_base}.{group}.{condition}.{hiv}.{second}.{send_offset:.0f}".format(
+            group=group, condition=condition, hiv=hiv, second='Y' if self.second_preg else 'N',
             send_base=send_base, send_offset=send_offset
         )
 
