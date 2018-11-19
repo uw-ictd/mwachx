@@ -16,7 +16,7 @@
 
     mwachxAPI.participants.get($stateParams.study_id).then(function(participant){
       $scope.participant = participant;
-      $scope.messages = $scope.participant.recent_messages;
+      $scope.messages = Restangular.restangularizeCollection($scope.participant,$scope.participant.recent_messages,'message/')
 
       $scope.detailsList      = [
       //  {'label': 'SMS Name',               'value': 'sms_name',},
