@@ -641,4 +641,4 @@ class StatusChange(BaseStatusChange):
 
     class Meta:
         app_label = 'mwbase'
-        swappable = swapper.swappable_setting('mwbase', 'StatusChangeBase')
+        swappable = swapper.swappable_setting('mwbase', 'StatusChange')
