@@ -223,7 +223,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             if message['translation_status'] == 'done':
                 message['translated_text'] = request.data['translated_text']
 
-            if request.data.has_key('reply'):
+            if 'reply' in request.data:
                 message['parent'] = mwbase.Message.objects.get(pk=request.data['reply']['id'])
                 message['parent'].action_time = timezone.now()
 

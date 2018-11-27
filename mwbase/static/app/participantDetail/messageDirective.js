@@ -22,14 +22,15 @@
           }
 
           $scope.dismiss = function() {
-            $scope.message.doPUT($scope.message,'dismiss').then(function(result){
+            console.log($scope.message);
+            $scope.message.doPUT($scope.message,'dismiss/').then(function(result){
               $scope.message.is_pending = false;
             });
           }
 
           $scope.retranslate = function() {
             console.log('retranslate');
-            $scope.message.doPUT($scope.message,'retranslate').then(function(result){
+            $scope.message.doPUT($scope.message,'retranslate/').then(function(result){
               $scope.message.translation_status = 'todo';
             });
           }

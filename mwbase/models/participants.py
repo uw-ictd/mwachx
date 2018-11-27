@@ -613,7 +613,7 @@ class BaseParticipant(TimeStampedModel):
 
 
 class Participant(BaseParticipant):
-    ## only includes base elements and spappable meta
+    ## only includes base elements and swappable meta
     class Meta:
         app_label = 'mwbase'
         swappable = swapper.swappable_setting('mwbase', 'Participant')
@@ -641,4 +641,4 @@ class StatusChange(BaseStatusChange):
 
     class Meta:
         app_label = 'mwbase'
-        swappable = swapper.swappable_setting('mwbase', 'StatusChangeBase')
+        swappable = swapper.swappable_setting('mwbase', 'StatusChange')
