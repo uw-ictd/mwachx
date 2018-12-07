@@ -418,7 +418,7 @@ angular.module('mwachx') .controller('PhoneCallController',
       addCall:function(){
         $scope.participant.post('calls/',$scope.new_call).then(function(response){
           console.log('Post Call',response,$scope.status);
-          participant.calls.push(response)
+          $scope.calls.push(response)
           $scope.status.call_history_open = true;
           console.log($scope.status);
         });
