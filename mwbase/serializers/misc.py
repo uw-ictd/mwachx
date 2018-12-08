@@ -64,6 +64,8 @@ class PendingViewSet(viewsets.ViewSet):
 ########################################
 
 class PhoneCallSerializer(serializers.ModelSerializer):
+    created = serializers.DateField()
+
     class Meta:
         model = mwbase.PhoneCall
         fields = '__all__'
