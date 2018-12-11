@@ -191,6 +191,7 @@ class PhoneCall(TimeStampedModel):
 
     objects = ForUserQuerySet.as_manager()
 
+    created = models.DateField()
     connection = models.ForeignKey(settings.MESSAGING_CONNECTION, models.CASCADE)
     participant = models.ForeignKey(swapper.get_model_name('mwbase', 'Participant'), models.CASCADE)
     admin_user = models.ForeignKey(settings.MESSAGING_ADMIN, models.CASCADE, blank=True, null=True)

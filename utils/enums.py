@@ -1,17 +1,8 @@
-GROUP_CHOICES = (
-    ('control', 'Control'),
-    ('one-way', 'One Way'),
-    ('two-way', 'Two Way'),
-)
+from django.conf import settings
 
-FACILITY_CHOICES = (
-    ('mathare', 'Mathare'),
-    ('bondo', 'Bondo'),
-    ('ahero', 'Ahero'),
-    ('siaya', 'Siaya'),
-    ('rachuonyo', 'Rachuonyo'),
-    ('riruta', 'Riruta'),
-)
+GROUP_CHOICES = settings.GROUP_CHOICES
+
+FACILITY_CHOICES = settings.FACILITY_CHOICES
 
 BOOL_CHOICES = (
 	(True, 'Yes'),
@@ -19,5 +10,5 @@ BOOL_CHOICES = (
 )
 
 
-NO_SMS_STATUS = ('stopped', 'other', 'sae', 'quit')
-NOT_ACTIVE_STATUS = NO_SMS_STATUS + ('completed',)
+NO_SMS_STATUS = settings.NO_SMS_STATUS
+NOT_ACTIVE_STATUS = settings.NOT_ACTIVE_STATUS
