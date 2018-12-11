@@ -22,20 +22,10 @@ from mwbase.serializers import participants
 
 
 class ParticipantSerializer(participants.ParticipantSerializer):
-    hiv_disclosed_display = serializers.SerializerMethodField()
-    hiv_disclosed = serializers.SerializerMethodField()
-    hiv_messaging_display = serializers.CharField(source='get_hiv_messaging_display')
-    hiv_messaging = serializers.CharField()
 
     class Meta:
         model = mwpriya.Participant
         fields = '__all__'
-
-    def get_hiv_disclosed_display(self, obj):
-        return utils.null_boolean_display(obj.hiv_disclosed)
-
-    def get_hiv_disclosed(self, obj):
-        return utils.null_boolean_form_value(obj.hiv_disclosed)
 
 
 #############################################
@@ -70,22 +60,14 @@ class ParticipantViewSet(participants.ParticipantViewSet):
 
     def partial_update(self, request, study_id=None, *args, **kwargs):
         ''' PATCH - partial update a participant '''
-        ### convert returned value to nullabel boolean
-        hiv_disclosed = None
-        if request.data['hiv_disclosed'] == '2':
-            hiv_disclosed = True
-        elif request.data['hiv_disclosed'] == '3':
-            hiv_disclosed = False
 
         instance = self.get_object()
         instance.preg_status = request.data['preg_status']
         instance.sms_status = request.data['sms_status']
         instance.send_time = request.data['send_time']
         instance.send_day = request.data['send_day']
-        instance.art_initiation = utils.angular_datepicker(request.data['art_initiation'])
+        instance.prep_initiation = utils.angular_datepicker(request.data['prep_initiation'])
         instance.due_date = utils.angular_datepicker(request.data['due_date'])
-        instance.hiv_disclosed = hiv_disclosed
-        instance.hiv_messaging = request.data['hiv_messaging']
         instance.quick_notes = request.data['quick_notes']
 
         instance.save()

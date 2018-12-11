@@ -36,7 +36,7 @@ class ParticipantAdd(forms.ModelForm):
         self.fields['birthdate'].widget = util.AngularPopupDatePicker(
             {'required': True, 'datepicker-position-right': True}, max=-5110  # 14 years or older
         )
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
+        self.fields['prep_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['clinic_visit'].widget = util.AngularPopupDatePicker({'required': True}, min=7)
 
         self.helper = FormHelper()
@@ -51,14 +51,8 @@ class ParticipantAdd(forms.ModelForm):
                 'Study Information',
                 Div(
                     Div('study_id', css_class="col-md-4"),
-                    Div('anc_num', css_class="col-md-4"),
-                    Div('study_group', css_class="col-md-4"),
-                    css_class="row"
-                ),
-                Div(
-                    Div('ccc_num', css_class="col-md-4"),
-                    Div('send_day', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
-                    Div('send_time', css_class="col-md-4", ng_if="participant.study_group != 'control'"),
+                    Div('send_day', css_class="col-md-4"),
+                    Div('send_time', css_class="col-md-4"),
                     css_class="row",
                 ),
             ),
@@ -75,7 +69,6 @@ class ParticipantAdd(forms.ModelForm):
                 Div(
                     Div('relationship_status', css_class="col-md-4"),
                     Div('partner_name', css_class="col-md-4"),
-                    Div('previous_pregnancies', css_class="col-md-4"),
                     css_class="row"
                 ),
                 Div(
@@ -88,9 +81,7 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Disclosure and Consent',
                 Div(
-                    Div('hiv_disclosed', css_class="col-md-4"),
                     Div('phone_shared', css_class="col-md-4"),
-                    Div('hiv_messaging', css_class="col-md-4"),
                     css_class="row"
                 )
             ),
@@ -98,7 +89,7 @@ class ParticipantAdd(forms.ModelForm):
             Fieldset(
                 'Important Dates',
                 Div(
-                    Div('art_initiation', css_class="col-md-4"),
+                    Div('prep_initiation', css_class="col-md-4"),
                     Div('due_date', css_class="col-md-4"),
                     Div('clinic_visit', css_class="col-md-4"),
                     css_class="row"
@@ -124,26 +115,20 @@ class ParticipantAdd(forms.ModelForm):
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
-            'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
-            'ccc_num': forms.TextInput(attrs={'required': True}),
-            'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
-            'study_group': forms.Select(attrs={'required': True}),
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
             'sms_name': forms.TextInput(attrs={'required': True}),
             'display_name': forms.TextInput(attrs={'required': True}),
             'language': forms.Select(attrs={'required': True}),
-            'hiv_disclosed': forms.NullBooleanSelect(attrs={'required': True}),
             'phone_shared': forms.NullBooleanSelect(attrs={'required': True}),
-            'hiv_messaging': forms.Select(attrs={'required': True}),
         }
 
 
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'art_initiation', 'hiv_messaging', 'hiv_disclosed', 'quick_notes']
+        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'prep_initiation', 'quick_notes']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -153,7 +138,7 @@ class ParticipantUpdate(forms.ModelForm):
         self.helper.label_class = 'col-lg-4'
         self.helper.field_class = 'col-lg-7'
 
-        self.fields['art_initiation'].widget = util.AngularPopupDatePicker(max=0)
+        self.fields['prep_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
         self.fields['preg_status'].label = 'Pregnancy Status'
         self.fields['sms_status'].label = 'SMS Status'

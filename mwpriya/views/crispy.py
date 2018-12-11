@@ -2,7 +2,7 @@
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
 
-import mwhiv.forms as forms
+import mwpriya.forms as forms
 
 
 @login_required()
