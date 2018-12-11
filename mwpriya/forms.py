@@ -51,6 +51,10 @@ class ParticipantAdd(forms.ModelForm):
                 'Study Information',
                 Div(
                     Div('study_id', css_class="col-md-4"),
+                    Div('anc_num', css_class="col-md-4"),
+                    css_class="row"
+                ),
+                Div(
                     Div('send_day', css_class="col-md-4"),
                     Div('send_time', css_class="col-md-4"),
                     css_class="row",
@@ -74,6 +78,7 @@ class ParticipantAdd(forms.ModelForm):
                 Div(
                     Div('language', css_class="col-md-4"),
                     Div('condition', css_class="col-md-4"),
+                    Div('previous_pregnancies', css_class="col-md-4"),
                     css_class="row"
                 ),
             ),
@@ -115,6 +120,8 @@ class ParticipantAdd(forms.ModelForm):
         widgets = {
             # validation
             'study_id': forms.TextInput(attrs={'ng-pattern': '/^(\d{4}|25\d{6}0)$/', 'required': True}),
+            'anc_num': forms.TextInput(attrs={'ng-pattern': '/^\d{4}|(\d{2,}\/)+\d{2,}$/', 'required': True}),
+            'previous_pregnancies': forms.NumberInput(attrs={'min': '0', 'max': '15'}),
             'send_day': forms.Select(attrs={'required': True}),
             'send_time': forms.Select(attrs={'required': True}),
             'condition': forms.Select(attrs={'required': True}),
@@ -128,7 +135,7 @@ class ParticipantAdd(forms.ModelForm):
 class ParticipantUpdate(forms.ModelForm):
     class Meta:
         model = Participant
-        fields = ['send_day', 'send_time', 'due_date', 'preg_status', 'sms_status', 'prep_initiation', 'quick_notes']
+        fields = ['send_day', 'send_time', 'due_date', 'prep_initiation', 'condition', 'quick_notes']
 
     def __init__(self, *args, **kwargs):
         super(ParticipantUpdate, self).__init__(*args, **kwargs)
@@ -140,8 +147,6 @@ class ParticipantUpdate(forms.ModelForm):
 
         self.fields['prep_initiation'].widget = util.AngularPopupDatePicker(max=0)
         self.fields['due_date'].widget = util.AngularPopupDatePicker(min=3, max=280)
-        self.fields['preg_status'].label = 'Pregnancy Status'
-        self.fields['sms_status'].label = 'SMS Status'
 
         # thank you: http://stackoverflow.com/questions/24663564/django-add-attribute-to-every-field-by-default
         for field in self:
