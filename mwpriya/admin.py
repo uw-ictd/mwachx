@@ -8,7 +8,7 @@ Participant = swapper.load_model("mwbase", "Participant")
 
 admin.site.unregister(AutomatedMessage)
 @admin.register(AutomatedMessage)
-class AutomatedMessageHIVAdmin(AutomatedMessageAdmin):
+class AutomatedMessagePriyaAdmin(AutomatedMessageAdmin):
     smsbank_check_template = "admin/mwpriya/automatedmessagepriya/sms_bank_check.html"
     smsbank_import_template = "admin/mwpriya/automatedmessagepriya/sms_bank_import.html"
     list_filter = ('send_base', 'condition')
