@@ -58,7 +58,7 @@
 
       <table class="details-table table table-condensed">
         <tbody>
-        <tr ng-repeat="detail in detailsList" ng-if="participant[detail.value]">
+        <tr ng-repeat="detail in detailsList" >
           <td>{{detail.label}}</td>
           <td>{{participant[detail.value]}}</td>
         </tr>
