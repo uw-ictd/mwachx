@@ -4,7 +4,7 @@ from django.db import models
 import swapper
 
 import utils.models as utils
-from utils import enums
+from django.conf import settings
 
 
 class AutomatedMessageQuerySetBase(utils.BaseQuerySet):
@@ -129,7 +129,7 @@ class AutomatedMessage(AutomatedMessageBase):
 
     comment = models.TextField(blank=True)
 
-    group = models.CharField(max_length=20, choices=enums.GROUP_CHOICES)  # 2 groups
+    group = models.CharField(max_length=20, choices=settings.GROUP_CHOICES)  # 2 groups
 
     def category(self):
         return "{0.send_base}.{0.group}.{0.condition}".format(self)

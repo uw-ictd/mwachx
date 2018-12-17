@@ -5,7 +5,7 @@
     {{participant.display_name}}
   </span>
   <small><strong ng-class="participant.status == 'post' || participant.status == 'pregnant' ? 'text-info' : 'text-danger'">
-    {{participant.status_display}}
+    <span ng-if="participant.active">{{participant.status_display}}</span><span ng-if="!participant.active">Inactive</span>
   </strong></small>
   <small><strong>{{participant.study_id}}</strong></small>
   <small>ANC: <strong>{{participant.anc_num}}</strong></small>
@@ -58,7 +58,7 @@
 
       <table class="details-table table table-condensed">
         <tbody>
-        <tr ng-repeat="detail in detailsList" ng-if="participant[detail.value]">
+        <tr ng-repeat="detail in detailsList" >
           <td>{{detail.label}}</td>
           <td>{{participant[detail.value]}}</td>
         </tr>

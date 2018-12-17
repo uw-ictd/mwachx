@@ -16,7 +16,7 @@
 
     mwachxAPI.participants.get($stateParams.study_id).then(function(participant){
       $scope.participant = participant;
-      $scope.messages = $scope.participant.recent_messages;
+      $scope.messages = Restangular.restangularizeCollection($scope.participant,$scope.participant.recent_messages,'message/')
 
       $scope.detailsList      = [
       //  {'label': 'SMS Name',               'value': 'sms_name',},
@@ -117,6 +117,7 @@
             send_day:result.send_day,
             send_time:result.send_time,
             art_initiation:mwachxUtils.convert_form_date(result.art_initiation),
+            prep_initiation:mwachxUtils.convert_form_date(result.prep_initiation),
             due_date:mwachxUtils.convert_form_date(result.due_date),
             hiv_disclosed:result.hiv_disclosed,
             hiv_messaging:result.hiv_messaging,
@@ -418,7 +419,7 @@ angular.module('mwachx') .controller('PhoneCallController',
       addCall:function(){
         $scope.participant.post('calls/',$scope.new_call).then(function(response){
           console.log('Post Call',response,$scope.status);
-          participant.calls.push(response)
+          $scope.calls.push(response)
           $scope.status.call_history_open = true;
           console.log($scope.status);
         });
