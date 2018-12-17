@@ -56,14 +56,8 @@
         </h3>
       </div>
 
-      <table class="details-table table table-condensed">
-        <tbody>
-        <tr ng-repeat="detail in detailsList" >
-          <td>{{detail.label}}</td>
-          <td>{{participant[detail.value]}}</td>
-        </tr>
-        </tbody>
-      </table>
+      <ng-include src="'static/app/participantDetail/participantDetailTable.html'">
+      </ng-include>
     </div>
 
     <div ng-switch on="participant.visits.length" class="panel panel-info">

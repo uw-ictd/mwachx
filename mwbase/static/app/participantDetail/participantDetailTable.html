@@ -1,0 +1,40 @@
+	  <table class="details-table table table-condensed">
+        <tbody>
+	        <tr>
+	          <td>Phone number</td>
+	          <td>{{participant['phone_number']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Estimated Delivery Date</td>
+	          <td>{{participant['due_date']}}</td>
+	        </tr>
+	        <tr ng-if="!participant.is_pregnant">
+	          <td>Delivery Date</td>
+	          <td>{{participant['delivery_date']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Age</td>
+	          <td>{{participant['age']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Send Day</td>
+	          <td>{{participant['send_day_display']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Send Time</td>
+	          <td>{{participant['send_time_display']}}</td>
+	        </tr>
+	        <tr>
+	          <td>SMS Track</td>
+	          <td>{{participant['condition']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Previous pregnancies</td>
+	          <td>{{participant['previous_pregnancies']}}</td>
+	        </tr>
+	        <tr>
+	          <td>Family Planning</td>
+	          <td>{{participant['family_planning']}}</td>
+	        </tr>
+        </tbody>
+      </table>

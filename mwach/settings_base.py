@@ -130,9 +130,11 @@ STATIC_ROOT = os.path.join(PROJECT_ROOT, 'static')
 # various locations.
 STATICFILES_FINDERS = (
     'django.contrib.staticfiles.finders.FileSystemFinder',
-    'django.contrib.staticfiles.finders.AppDirectoriesFinder',
+    # 'django.contrib.staticfiles.finders.AppDirectoriesFinder',
     # 'django.contrib.staticfiles.finders.DefaultStorageFinder',
 )
+
+STATICFILES_DIRS = [f'{PROJECT_ROOT}/mwbase/static']
 
 # CONSTANCE SETUP
 CONSTANCE_BACKEND = 'constance.backends.database.DatabaseBackend'
