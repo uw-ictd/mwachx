@@ -21,7 +21,7 @@ mwbase/static/components.js
 *.map
 
 ignore/
-translations/
+/translations/
 mwach/local_settings.py
 **/commands/tests.py
 
