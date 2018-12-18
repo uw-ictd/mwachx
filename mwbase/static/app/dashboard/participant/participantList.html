@@ -3,8 +3,20 @@
 </alert>
 
 <div class="row vertical-align participant-buttons">
-  <ng-include src="'static/app/dashboard/participant/participantButtons.html'" ng-controller="ParticipantListController" onload="filteredParticipants = filteredParticipants">
-  </ng-include>
+  <div class="col-md-4 col-sm-8"> <h2>
+    <input type="text" ng-model="query.text" placeholder="Search by any field" aria-label="Filter" style="width:100%"/>
+  </h2> </div>
+  <div class="col-md-4 btn-group" role="group" aria-label="Group Filter">
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.control" btn-checkbox>Control</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.one_way" btn-checkbox>One Way</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.two_way" btn-checkbox>Two Way</button>
+  </div>
+
+  <div class="col-md-4 btn-group" role="group" aria-label="Status Filter">
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.pregnant" btn-checkbox>Pregnant</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.post_partum" btn-checkbox>Post-Partum</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.other" btn-checkbox>Other</button>
+  </div>
   <div class="col-md-1" style="text-align:center">
     <h3>Count<br/>{{filteredParticipants.length}}/{{participants.length}}</h3>
   </div>
@@ -64,6 +76,3 @@
       <td>{{participant.next_visit_date}} ({{participant.next_visit_type|capitalize}})</td>
     </tr>
 </table>
-
-<!-- <ng-include src="'static/app/dashboard/participant/participantTable.html'" ng-controller="ParticipantListController">
-</ng-include> -->
