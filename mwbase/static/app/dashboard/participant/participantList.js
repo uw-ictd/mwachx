@@ -22,6 +22,10 @@
             pregnant:function(participant){ return participant.status == 'Pregnant'},
             post_partum:function(participant){ return participant.status == 'Post-Partum'},
             other:function(participant){ return participant.status !== 'Pregnant' && participant.status !== 'Post-Partum'},
+        },
+        active:{
+            true:function(participant){ return participant.active},
+            false:function(participant){ return !participant.active},
         }
       };
 
@@ -48,9 +52,8 @@
       }
 
       $scope.participantFilter = function(participant) {
-
           if ($scope.query.text == '') {
-            var filter_buttons = ['study_group','status'].every( function(query) {
+            var filter_buttons = ['study_group','status', 'active'].every( function(query) {
               return compare_participant(participant,query);
             })
             return filter_buttons;
