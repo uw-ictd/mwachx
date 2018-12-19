@@ -37,8 +37,8 @@
 // *************************************
 
   angular.module('mwachx').controller("MainController",
-    ['$scope','$state','$http','$filter',function($scope,$state,$http,$filter) {
-
+    ['$scope','$state','$http','$filter', 'mwachxDjango',function($scope,$state,$http,$filter,mwachxDjango) {
+      $scope.isAdmin = mwachxDjango.isAdmin;
       angular.extend($scope,{
         date_forward:function(delta){
           delta = delta || 1;

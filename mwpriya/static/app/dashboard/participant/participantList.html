@@ -6,11 +6,12 @@
   <div class="col-md-3 col-sm-8"> <h2>
     <input type="text" ng-model="query.text" placeholder="Search by any field" aria-label="Filter" style="width:100%"/>
   </h2> </div>
-
-  <div class="col-md-3 btn-group" role="group" aria-label="Status Filter">
+  <div class="col-md-2"></div>
+  <div class="col-md-4 btn-group" role="group" aria-label="Status Filter">
     <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.active.true" btn-checkbox>Active</button>
     <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.active.false" btn-checkbox>Other</button>
   </div>
+  <div class="col-md-1"></div>
 
   <div class="col-md-1" style="text-align:center">
     <h3>Count<br/>{{filteredParticipants.length}}/{{participants.length}}</h3>
