@@ -1,17 +1,6 @@
 
-<h1>
-  <span ng-class="participant.status == 'post' ? 'postpartum' : 'pregnant'">
-    <i class="mw" ng-class="participant.status == 'post' ? 'mw-mwach-baby-phone' : 'mw-mwach-phone'" ></i>
-    {{participant.display_name}}
-  </span>
-  <small><strong ng-class="participant.status == 'post' || participant.status == 'pregnant' ? 'text-info' : 'text-danger'">
-    <span ng-if="participant.active">{{participant.status_display}}</span><span ng-if="!participant.active">Inactive</span>
-  </strong></small>
-  <small><strong>{{participant.study_id}}</strong></small>
-  <small>ANC: <strong>{{participant.anc_num}}</strong></small>
-  <small ng-if="participant.ccc_num">CCC: <strong>{{participant.ccc_num}}</strong></small>
-  <small><strong class='text-uppercase'>{{participant.study_group}}</strong></small>
-</h1>
+<ng-include src="'static/app/participantDetail/participantDetailHeader.html'">
+</ng-include>
 
 <div class="row participant-messages">
   <div class="col-md-8">
@@ -56,14 +45,8 @@
         </h3>
       </div>
 
-      <table class="details-table table table-condensed">
-        <tbody>
-        <tr ng-repeat="detail in detailsList" >
-          <td>{{detail.label}}</td>
-          <td>{{participant[detail.value]}}</td>
-        </tr>
-        </tbody>
-      </table>
+      <ng-include src="'static/app/participantDetail/participantDetailTable.html'">
+      </ng-include>
     </div>
 
     <div ng-switch on="participant.visits.length" class="panel panel-info">

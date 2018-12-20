@@ -3,20 +3,16 @@
 </alert>
 
 <div class="row vertical-align participant-buttons">
-  <div class="col-md-4 col-sm-8"> <h2>
+  <div class="col-md-3 col-sm-8"> <h2>
     <input type="text" ng-model="query.text" placeholder="Search by any field" aria-label="Filter" style="width:100%"/>
   </h2> </div>
-  <div class="col-md-4 btn-group" role="group" aria-label="Group Filter">
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.control" btn-checkbox>Control</button>
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.one_way" btn-checkbox>One Way</button>
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.study_group.two_way" btn-checkbox>Two Way</button>
-  </div>
-
+  <div class="col-md-2"></div>
   <div class="col-md-4 btn-group" role="group" aria-label="Status Filter">
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.pregnant" btn-checkbox>Pregnant</button>
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.post_partum" btn-checkbox>Post-Partum</button>
-    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.status.other" btn-checkbox>Other</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.active.true" btn-checkbox>Active</button>
+    <button onclick="this.blur()" type="button" class="btn mw-toggle-btn" ng-disabled="query.text!=''" ng-model="query.active.false" btn-checkbox>Other</button>
   </div>
+  <div class="col-md-1"></div>
+
   <div class="col-md-1" style="text-align:center">
     <h3>Count<br/>{{filteredParticipants.length}}/{{participants.length}}</h3>
   </div>
@@ -35,20 +31,14 @@
 <table class="table table-striped table-hover">
   <thead>
     <tr>
-      <th><a href ng-click="setSort('study_id')">Study ID</a>
-        <span ng-if="query.sortName=='study_id'"><i class='mw' ng-class='getSortClass()'></i></span>
-      </th>
-      <th><a href ng-click="setSort('anc_num')">ANC number</a>
-        <span ng-if="query.sortName=='anc_num'"><i class='mw' ng-class='getSortClass()'></i></span>
-      </th>
       <th><a href ng-click="setSort('display_name')">Name</a>
         <span ng-if="query.sortName=='display_name'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
-      <th><a href ng-click="setSort('study_group')">Study Group</a>
-        <span ng-if="query.sortName=='study_group'"><i class='mw' ng-class='getSortClass()'></i></span>
+      <th><a href ng-click="setSort('study_id')">RAST ID</a>
+        <span ng-if="query.sortName=='study_id'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
-      <th><a href ng-click="setSort('status')">Status</a>
-        <span ng-if="query.sortName=='status'"><i class='mw' ng-class='getSortClass()'></i></span>
+      <th><a href ng-click="setSort('active')">Status</a>
+        <span ng-if="query.sortName=='active'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
       <th><a href ng-click="setSort('study_base_date')">EDD/DD</a>
         <span ng-if="query.sortName=='study_base_date'"><i class='mw' ng-class='getSortClass()'></i></span>
@@ -65,12 +55,10 @@
     <tr class="pointer" ui-sref='participant-details({study_id: participant.study_id})'
       ng-repeat="participant in participants | filter:participantFilter | orderBy:query.sortName:query.sortDirection as filteredParticipants"
     >
-      <td>{{participant.study_id}}</td>
-      <td>{{participant.anc_num}}</td>
       <td>{{participant.display_name}}</td>
-      <td>{{participant.study_group}}</td>
-      <td ng-if="participant.active">{{participant.status}}</td>
-      <td ng-if="!participant.active">Inactive</td>
+      <td>{{participant.study_id}}</td>
+      <td ng-if="participant.active">Active</td>
+      <td ng-if="!participant.active">Other</td>
       <td>{{participant.study_base_date}}</td>
       <td>{{participant.last_msg_client}}</td>
       <td>{{participant.next_visit_date}} ({{participant.next_visit_type|capitalize}})</td>

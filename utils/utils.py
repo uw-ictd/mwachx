@@ -42,7 +42,7 @@ def angular_datepicker(datestr):
 def null_boolean_display(bool_value):
     return {True: 'Yes',
             False: 'No',
-            None: 'Unkown'}.get(bool_value)
+            None: 'Unknown'}.get(bool_value)
 
 
 def null_boolean_form_value(bool_value):

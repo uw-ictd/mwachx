@@ -5,7 +5,8 @@
   <i class="mw"
      ng-class="{'mw-user-md':message.sent_by == 'nurse',
                 'mw-monitor-bdr':message.sent_by == 'system',
-                'mw-mwach-phone':message.sent_by == 'participant'}"></i>
+                'mw-mwach-phone':(message.sent_by == 'participant' && participant.preg_status != 'post'),
+                'mw-mwach-baby-phone':(message.sent_by == 'participant' && participant.preg_status == 'post')}"></i>
 </div>
 
 <div class="message"

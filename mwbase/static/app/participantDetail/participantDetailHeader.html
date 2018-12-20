@@ -1,0 +1,13 @@
+<h1>
+  <span ng-class="participant.preg_status == 'post' ? 'postpartum' : 'pregnant'">
+    <i class="mw" ng-class="participant.preg_status == 'post' ? 'mw-mwach-baby-phone' : 'mw-mwach-phone'" ></i>
+    {{participant.display_name}}
+  </span>
+  <small><strong ng-class="participant.active ? 'text-info' : 'text-danger'">
+    <span ng-if="participant.active">{{participant.status_display}}</span><span ng-if="!participant.active">Inactive</span>
+  </strong></small>
+  <small><strong>{{participant.study_id}}</strong></small>
+  <small>ANC: <strong>{{participant.anc_num}}</strong></small>
+  <small ng-if="participant.ccc_num">CCC: <strong>{{participant.ccc_num}}</strong></small>
+  <small><strong class='text-uppercase'>{{participant.study_group}}</strong></small>
+</h1>
