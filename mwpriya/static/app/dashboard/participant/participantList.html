@@ -37,8 +37,8 @@
       <th><a href ng-click="setSort('study_id')">RAST ID</a>
         <span ng-if="query.sortName=='study_id'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
-      <th><a href ng-click="setSort('active')">Status</a>
-        <span ng-if="query.sortName=='active'"><i class='mw' ng-class='getSortClass()'></i></span>
+      <th><a href ng-click="setSort('status')">Status</a>
+        <span ng-if="query.sortName=='status'"><i class='mw' ng-class='getSortClass()'></i></span>
       </th>
       <th><a href ng-click="setSort('study_base_date')">EDD/DD</a>
         <span ng-if="query.sortName=='study_base_date'"><i class='mw' ng-class='getSortClass()'></i></span>
@@ -57,8 +57,8 @@
     >
       <td>{{participant.display_name}}</td>
       <td>{{participant.study_id}}</td>
-      <td ng-if="participant.active">Active</td>
-      <td ng-if="!participant.active">Other</td>
+      <td ng-if="participant.active != 'sms'">{{participant.status}}</td>
+      <td ng-if="participant.active == 'sms'">{{participant.sms_status}}</td>
       <td>{{participant.study_base_date}}</td>
       <td>{{participant.last_msg_client}}</td>
       <td>{{participant.next_visit_date}} ({{participant.next_visit_type|capitalize}})</td>
