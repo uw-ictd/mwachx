@@ -78,7 +78,7 @@ class VisitViewSet(viewsets.ModelViewSet):
 
         # Make next visit if needed
         next_visit_serialized = None
-        if request.data.has_key('next'):
+        if 'next' in request.data:
             # print( 'Next Visit',request.data['next'] )
             next_visit = instance.participant.visit_set.create(
                 scheduled=utils.angular_datepicker(request.data['next']),
