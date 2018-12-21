@@ -103,11 +103,11 @@
         Notes <span class='badge'>{{participant.note_count}}</span>
       </button>
 
-      <button ng-show="participant.active" class="btn btn-danger"
+      <button ng-show="participant.active == 'active'" class="btn btn-danger"
         tooltip="Stop messaging for {{participant.display_name}}" ng-click="stopMessaging()">
         Stop
       </button>
-      <button ng-hide="participant.active" class="btn btn-danger"
+      <button ng-show="participant.active === 'sms' || participant.active === 'preg'" class="btn btn-danger"
         tooltip="Start messaging for {{participant.display_name}}" ng-click="stopMessaging()">
         Activate
       </button>

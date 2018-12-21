@@ -30,6 +30,7 @@ Participant = swapper.load_model("mwbase", "Participant")
 
 class ParticipantSerializer(serializers.ModelSerializer):
     status_display = serializers.CharField(source='get_preg_status_display')
+    sms_status_display = serializers.CharField(source='get_sms_status_display')
 
     send_time_display = serializers.CharField(source='get_send_time_display')
     send_time = serializers.CharField()
@@ -42,7 +43,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     facility = serializers.CharField(source='get_facility_display')
     age = serializers.CharField(read_only=True)
     is_pregnant = serializers.BooleanField(read_only=True)
-    active = serializers.BooleanField(read_only=True, source='is_active')
+    active = serializers.CharField(read_only=True, source='is_active')
     href = serializers.HyperlinkedIdentityField(view_name='participant-detail', lookup_field='study_id')
     messages_url = serializers.HyperlinkedIdentityField(view_name='participant-messages', lookup_field='study_id')
     visits_url = serializers.HyperlinkedIdentityField(view_name='participant-visits', lookup_field='study_id')
@@ -322,9 +323,11 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             instance.set_status(preg_status, comment=comment, note=note, user=request.user)
 
         elif instance.sms_status == 'other':
+            print(instance.sms_status)
             comment = "{}\nMessaging changed in web interface by {}".format(reason, request.user.practitioner)
             instance.set_status('active', comment=comment)
         else:
+            print(instance.sms_status)
             comment = "{}\nStopped in web interface by {}".format(reason, request.user.practitioner)
             instance.set_status('other', comment=comment)
 
