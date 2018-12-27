@@ -1,4 +1,5 @@
 # Django Imports
+import json
 from django.conf import settings
 from django.contrib.auth.decorators import login_required
 from django.shortcuts import render
@@ -13,5 +14,6 @@ def angular_view(request):
     return render(request, 'app/index.html', context={'config': {
         'SHOW_DATE': FAKE_DATE,
         'user': request.user,
-        'facilities': settings.FACILITY_CHOICES
+        'facilities': settings.FACILITY_CHOICES,
+        'filter_list': settings.FILTER_LIST
     }})

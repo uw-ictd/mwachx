@@ -14,9 +14,14 @@
     <script type="text/javascript">
     angular.module('mwachx').factory('mwachxDjango',function(){
       console.log('django');
+      var filter_list = []
+      {% for item in config.filter_list %}
+      filter_list.push('{{item}}');
+      {% endfor %}
       return {
         isAdmin:'{{config.user.is_superuser|default:""}}',
-        user:'{{config.user.id|default:""}}'
+        user:'{{config.user.id|default:""}}',
+        filter_list: filter_list
       }
     });
     </script>

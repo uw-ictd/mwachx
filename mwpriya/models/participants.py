@@ -24,7 +24,8 @@ class Participant(BaseParticipant):
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
         ('post', 'Post-Partum'),
-        ('loss', 'Loss'),
+        ('loss', 'SAE opt-in'),
+        ('sae', 'SAE opt-out'),
     )
 
     SMS_STATUS_CHOICES = (

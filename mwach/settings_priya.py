@@ -17,3 +17,5 @@ FACILITY_CHOICES = (
     ('migosi', 'Migosi'),
     ('kisumu', 'Kisumu'),
 )
+
+FILTER_LIST = ['active']
