@@ -24,8 +24,8 @@
             other:function(participant){ return participant.status !== 'Pregnant' && participant.status !== 'Post-Partum'},
         },
         active:{
-            true:function(participant){ return participant.active},
-            false:function(participant){ return !participant.active},
+            true:function(participant){ return participant.active == 'active'},
+            false:function(participant){ return participant.active != 'active'},
         }
       };
 

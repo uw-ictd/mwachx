@@ -3,8 +3,8 @@
     <i class="mw" ng-class="participant.preg_status == 'post' ? 'mw-mwach-baby-phone' : 'mw-mwach-phone'" ></i>
     {{participant.display_name}}
   </span>
-  <small><strong ng-class="participant.active ? 'text-info' : 'text-danger'">
-    <span ng-if="participant.active">{{participant.status_display}}</span><span ng-if="!participant.active">Inactive</span>
+  <small><strong ng-class="participant.active == 'active' ? 'text-info' : 'text-danger'">
+    <span ng-if="participant.active != 'sms'">{{participant.status_display}}</span><span ng-if="!participant.active == 'sms'">{{participant.sms_status}}</span>
   </strong></small>
   <small><strong>{{participant.study_id}}</strong></small>
   <small>ANC: <strong>{{participant.anc_num}}</strong></small>

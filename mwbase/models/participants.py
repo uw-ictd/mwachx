@@ -244,8 +244,12 @@ class BaseParticipant(TimeStampedModel):
 
     @property
     def is_active(self):
-        # True if participant is receiving SMS messages
-        return self.preg_status not in enums.NOT_ACTIVE_STATUS and self.sms_status not in enums.NOT_ACTIVE_STATUS
+        active = 'active'
+        if self.preg_status in enums.NOT_ACTIVE_STATUS:
+            active = 'preg'
+        if self.sms_status in enums.NOT_ACTIVE_STATUS:
+            active = 'sms'
+        return active
 
     @property
     def no_sms(self):
