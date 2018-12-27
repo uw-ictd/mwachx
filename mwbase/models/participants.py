@@ -244,6 +244,7 @@ class BaseParticipant(TimeStampedModel):
 
     @property
     def is_active(self):
+        """ Return active or reason not active: {active, preg, sms} """
         active = 'active'
         if self.preg_status in enums.NOT_ACTIVE_STATUS:
             active = 'preg'
