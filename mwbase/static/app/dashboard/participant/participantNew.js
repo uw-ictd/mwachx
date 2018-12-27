@@ -20,6 +20,7 @@
         birthdate:false,
         art_initiation:false,
         due_date:false,
+        prep_initiation:false,
       };
 
       $scope.alerts = [];
@@ -37,6 +38,7 @@
         $scope.participant.birthdate = mwachxUtils.convert_form_date($scope.participant.birthdate );
         $scope.participant.due_date = mwachxUtils.convert_form_date($scope.participant.due_date );
         $scope.participant.art_initiation = mwachxUtils.convert_form_date($scope.participant.art_initiation );
+        $scope.participant.prep_initiation = mwachxUtils.convert_form_date($scope.participant.prep_initiation );
 
         $scope.participant.study_visit = mwachxUtils.convert_form_date($scope.participant.study_visit );
         $scope.participant.clinic_visit = mwachxUtils.convert_form_date($scope.participant.clinic_visit );

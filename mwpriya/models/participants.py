@@ -52,7 +52,7 @@ class Participant(BaseParticipant):
     study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group', default='all', blank=True)
 
     # Optional Medical Informaton
-    prep_initiation = models.DateField(blank=False, null=False, help_text='Date of PrEP Initiation', verbose_name='PrEP Initiation', default=now)
+    prep_initiation = models.DateField(help_text='Date of PrEP Initiation', verbose_name='PrEP Initiation', default=now)
     preg_status = models.CharField(max_length=15, choices=PREG_STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
 
