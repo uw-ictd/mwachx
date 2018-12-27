@@ -12,5 +12,6 @@ def angular_view(request):
     FAKE_DATE = getattr(settings, 'FAKE_DATE', True)
     return render(request, 'app/index.html', context={'config': {
         'SHOW_DATE': FAKE_DATE,
-        'user': request.user
+        'user': request.user,
+        'facilities': settings.FACILITY_CHOICES
     }})

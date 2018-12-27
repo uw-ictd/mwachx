@@ -17,34 +17,6 @@
     mwachxAPI.participants.get($stateParams.study_id).then(function(participant){
       $scope.participant = participant;
       $scope.messages = Restangular.restangularizeCollection($scope.participant,$scope.participant.recent_messages,'message/')
-
-      $scope.detailsList      = [
-      //  {'label': 'SMS Name',               'value': 'sms_name',},
-      //  {'label': 'Display Name',               'value': 'display_name',},
-      //  {'label': 'ANC Number',             'value': 'anc_num',},
-       {'label': 'Phone number',           'value': 'phone_number',},
-      //  {'label': 'Status',                 'value': 'status_display',},
-      //  {'label': 'Study ID',               'value': 'study_id',},
-       {'label': 'Estimated Delivery Date','value': 'due_date',}
-       ];
-
-       if ( !participant.is_pregnant)
-        $scope.detailsList.push({'label':'Delivery Date', 'value':'delivery_date'});
-
-       Array.prototype.push.apply($scope.detailsList,[
-         {'label': 'Age',                    'value': 'age',},
-         {'label': 'Send Day',               'value': 'send_day_display',},
-         {'label': 'Send Time',              'value': 'send_time_display',},
-         {'label': 'SMS Track',              'value': 'condition',},
-         {'label': 'ART Initiation',         'value': 'art_initiation',},
-         {'label': 'Previous pregnancies',   'value': 'previous_pregnancies',},
-         {'label': 'Family Planning',        'value': 'family_planning',},
-         {'label': 'HIV Disclosure',         'value': 'hiv_disclosed_display',},
-         {'label': 'HIV Messaging',          'value': 'hiv_messaging_display',},
-       ]);
-
-       if ( !participant.is_validated)
-        $scope.detailsList.push({'label': 'Confirmation Code',      'value': 'validation_key',});
     }, function(error) {
       console.log('Participant Not Found',error);
       $state.go('participant-list',
