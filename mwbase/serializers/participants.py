@@ -167,6 +167,7 @@ class ParticipantViewSet(viewsets.ModelViewSet):
             return Response(serialized_participant.data)
 
         else:
+            # print(cf.errors.as_json())
             return Response({'errors': json.loads(cf.errors.as_json())})
 
     def partial_update(self, request, study_id=None, *args, **kwargs):
