@@ -11,9 +11,11 @@ MWBASE_AUTOMATEDMESSAGE_MODEL = "mwpriya.AutomatedMessagePriya"
 MWBASE_PARTICIPANT_MODEL = "mwpriya.Participant"
 
 GROUP_CHOICES = (
-	('one-way', 'One Way'),
+	('all', 'All'),
 )
 FACILITY_CHOICES = (
     ('migosi', 'Migosi'),
     ('kisumu', 'Kisumu'),
 )
+
+FILTER_LIST = ['active']

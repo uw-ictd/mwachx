@@ -36,7 +36,7 @@ class ParticipantAdd(forms.ModelForm):
         self.fields['birthdate'].widget = util.AngularPopupDatePicker(
             {'required': True, 'datepicker-position-right': True}, max=-5110  # 14 years or older
         )
-        self.fields['prep_initiation'].widget = util.AngularPopupDatePicker(max=0)
+        self.fields['prep_initiation'].widget = util.AngularPopupDatePicker({'required': True}, max=0)
         self.fields['clinic_visit'].widget = util.AngularPopupDatePicker({'required': True}, min=7)
 
         self.helper = FormHelper()

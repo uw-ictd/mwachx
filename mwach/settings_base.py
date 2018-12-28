@@ -206,3 +206,4 @@ FACILITY_CHOICES = (
 
 NO_SMS_STATUS = ('stopped', 'other', 'sae', 'quit')
 NOT_ACTIVE_STATUS = NO_SMS_STATUS + ('completed',)
+FILTER_LIST = ['study_group', 'status']

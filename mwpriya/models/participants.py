@@ -24,7 +24,8 @@ class Participant(BaseParticipant):
         ('pregnant', 'Pregnant'),
         ('over', 'Post-Date'),
         ('post', 'Post-Partum'),
-        ('loss', 'Loss'),
+        ('loss', 'SAE opt-in'),
+        ('sae', 'SAE opt-out'),
     )
 
     SMS_STATUS_CHOICES = (
@@ -49,10 +50,10 @@ class Participant(BaseParticipant):
     # Study Attributes
     study_id = models.CharField(max_length=10, unique=True, verbose_name='RAST ID', help_text="* Use Barcode Scanner")
     sms_status = models.CharField(max_length=10, choices=SMS_STATUS_CHOICES, default='active', verbose_name='SMS Messaging Status')
-    study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group', default='all')
+    study_group = models.CharField(max_length=10, choices=enums.GROUP_CHOICES, verbose_name='Group', default='all', blank=True)
 
     # Optional Medical Informaton
-    prep_initiation = models.DateField(blank=False, null=False, help_text='Date of PrEP Initiation', verbose_name='PrEP Initiation', default=now)
+    prep_initiation = models.DateField(help_text='Date of PrEP Initiation', verbose_name='PrEP Initiation', default=now)
     preg_status = models.CharField(max_length=15, choices=PREG_STATUS_CHOICES, default='pregnant')
     condition = models.CharField(max_length=15, choices=CONDITION_CHOICES, default='normal')
 
