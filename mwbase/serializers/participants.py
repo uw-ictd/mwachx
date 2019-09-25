@@ -50,7 +50,7 @@ class ParticipantSerializer(serializers.ModelSerializer):
     calls_url = serializers.HyperlinkedIdentityField(view_name='participant-calls', lookup_field='study_id')
     notes_url = serializers.HyperlinkedIdentityField(view_name='participant-notes', lookup_field='study_id')
 
-    recent_messages = MessageSerializer(source='get_recent_messages',many=True)
+    recent_messages = MessageSimpleSerializer(source='get_recent_messages',many=True)
     visits = VisitSimpleSerializer(source='pending_visits', many=True)
 
     phonecall_count = serializers.SerializerMethodField()

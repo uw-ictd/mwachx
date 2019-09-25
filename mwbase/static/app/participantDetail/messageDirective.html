@@ -16,6 +16,14 @@
 
   <div class="msg-header clearfix">
     <strong class="pull-left capitalize">
+      <span ng-switch='message.external_status'>
+        <span ng-switch-when='Success' style='color:#999999'>🗸
+          <span style='position:relative;left:-8px;top:2px'>🗸</span>
+        </span>
+        <span ng-switch-when='Sent' style='color:#999999'>🗸</span>
+        <span ng-switch-when=''></span>
+        <span ng-switch-default style='color:#ff6666'>❌</span>
+      </span>
       {{message.is_outgoing ? message.sent_by : participant.display_name}}
     </strong>
     <div class="pull-right">{{message.created | date:'d MMM yy H:mm':'+0300'}}</div>
@@ -44,6 +52,14 @@
         <button ng-if="message.translation_status == 'done' || message.translation_status == 'none'" ng-click='retranslate()' class="btn btn-xs btn-default" tooltip="Mark for Retranslation">
           <i class="mw mw-redo"></i>
         </button>
+
+        &nbsp; &nbsp;
+        <em>
+          {{message.topic}}
+        </em>
+        <em>
+          {{message.auto}}
+        </em>
 
     </div>
   </div>

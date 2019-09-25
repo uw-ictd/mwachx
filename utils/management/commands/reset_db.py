@@ -147,12 +147,23 @@ class Command(BaseCommand):
         if outgoing is True:
             message = message.format(name=participant.sms_name,nurse='Nurse N',clinic=participant.facility,date='THE DATE',days='2')
 
+        external_status = ''
+        if outgoing:
+            if random.random() < 0.6:
+                external_status = 'Success'
+            elif random.random() < 0.5:
+                external_status = 'Sent'
+            else:
+                external_status = 'Failed'
+
         new_message = {
             'text':message,
             'is_outgoing':outgoing,
             'is_system':system,
             'participant':participant,
             'connection':connection,
+            'auto': 'system.auto.message.Y' if system else '',
+            'external_status': external_status
             # 'created':dateutil.parser.parse(message['date']) + datetime.timedelta(days=365),
         }
         _message = mwbase.Message.objects.create(**new_message)
@@ -252,4 +263,3 @@ def date_range(start_date,end_date):
 
 def random_date(start_date,end_date):
     return random.choice( list( date_range(start_date,end_date) ) )
-
